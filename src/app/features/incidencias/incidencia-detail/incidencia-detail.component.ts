@@ -21,6 +21,7 @@ import {
 import { etiquetaContextoLimpieza } from '../../../core/utils/servicios-habitacion.util';
 import { FechaRoomixPipe } from '../../../shared/pipes/fecha-roomix.pipe';
 import { ConfirmDialogComponent } from '../../../shared/dialogs/confirm-dialog/confirm-dialog.component';
+import { roomixDialogConfig } from '../../../core/config/dialog.config';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 
 @Component({
@@ -149,14 +150,13 @@ export class IncidenciaDetailComponent implements OnInit {
     const inc = this.incidencia();
     if (!inc) return;
     const ref = this.dialog.open(ConfirmDialogComponent, {
+      ...roomixDialogConfig({ width: '440px' }),
       data: {
         title: 'Finalizar incidencia',
         message: '¿Confirmar que el servicio fue completado? La habitación volverá a su estado operativo.',
         confirmLabel: 'Finalizar servicio',
         icon: 'task_alt',
       },
-      width: '440px',
-      maxWidth: '95vw',
     });
     ref.afterClosed().subscribe((ok) => {
       if (!ok) return;
@@ -174,6 +174,7 @@ export class IncidenciaDetailComponent implements OnInit {
     const inc = this.incidencia();
     if (!inc) return;
     const ref = this.dialog.open(ConfirmDialogComponent, {
+      ...roomixDialogConfig({ width: '420px' }),
       data: {
         title: 'Cancelar incidencia',
         message: '¿Cancelar esta incidencia? La habitación no cambiará de estado automáticamente.',
@@ -181,8 +182,6 @@ export class IncidenciaDetailComponent implements OnInit {
         icon: 'cancel',
         warn: true,
       },
-      width: '420px',
-      maxWidth: '95vw',
     });
     ref.afterClosed().subscribe((ok) => {
       if (!ok) return;

@@ -42,7 +42,7 @@
       matInput
       [ngModel]="busqueda()"
       (ngModelChange)="busqueda.set($event)"
-      placeholder="Número, tipo, descripción…"
+      placeholder="Número, huésped, tipo, descripción…"
     />
     @if (busqueda()) {
       <button mat-icon-button matSuffix type="button" (click)="busqueda.set('')" aria-label="Limpiar">
@@ -148,6 +148,13 @@
         <mat-card-content>
           <p class="descripcion">{{ h.descripcion }}</p>
 
+          @if (h.huesped) {
+            <p class="detalle huesped-compacto">
+              <mat-icon>person</mat-icon>
+              {{ h.huesped.nombreCompleto }}
+            </p>
+          }
+
           @if (h.fechaEntrada && h.fechaSalida) {
             <p class="detalle reserva-compacta">
               <mat-icon>event</mat-icon>
@@ -203,6 +210,17 @@
 
           @if (tarjetaExpandidaId() === h.id) {
             <div class="detalles-extra">
+              @if (h.huesped) {
+                <p class="detalle seccion-titulo">Huésped</p>
+                <p class="detalle">
+                  <mat-icon>person</mat-icon>
+                  {{ h.huesped.nombreCompleto }}
+                </p>
+                <p class="detalle muted">
+                  <mat-icon>badge</mat-icon>
+                  {{ h.huesped.numeroDocumento }} · {{ h.huesped.email }} · {{ h.huesped.telefono }}
+                </p>
+              }
               @if (h.fechaEntrada && h.fechaSalida) {
                 <p class="detalle seccion-titulo">Reserva planificada</p>
                 <p class="detalle">

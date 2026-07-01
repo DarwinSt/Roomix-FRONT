@@ -1,3 +1,5 @@
+import type { HuespedResumen } from './huesped.model';
+
 export type EstadoHabitacion = 'LIBRE' | 'RESERVADO' | 'OCUPADO' | 'INHABILITADO';
 
 export type MotivoInhabilitacion = 'POST_CHECKOUT' | 'ADECUACION_PROGRAMADA';
@@ -28,6 +30,7 @@ export interface Habitacion {
   horaRealCheckIn: string | null;
   horaRealCheckOut: string | null;
   motivoInhabilitacion: MotivoInhabilitacion | null;
+  huesped: HuespedResumen | null;
   fechaHoraUltimaActualizacion: string;
 }
 
@@ -39,6 +42,7 @@ export interface HabitacionRequest {
   estado?: EstadoHabitacion;
   fechaEntrada?: string | null;
   fechaSalida?: string | null;
+  huespedId?: number | null;
 }
 
 export interface ActualizarEstadoRequest {
@@ -46,6 +50,7 @@ export interface ActualizarEstadoRequest {
   fechaEntrada?: string | null;
   fechaSalida?: string | null;
   motivoInhabilitacion?: MotivoInhabilitacion | null;
+  huespedId?: number | null;
 }
 
 export const ESTADOS_HABITACION: { value: EstadoHabitacion; label: string }[] = [

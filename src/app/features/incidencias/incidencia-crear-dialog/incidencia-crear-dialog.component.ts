@@ -34,6 +34,7 @@ export interface IncidenciaCrearDialogData {
 
 @Component({
   selector: 'app-incidencia-crear-dialog',
+  host: { class: 'roomix-dialog-shell' },
   imports: [
     FormsModule,
     MatDialogModule,

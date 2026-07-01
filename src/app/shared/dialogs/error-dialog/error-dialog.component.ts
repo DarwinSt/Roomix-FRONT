@@ -10,36 +10,34 @@ export interface ErrorDialogData {
 
 @Component({
   selector: 'app-error-dialog',
+  host: { class: 'roomix-dialog-shell' },
   imports: [MatDialogModule, MatButtonModule, MatIconModule],
   template: `
-    <div class="error-dialog">
-      <h2 mat-dialog-title>
-        <mat-icon class="icono-error" aria-hidden="true">error_outline</mat-icon>
-        <span>{{ data.title ?? 'Error' }}</span>
-      </h2>
-      <mat-dialog-content>
-        <p class="mensaje">{{ data.message }}</p>
-      </mat-dialog-content>
-      <mat-dialog-actions align="end">
-        <button mat-flat-button color="primary" mat-dialog-close autofocus>Cerrar</button>
-      </mat-dialog-actions>
+    <div class="dialog-accent error-accent" aria-hidden="true"></div>
+
+    <div mat-dialog-title class="dialog-header">
+      <div class="header-icon error-icon">
+        <mat-icon aria-hidden="true">error_outline</mat-icon>
+      </div>
+      <div class="header-text">
+        <h2>{{ data.title ?? 'Error' }}</h2>
+      </div>
     </div>
+    <mat-dialog-content>
+      <p class="mensaje">{{ data.message }}</p>
+    </mat-dialog-content>
+    <mat-dialog-actions align="end">
+      <button mat-flat-button color="primary" mat-dialog-close autofocus>Cerrar</button>
+    </mat-dialog-actions>
   `,
   styles: `
-    .error-dialog h2[mat-dialog-title] {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      margin: 0;
-      font-weight: 600;
-      color: var(--roomix-error);
+    .error-accent {
+      background: linear-gradient(90deg, #c62828 0%, #e57373 100%);
     }
 
-    .icono-error {
+    .error-icon {
+      background: rgba(198, 40, 40, 0.12);
       color: var(--roomix-error);
-      font-size: 1.75rem;
-      width: 1.75rem;
-      height: 1.75rem;
     }
 
     .mensaje {

@@ -6,13 +6,16 @@
   </div>
   <div class="header-text">
     <h2>{{ tituloDialogo() }}</h2>
-    @if (habitacionSeleccionada(); as h) {
+        @if (habitacionSeleccionada(); as h) {
       <div class="header-meta">
         <span class="hab-ref">Habitación {{ h.numero }}</span>
         <span class="estado-chip" [class]="meta(h.estado).cssClass">
           <mat-icon>{{ meta(h.estado).icon }}</mat-icon>
           {{ etiquetaHab(h) }}
         </span>
+        @if (h.huesped) {
+          <span class="hab-ref huesped-ref">{{ h.huesped.nombreCompleto }}</span>
+        }
       </div>
     }
   </div>

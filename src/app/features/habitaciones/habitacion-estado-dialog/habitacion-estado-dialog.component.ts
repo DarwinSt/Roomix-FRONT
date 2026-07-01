@@ -22,6 +22,7 @@ import { parsearFechaApi } from '../../../core/utils/date.util';
 
 @Component({
   selector: 'app-habitacion-estado-dialog',
+  host: { class: 'roomix-dialog-shell' },
   imports: [
     ReactiveFormsModule,
     MatDialogModule,

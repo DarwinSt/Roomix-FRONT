@@ -12,6 +12,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { roomixDialogConfig } from '../../../core/config/dialog.config';
 import { HabitacionService } from '../../../core/services/habitacion.service';
 import { IncidenciaService } from '../../../core/services/incidencia.service';
 import { ErrorDialogService } from '../../../core/services/error-dialog.service';
@@ -128,7 +129,9 @@ export class HabitacionesListComponent implements OnInit {
           h.numero.toLowerCase().includes(q) ||
           h.descripcion.toLowerCase().includes(q) ||
           h.tipoHabitacion.toLowerCase().includes(q) ||
-          h.caracteristicas.some((c) => c.toLowerCase().includes(q)),
+          h.caracteristicas.some((c) => c.toLowerCase().includes(q)) ||
+          (h.huesped?.nombreCompleto.toLowerCase().includes(q) ?? false) ||
+          (h.huesped?.numeroDocumento.toLowerCase().includes(q) ?? false),
       );
     }
 
@@ -208,9 +211,8 @@ export class HabitacionesListComponent implements OnInit {
 
   abrirCambioEstado(h: Habitacion): void {
     const ref = this.dialog.open(HabitacionEstadoDialogComponent, {
+      ...roomixDialogConfig({ width: '560px' }),
       data: h,
-      width: '560px',
-      maxWidth: '95vw',
     });
     ref.afterClosed().subscribe((ok) => {
       if (ok) {
@@ -251,14 +253,13 @@ export class HabitacionesListComponent implements OnInit {
     if (!payload) return;
 
     const ref = this.dialog.open(ConfirmDialogComponent, {
+      ...roomixDialogConfig({ width: '460px' }),
       data: {
         title: `Habitación ${h.numero}`,
         message: this.mensajeConfirmacion(h, accion),
         confirmLabel: 'Confirmar',
         icon: accion.icon,
       },
-      width: '460px',
-      maxWidth: '95vw',
     });
 
     ref.afterClosed().subscribe((ok) => {
@@ -274,21 +275,22 @@ export class HabitacionesListComponent implements OnInit {
   }
 
   private mensajeConfirmacion(h: Habitacion, accion: AccionRapida): string {
+    const huesped = h.huesped?.nombreCompleto ?? 'el huésped asignado';
     if (accion.tipo === 'CHECK_OUT') {
       return (
-        `Registrar la salida del huésped en la habitación ${h.numero}.\n\n` +
+        `Registrar la salida de ${huesped} en la habitación ${h.numero}.\n\n` +
         'La habitación quedará INHABILITADA y se creará automáticamente una incidencia de LIMPIEZA.'
       );
     }
     if (accion.tipo === 'CHECK_IN') {
       return (
-        `Registrar la llegada del huésped a la habitación ${h.numero}.\n\n` +
+        `Registrar la llegada de ${huesped} a la habitación ${h.numero}.\n\n` +
         'El estado pasará a OCUPADO.'
       );
     }
     if (accion.tipo === 'CANCELAR_RESERVA') {
       return (
-        `Cancelar la reserva de la habitación ${h.numero}.\n\n` +
+        `Cancelar la reserva de ${huesped} en la habitación ${h.numero}.\n\n` +
         'Volverá a LIBRE y se eliminarán las fechas planificadas.'
       );
     }
@@ -297,9 +299,8 @@ export class HabitacionesListComponent implements OnInit {
 
   abrirReserva(h: Habitacion): void {
     const ref = this.dialog.open(HabitacionReservaDialogComponent, {
+      ...roomixDialogConfig({ width: '480px' }),
       data: h,
-      width: '440px',
-      maxWidth: '95vw',
     });
     ref.afterClosed().subscribe((ok) => {
       if (ok) {
@@ -312,6 +313,7 @@ export class HabitacionesListComponent implements OnInit {
   eliminar(h: Habitacion, event: Event): void {
     event.stopPropagation();
     const ref = this.dialog.open(ConfirmDialogComponent, {
+      ...roomixDialogConfig({ width: '400px' }),
       data: {
         title: 'Eliminar habitación',
         message: `¿Eliminar la habitación ${h.numero}? Esta acción no se puede deshacer.`,
@@ -319,8 +321,6 @@ export class HabitacionesListComponent implements OnInit {
         icon: 'delete',
         warn: true,
       },
-      width: '400px',
-      maxWidth: '95vw',
     });
 
     ref.afterClosed().subscribe((ok) => {
@@ -366,10 +366,8 @@ export class HabitacionesListComponent implements OnInit {
   ): void {
     event.stopPropagation();
     const ref = this.dialog.open(IncidenciaCrearDialogComponent, {
+      ...roomixDialogConfig(),
       data: { habitacion: h, tipoPreseleccionado, contextoLimpieza },
-      width: '520px',
-      maxWidth: '95vw',
-      panelClass: 'roomix-servicio-dialog',
     });
     ref.afterClosed().subscribe((ok) => {
       if (ok) {

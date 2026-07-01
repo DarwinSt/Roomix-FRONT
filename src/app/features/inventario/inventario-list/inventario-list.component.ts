@@ -13,6 +13,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatCardModule } from '@angular/material/card';
 import { FormsModule } from '@angular/forms';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { roomixDialogConfig } from '../../../core/config/dialog.config';
 import { InventarioService } from '../../../core/services/inventario.service';
 import { ErrorDialogService } from '../../../core/services/error-dialog.service';
 import {
@@ -152,7 +153,7 @@ export class InventarioListComponent implements OnInit {
 
   abrirStock(articulo: ArticuloInventario): void {
     const ref = this.dialog.open(StockDialogComponent, {
-      width: '400px',
+      ...roomixDialogConfig({ width: '420px' }),
       data: { articulo },
     });
     ref.afterClosed().subscribe((ok) => {

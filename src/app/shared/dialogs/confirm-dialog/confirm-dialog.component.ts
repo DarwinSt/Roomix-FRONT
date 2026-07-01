@@ -14,16 +14,21 @@ export interface ConfirmDialogData {
 
 @Component({
   selector: 'app-confirm-dialog',
+  host: { class: 'roomix-dialog-shell' },
   imports: [MatDialogModule, MatButtonModule, MatIconModule],
   template: `
-    <h2 mat-dialog-title>
-      @if (data.icon) {
-        <mat-icon class="titulo-icono" [class.warn]="data.warn">{{ data.icon }}</mat-icon>
-      }
-      {{ data.title }}
-    </h2>
+    <div class="dialog-accent" aria-hidden="true"></div>
+
+    <div mat-dialog-title class="dialog-header">
+      <div class="header-icon" [class.warn]="data.warn">
+        <mat-icon>{{ data.icon ?? (data.warn ? 'warning' : 'help_outline') }}</mat-icon>
+      </div>
+      <div class="header-text">
+        <h2>{{ data.title }}</h2>
+      </div>
+    </div>
     <mat-dialog-content>
-      <p>{{ data.message }}</p>
+      <p class="mensaje">{{ data.message }}</p>
     </mat-dialog-content>
     <mat-dialog-actions align="end">
       <button mat-button [mat-dialog-close]="false">{{ data.cancelLabel ?? 'Cancelar' }}</button>
@@ -37,21 +42,12 @@ export interface ConfirmDialogData {
     </mat-dialog-actions>
   `,
   styles: `
-    h2[mat-dialog-title] {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
+    .header-icon.warn {
+      background: rgba(198, 40, 40, 0.12);
+      color: #c62828;
     }
 
-    .titulo-icono {
-      color: var(--accent-200);
-
-      &.warn {
-        color: #c62828;
-      }
-    }
-
-    mat-dialog-content p {
+    .mensaje {
       margin: 0;
       color: var(--text-100);
       line-height: 1.5;

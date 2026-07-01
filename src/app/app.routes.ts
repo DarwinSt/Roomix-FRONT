@@ -102,6 +102,27 @@ export const routes: Routes = [
             (m) => m.PersonalListComponent,
           ),
       },
+      {
+        path: 'huespedes',
+        loadComponent: () =>
+          import('./features/huespedes/huespedes-list/huespedes-list.component').then(
+            (m) => m.HuespedesListComponent,
+          ),
+      },
+      {
+        path: 'huespedes/nuevo',
+        loadComponent: () =>
+          import('./features/huespedes/huesped-form/huesped-form.component').then(
+            (m) => m.HuespedFormComponent,
+          ),
+      },
+      {
+        path: 'huespedes/:id/editar',
+        loadComponent: () =>
+          import('./features/huespedes/huesped-form/huesped-form.component').then(
+            (m) => m.HuespedFormComponent,
+          ),
+      },
     ],
   },
   { path: '**', redirectTo: 'inicio' },

@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
+import { roomixDialogConfig } from '../config/dialog.config';
 import {
   ErrorDialogComponent,
   ErrorDialogData,
@@ -20,9 +21,8 @@ export class ErrorDialogService {
 
   private abrir(data: ErrorDialogData): void {
     this.dialog.open(ErrorDialogComponent, {
+      ...roomixDialogConfig({ width: '440px' }),
       data,
-      width: '440px',
-      maxWidth: '95vw',
       autoFocus: 'first-tabbable',
     });
   }

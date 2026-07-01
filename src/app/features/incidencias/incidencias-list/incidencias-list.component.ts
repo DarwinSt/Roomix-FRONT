@@ -23,6 +23,7 @@ import {
 } from '../../../core/utils/incidencia-progreso.util';
 import { siguienteAccionIncidencia } from '../../../core/utils/incidencia-accion.util';
 import { etiquetaUltimaActualizacion, programarAutoRefresh } from '../../../core/utils/auto-refresh.util';
+import { roomixDialogConfig } from '../../../core/config/dialog.config';
 import { etiquetaContextoLimpieza } from '../../../core/utils/servicios-habitacion.util';
 import { FechaRoomixPipe } from '../../../shared/pipes/fecha-roomix.pipe';
 
@@ -141,10 +142,8 @@ export class IncidenciasListComponent implements OnInit {
 
   abrirCrear(): void {
     const ref = this.dialog.open(IncidenciaCrearDialogComponent, {
+      ...roomixDialogConfig(),
       data: {},
-      width: '520px',
-      maxWidth: '95vw',
-      panelClass: 'roomix-servicio-dialog',
     });
     ref.afterClosed().subscribe((ok) => {
       if (ok) this.cargar(true);

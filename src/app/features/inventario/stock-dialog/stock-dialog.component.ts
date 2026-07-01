@@ -3,6 +3,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -12,20 +13,31 @@ import { ArticuloInventario, TipoMovimientoStock } from '../../../core/models/in
 
 @Component({
   selector: 'app-stock-dialog',
+  host: { class: 'roomix-dialog-shell' },
   imports: [
     ReactiveFormsModule,
     MatDialogModule,
     MatFormFieldModule,
+    MatIconModule,
     MatInputModule,
     MatSelectModule,
     MatButtonModule,
   ],
   template: `
-    <h2 mat-dialog-title>Movimiento de stock</h2>
+    <div class="dialog-accent" aria-hidden="true"></div>
+
+    <div mat-dialog-title class="dialog-header">
+      <div class="header-icon">
+        <mat-icon>inventory_2</mat-icon>
+      </div>
+      <div class="header-text">
+        <h2>Movimiento de stock</h2>
+        <p>{{ data.articulo.nombre }} · Stock actual: {{ data.articulo.cantidad }}</p>
+      </div>
+    </div>
     <mat-dialog-content>
-      <p><strong>{{ data.articulo.nombre }}</strong> — Stock actual: {{ data.articulo.cantidad }}</p>
-      <form [formGroup]="form" class="form-grid">
-        <mat-form-field appearance="outline">
+      <form [formGroup]="form" class="dialog-form-grid">
+        <mat-form-field appearance="outline" class="roomix-dialog-select">
           <mat-label>Tipo</mat-label>
           <mat-select panelClass="roomix-select-panel" formControlName="tipo" placeholder="Seleccionar">
             <mat-option value="ENTRADA">Entrada</mat-option>
@@ -47,10 +59,7 @@ import { ArticuloInventario, TipoMovimientoStock } from '../../../core/models/in
       <button mat-flat-button color="primary" (click)="guardar()" [disabled]="form.invalid">Registrar</button>
     </mat-dialog-actions>
   `,
-  styles: `
-    .form-grid { display: flex; flex-direction: column; gap: 0.5rem; min-width: 280px; }
-    .full { width: 100%; }
-  `,
+  styles: ``,
 })
 export class StockDialogComponent {
   readonly data = inject<{ articulo: ArticuloInventario }>(MAT_DIALOG_DATA);

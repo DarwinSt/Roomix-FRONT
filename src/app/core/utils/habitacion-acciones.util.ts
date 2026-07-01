@@ -10,11 +10,16 @@ export interface PayloadReserva {
   fechaSalida: Date;
 }
 
-export function payloadReservar(fechaEntrada: Date, fechaSalida: Date): ActualizarEstadoRequest {
+export function payloadReservar(
+  fechaEntrada: Date,
+  fechaSalida: Date,
+  huespedId: number,
+): ActualizarEstadoRequest {
   return {
     estado: 'RESERVADO',
     fechaEntrada: formatearFechaIso(fechaEntrada),
     fechaSalida: formatearFechaIso(fechaSalida),
+    huespedId,
   };
 }
 
@@ -41,5 +46,6 @@ export function payloadDesdeTransicion(
     motivoInhabilitacion: motivoInhabilitacion ?? null,
     fechaEntrada: reserva ? formatearFechaIso(reserva.fechaEntrada) : null,
     fechaSalida: reserva ? formatearFechaIso(reserva.fechaSalida) : null,
+    huespedId: null,
   };
 }

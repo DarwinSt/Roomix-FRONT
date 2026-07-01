@@ -1,0 +1,117 @@
+<div class="page-header row">
+  <div>
+    <h1>Huéspedes</h1>
+    <p>Registro de personas que se hospedan en el hotel.</p>
+    @if (etiquetaSync()) {
+      <p class="sync-hint">
+        <mat-icon>sync</mat-icon>
+        {{ etiquetaSync() }}
+      </p>
+    }
+  </div>
+  <a mat-flat-button color="primary" routerLink="/huespedes/nuevo">
+    <mat-icon>person_add</mat-icon>
+    Nuevo huésped
+  </a>
+</div>
+
+@if (!loading()) {
+  <div class="resumen-grid">
+    <mat-card class="resumen-card">
+      <mat-icon>groups</mat-icon>
+      <div>
+        <span class="valor">{{ resumen().total }}</span>
+        <span class="etiqueta">Registrados</span>
+      </div>
+    </mat-card>
+    <mat-card class="resumen-card en-hotel">
+      <mat-icon>hotel</mat-icon>
+      <div>
+        <span class="valor">{{ resumen().enHotel }}</span>
+        <span class="etiqueta">En el hotel</span>
+      </div>
+    </mat-card>
+    <mat-card class="resumen-card disponible">
+      <mat-icon>how_to_reg</mat-icon>
+      <div>
+        <span class="valor">{{ resumen().disponibles }}</span>
+        <span class="etiqueta">Sin habitación</span>
+      </div>
+    </mat-card>
+  </div>
+}
+
+<div class="panel-filtros">
+  <mat-form-field appearance="outline" class="busqueda">
+    <mat-label>Buscar huésped</mat-label>
+    <mat-icon matPrefix>search</mat-icon>
+    <input
+      matInput
+      [ngModel]="busqueda()"
+      (ngModelChange)="busqueda.set($event)"
+      placeholder="Nombre, documento, email, teléfono…"
+    />
+  </mat-form-field>
+  <button mat-stroked-button type="button" (click)="cargar(true)">
+    <mat-icon>refresh</mat-icon>
+    Actualizar
+  </button>
+</div>
+
+@if (loading()) {
+  <div class="loading"><mat-spinner diameter="48" /></div>
+} @else if (huespedes().length === 0) {
+  <div class="empty-state">
+    <mat-icon>person</mat-icon>
+    <h2>Sin huéspedes registrados</h2>
+    <p>Registre al huésped antes de crear una reserva en habitaciones.</p>
+    <a mat-flat-button color="primary" routerLink="/huespedes/nuevo">Registrar huésped</a>
+  </div>
+} @else if (huespedesVisibles().length === 0) {
+  <div class="empty-state">
+    <mat-icon>search_off</mat-icon>
+    <h2>Sin resultados</h2>
+    <p>No hay huéspedes que coincidan con la búsqueda.</p>
+  </div>
+} @else {
+  <div class="huespedes-grid">
+    @for (h of huespedesVisibles(); track h.id) {
+      <mat-card class="huesped-card" [class.en-hotel]="!!h.habitacionActualNumero">
+        <mat-card-header>
+          <mat-icon mat-card-avatar class="avatar">{{ h.habitacionActualNumero ? 'hotel' : 'person' }}</mat-icon>
+          <mat-card-title>{{ h.nombreCompleto }}</mat-card-title>
+          <mat-card-subtitle>{{ documentoCompleto(h) }}</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <p class="contacto">
+            <mat-icon>mail</mat-icon>
+            {{ h.email }}
+          </p>
+          <p class="contacto">
+            <mat-icon>phone</mat-icon>
+            {{ h.telefono }}
+          </p>
+          @if (h.nacionalidad) {
+            <p class="contacto">
+              <mat-icon>public</mat-icon>
+              {{ h.nacionalidad }}
+            </p>
+          }
+          <mat-chip-set>
+            @if (h.habitacionActualNumero) {
+              <mat-chip class="chip-hotel">Hab. {{ h.habitacionActualNumero }}</mat-chip>
+            } @else {
+              <mat-chip class="chip-libre">Disponible para reservar</mat-chip>
+            }
+          </mat-chip-set>
+        </mat-card-content>
+        <mat-card-actions>
+          <a mat-button [routerLink]="['/huespedes', h.id, 'editar']">
+            <mat-icon>edit</mat-icon>
+            Editar
+          </a>
+        </mat-card-actions>
+      </mat-card>
+    }
+  </div>
+}
