@@ -1,0 +1,97 @@
+.panel-progreso,
+.panel-accion,
+.panel-checklist,
+.panel-cierre {
+  margin-bottom: 1rem;
+  border-radius: var(--roomix-radius-lg) !important;
+}
+
+.estado-badge {
+  align-self: center;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  background: rgba(245, 196, 85, 0.28);
+  color: var(--text-strong);
+  font-weight: 600;
+}
+
+.progreso-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.4rem;
+  font-size: 0.9rem;
+}
+
+.progreso-pct {
+  font-weight: 700;
+  color: var(--primary-400);
+}
+
+.progreso-bar {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--bg-200);
+  overflow: hidden;
+}
+
+.progreso-fill {
+  height: 100%;
+  transition: width 0.35s ease;
+
+  &.fill-baja {
+    background: linear-gradient(90deg, #fceabb, #f5c455);
+  }
+
+  &.fill-media {
+    background: linear-gradient(90deg, #f5c455, #eabb3a);
+  }
+
+  &.fill-alta {
+    background: linear-gradient(90deg, #73c088, #397d54);
+  }
+
+  &.fill-completa {
+    background: linear-gradient(90deg, #397d54, #235d3a);
+  }
+}
+
+.hint-progreso {
+  margin: 0.65rem 0 0;
+  font-size: 0.78rem;
+  color: var(--text-200);
+}
+
+.full {
+  width: 100%;
+}
+
+.tarea-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.35rem 0;
+
+  span.completada {
+    text-decoration: line-through;
+    color: var(--text-200);
+  }
+}
+
+.panel-cierre mat-card-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--primary-400);
+
+  mat-icon {
+    color: var(--primary-300);
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
+.acciones-secundarias {
+  margin-top: 0.5rem;
+}

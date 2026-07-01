@@ -1,0 +1,55 @@
+<div class="page-header home-header">
+  <img [src]="logoUrl" alt="Roomix" class="home-logo" />
+  <div>
+    <h1>Bienvenido a Roomix</h1>
+    <p>Gestión de habitaciones e inventario con una interfaz clara y dinámica.</p>
+  </div>
+</div>
+
+<div class="cards">
+  <mat-card>
+    <mat-card-header>
+      <img
+        mat-card-avatar
+        [src]="bedroomIconUrl"
+        alt=""
+        class="module-icon-img"
+        aria-hidden="true"
+      />
+      <mat-card-title>Habitaciones</mat-card-title>
+      <mat-card-subtitle>Estados, reservas y check-in</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-actions>
+      <a mat-flat-button color="primary" routerLink="/habitaciones">Ir al módulo</a>
+    </mat-card-actions>
+  </mat-card>
+
+  <mat-card>
+    <mat-card-header>
+      <img
+        mat-card-avatar
+        [src]="inventoryIconUrl"
+        alt=""
+        class="module-icon-img"
+        aria-hidden="true"
+      />
+      <mat-card-title>Inventario</mat-card-title>
+      <mat-card-subtitle>Artículos, stock y categorías</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-actions>
+      <a mat-flat-button color="primary" routerLink="/inventario">Ver inventario</a>
+      <a mat-button routerLink="/inventario/categorias">Categorías</a>
+    </mat-card-actions>
+  </mat-card>
+
+  <mat-card>
+    <mat-card-header>
+      <mat-icon mat-card-avatar class="module-icon-mat">report_problem</mat-icon>
+      <mat-card-title>Incidencias</mat-card-title>
+      <mat-card-subtitle>Limpieza, asignación y seguimiento</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-actions>
+      <a mat-flat-button color="primary" routerLink="/incidencias">Ver incidencias</a>
+    </mat-card-actions>
+  </mat-card>
+</div>

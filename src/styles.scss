@@ -1,0 +1,206 @@
+@use 'styles/roomix-theme';
+@use '@angular/material' as mat;
+
+html {
+  color-scheme: light;
+
+  @include mat.theme(
+    (
+      color: (
+        primary: mat.$green-palette,
+        tertiary: mat.$green-palette,
+      ),
+      typography: (
+        brand-family: 'Plus Jakarta Sans',
+        plain-family: 'Plus Jakarta Sans',
+        bold-weight: 600,
+        medium-weight: 500,
+        regular-weight: 400,
+      ),
+      density: 0,
+    )
+  );
+
+  @include mat.theme-overrides(
+    (
+      primary: #397d54,
+      on-primary: #ffffff,
+      primary-container: #a8e0b7,
+      on-primary-container: #235d3a,
+      secondary: #f5c455,
+      on-secondary: #4a4a4a,
+      secondary-container: #fff3d0,
+      on-secondary-container: #6b4f00,
+      tertiary: #73c088,
+      on-tertiary: #235d3a,
+      tertiary-container: #fdfbf5,
+      on-tertiary-container: #235d3a,
+      error: #c45c5c,
+      on-error: #ffffff,
+      surface: #fdfbf5,
+      on-surface: #4a4a4a,
+      on-surface-variant: #6b6b6b,
+      surface-container: #e0e0e0,
+      surface-container-low: #fdfbf5,
+      surface-container-high: #a8e0b7,
+      outline: #c8c8c8,
+      outline-variant: #e0e0e0,
+    )
+  );
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  font-family: var(--roomix-font);
+  font-size: 15px;
+  color: var(--text-100);
+  background: var(--roomix-gradient-bg);
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+.page-header h1 {
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.page-header {
+  margin-bottom: 1.5rem;
+
+  h1 {
+    margin: 0 0 0.25rem;
+    font-size: 1.75rem;
+    color: var(--primary-300);
+  }
+
+  p {
+    margin: 0;
+    color: var(--text-200);
+    font-size: 0.95rem;
+  }
+
+  &.row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+}
+
+.hint {
+  color: var(--roomix-text-soft);
+  font-size: 0.9rem;
+}
+
+.loading,
+.empty {
+  text-align: center;
+  padding: 2.5rem;
+  color: var(--text-200);
+}
+
+a {
+  text-decoration: none;
+}
+
+mat-card {
+  border-radius: var(--roomix-radius-lg) !important;
+  border: 1px solid var(--bg-300) !important;
+  box-shadow: var(--roomix-shadow) !important;
+  background: #ffffff !important;
+  color: var(--text-100);
+}
+
+mat-card-title {
+  font-weight: 600 !important;
+  font-size: 1.1rem !important;
+  color: var(--text-100) !important;
+}
+
+mat-card-subtitle {
+  color: var(--text-200) !important;
+}
+
+.table-wrap {
+  background: #ffffff;
+  border: 1px solid var(--bg-300);
+  border-radius: var(--roomix-radius-lg);
+  box-shadow: var(--roomix-shadow);
+}
+
+mat-toolbar.mat-primary.shell-toolbar {
+  display: grid !important;
+  height: var(--shell-header-height, 80px) !important;
+  min-height: var(--shell-header-height, 80px) !important;
+  padding-block: 0 !important;
+  border-bottom: 1px solid var(--bg-300) !important;
+  box-sizing: border-box !important;
+}
+
+mat-toolbar.mat-primary {
+  background-color: #003d4d !important;
+  background: linear-gradient(to right, #003d4d, #00c996) !important;
+  --mat-toolbar-container-background-color: transparent;
+  --mat-toolbar-container-text-color: #ffffff;
+}
+
+.mat-mdc-table {
+  background: transparent;
+  color: var(--text-100);
+}
+
+.mat-mdc-header-row {
+  background: var(--primary-100) !important;
+}
+
+.mat-mdc-header-cell {
+  color: var(--primary-300) !important;
+  font-weight: 600;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.mat-mdc-cell {
+  color: var(--text-100);
+  border-bottom-color: var(--bg-200) !important;
+}
+
+.mat-mdc-row:hover {
+  background: rgba(168, 224, 183, 0.28);
+}
+
+a.mat-mdc-button:not(.mat-primary) {
+  color: var(--primary-300);
+}
+
+.mat-mdc-form-field {
+  --mdc-outlined-text-field-outline-color: var(--bg-300);
+  --mdc-outlined-text-field-hover-outline-color: var(--primary-300);
+  --mdc-outlined-text-field-focus-outline-color: var(--primary-300);
+  --mdc-outlined-text-field-label-text-color: var(--text-200);
+  --mdc-outlined-text-field-input-text-color: var(--text-100);
+  --mat-select-enabled-trigger-text-color: var(--text-100);
+}
+
+.mat-mdc-checkbox {
+  --mdc-checkbox-unselected-icon-color: var(--bg-300);
+  --mdc-checkbox-selected-icon-color: var(--primary-300);
+}
+
+.mat-mdc-chip {
+  --mdc-chip-elevated-container-color: rgba(245, 196, 85, 0.35);
+  --mdc-chip-label-text-color: var(--text-100);
+}
+
+.mat-mdc-unelevated-button.mat-primary,
+.mat-mdc-raised-button.mat-primary {
+  background: var(--roomix-gradient-primary) !important;
+  color: var(--roomix-on-primary) !important;
+}

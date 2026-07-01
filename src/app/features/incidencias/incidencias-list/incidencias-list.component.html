@@ -1,0 +1,101 @@
+<div class="page-header row">
+  <div>
+    <h1>Incidencias</h1>
+    <p>Servicios en habitaciones y zonas comunes del hotel.</p>
+  </div>
+  <div class="header-actions">
+    <button mat-flat-button color="primary" (click)="abrirCrear()">
+      <mat-icon>add</mat-icon>
+      Nueva incidencia
+    </button>
+    <button mat-stroked-button (click)="cargar()">
+      <mat-icon>refresh</mat-icon>
+      Actualizar
+    </button>
+  </div>
+</div>
+
+<div class="panel-filtros">
+  <mat-form-field appearance="outline" class="busqueda">
+    <mat-label>Buscar</mat-label>
+    <mat-icon matPrefix>search</mat-icon>
+    <input
+      matInput
+      [ngModel]="busqueda()"
+      (ngModelChange)="busqueda.set($event)"
+      placeholder="Ubicación, título, personal…"
+    />
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Estado</mat-label>
+    <mat-select [(value)]="filtroEstado" (selectionChange)="cargar()">
+      <mat-option value="">Todos</mat-option>
+      <mat-option value="CREADA">Creada</mat-option>
+      <mat-option value="ASIGNADA">Asignada</mat-option>
+      <mat-option value="EN_PROGRESO">En progreso</mat-option>
+      <mat-option value="FINALIZADA">Finalizada</mat-option>
+      <mat-option value="CANCELADA">Cancelada</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <mat-chip-set>
+    <mat-chip [highlighted]="soloActivas" (click)="soloActivas = true; cargar()">Activas</mat-chip>
+    <mat-chip [highlighted]="!soloActivas" (click)="soloActivas = false; cargar()">Todas</mat-chip>
+  </mat-chip-set>
+</div>
+
+@if (loading()) {
+  <div class="loading"><mat-spinner diameter="48" /></div>
+} @else if (incidenciasVisibles().length === 0) {
+  <div class="empty-state">
+    <mat-icon>report_problem</mat-icon>
+    <h2>Sin incidencias</h2>
+    <p>Cree una incidencia manualmente o desde una habitación (acciones rápidas).</p>
+    <button mat-flat-button color="primary" (click)="abrirCrear()">
+      <mat-icon>add</mat-icon>
+      Nueva incidencia
+    </button>
+  </div>
+} @else {
+  <div class="incidencias-grid">
+    @for (i of incidenciasVisibles(); track i.id) {
+      <mat-card class="incidencia-card">
+        <mat-card-header>
+          <mat-card-title>{{ i.titulo }}</mat-card-title>
+          <mat-card-subtitle>
+            {{ i.ubicacionEtiqueta }} · {{ i.tipo }}
+            @if (i.alcance === 'ZONA_COMUN') {
+              <span class="badge-zona">Zona común</span>
+            }
+          </mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="estado-row">
+            <span class="estado-badge">{{ etiquetaEstado(i.estado) }}</span>
+            @if (i.personalAsignadoNombre) {
+              <span class="personal">{{ i.personalAsignadoNombre }}</span>
+            }
+          </div>
+          <div class="progreso-block">
+            <div class="progreso-header">
+              <span>{{ resumen(i) }}</span>
+              <span class="progreso-pct">{{ progreso(i) }}%</span>
+            </div>
+            <div class="progreso-bar">
+              <div
+                class="progreso-fill"
+                [class]="'fill-' + nivel(progreso(i))"
+                [style.width.%]="progreso(i)"
+              ></div>
+            </div>
+          </div>
+          <p class="fecha">Actualizada {{ i.fechaHoraUltimaActualizacion | fechaRoomix }}</p>
+        </mat-card-content>
+        <mat-card-actions>
+          <a mat-flat-button color="primary" [routerLink]="['/incidencias', i.id]">Gestionar</a>
+        </mat-card-actions>
+      </mat-card>
+    }
+  </div>
+}

@@ -1,0 +1,92 @@
+<div class="page-header">
+  <h1>Cambiar estado</h1>
+  <p>Habitación <strong>{{ habitacion()?.numero }}</strong></p>
+</div>
+
+@if (loading()) {
+  <div class="loading"><mat-spinner diameter="48" /></div>
+} @else if (habitacion(); as h) {
+  <mat-card class="estado-actual-card">
+    <mat-card-content>
+      <span class="label">Estado actual</span>
+      <div class="estado-badge" [class]="meta(h.estado).cssClass">
+        <mat-icon>{{ meta(h.estado).icon }}</mat-icon>
+        <span>{{ etiqueta(h.estado) }}</span>
+      </div>
+      @if (h.motivoInhabilitacion) {
+        <p class="motivo-info">
+          <mat-icon>info</mat-icon>
+          {{ etiquetaMotivo(h.motivoInhabilitacion) }}
+        </p>
+      }
+      @if (h.fechaEntrada && h.fechaSalida) {
+        <p class="reserva-info">
+          Reserva: {{ formatearFecha(h.fechaEntrada) }} → {{ formatearFecha(h.fechaSalida) }}
+          ({{ h.cantidadNoches }} noche(s) · {{ etiquetaReserva(h.estadoReserva) }})
+        </p>
+      }
+      @if (h.horaRealCheckIn) {
+        <p class="reserva-info">Check-in real: {{ h.horaRealCheckIn | fechaRoomix }}</p>
+      }
+    </mat-card-content>
+  </mat-card>
+
+  @if (opcionesPermitidas().length === 0) {
+    <p class="sin-opciones">No hay acciones disponibles para este estado.</p>
+  } @else {
+    <form [formGroup]="form">
+      <h2 class="subtitulo">Seleccione la siguiente acción</h2>
+      <div class="estado-grid">
+        @for (op of opcionesPermitidas(); track op.estadoDestino + (op.motivoInhabilitacion ?? '')) {
+          <button
+            type="button"
+            class="estado-opcion"
+            [class]="op.cssClass"
+            [class.seleccionado]="esSeleccionada(op)"
+            (click)="seleccionarTransicion(op)"
+          >
+            <mat-icon>{{ op.icon }}</mat-icon>
+            <span class="titulo">{{ op.label }}</span>
+            <span class="hint">{{ op.hint }}</span>
+          </button>
+        }
+      </div>
+
+      @if (mostrarFechasReserva()) {
+        <mat-card class="fecha-card">
+          <mat-card-content>
+            <p class="fecha-ayuda">
+              <mat-icon>schedule</mat-icon>
+              Fechas planificadas de la reserva (las noches no cambian con el check-in tardío).
+            </p>
+            <mat-form-field appearance="outline">
+              <mat-label>Fecha de entrada</mat-label>
+              <input matInput [matDatepicker]="pickerEntrada" formControlName="fechaEntrada" />
+              <mat-datepicker-toggle matIconSuffix [for]="pickerEntrada" />
+              <mat-datepicker #pickerEntrada />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Fecha de salida</mat-label>
+              <input matInput [matDatepicker]="pickerSalida" formControlName="fechaSalida" />
+              <mat-datepicker-toggle matIconSuffix [for]="pickerSalida" />
+              <mat-datepicker #pickerSalida />
+            </mat-form-field>
+          </mat-card-content>
+        </mat-card>
+      }
+
+      <div class="acciones">
+        <a mat-button routerLink="/habitaciones">Cancelar</a>
+        <button
+          mat-flat-button
+          color="primary"
+          type="button"
+          (click)="confirmar()"
+          [disabled]="saving() || !transicionSeleccionada()"
+        >
+          @if (saving()) { Guardando… } @else { Confirmar }
+        </button>
+      </div>
+    </form>
+  }
+}

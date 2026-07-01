@@ -1,0 +1,75 @@
+<div class="page-header">
+  <h1>{{ id ? 'Editar habitación' : 'Nueva habitación' }}</h1>
+</div>
+
+@if (loading()) {
+  <mat-spinner />
+} @else {
+  <mat-card>
+    <mat-card-content>
+      <form [formGroup]="form" (ngSubmit)="guardar()" class="form-grid">
+        <mat-form-field appearance="outline">
+          <mat-label>Número</mat-label>
+          <input matInput formControlName="numero" placeholder="101" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Tipo</mat-label>
+          <mat-select formControlName="tipoHabitacion">
+            @for (t of tipos; track t.value) {
+              <mat-option [value]="t.value">{{ t.label }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Estado</mat-label>
+          <mat-select formControlName="estado">
+            @for (e of opcionesEstado(); track e.estadoDestino + (e.motivoInhabilitacion ?? '')) {
+              <mat-option [value]="e.estadoDestino">{{ e.label }}</mat-option>
+            }
+          </mat-select>
+          <mat-hint>Solo se muestran estados permitidos</mat-hint>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full">
+          <mat-label>Descripción</mat-label>
+          <textarea matInput rows="3" formControlName="descripcion"></textarea>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full">
+          <mat-label>Características (separadas por coma)</mat-label>
+          <input matInput formControlName="caracteristicasTexto" placeholder="WiFi, TV, Minibar" />
+        </mat-form-field>
+
+        @if (mostrarFechasReserva()) {
+          <div class="fecha-block full">
+            <p class="fecha-ayuda">
+              <mat-icon>event</mat-icon>
+              Reserva planificada: las noches no cambian si el huésped llega tarde.
+            </p>
+            <mat-form-field appearance="outline">
+              <mat-label>Fecha de entrada</mat-label>
+              <input matInput [matDatepicker]="pickerEntrada" formControlName="fechaEntrada" />
+              <mat-datepicker-toggle matIconSuffix [for]="pickerEntrada" />
+              <mat-datepicker #pickerEntrada />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Fecha de salida</mat-label>
+              <input matInput [matDatepicker]="pickerSalida" formControlName="fechaSalida" />
+              <mat-datepicker-toggle matIconSuffix [for]="pickerSalida" />
+              <mat-datepicker #pickerSalida />
+            </mat-form-field>
+          </div>
+        }
+
+        <div class="actions full">
+          <a mat-button routerLink="/habitaciones">Cancelar</a>
+          <button mat-flat-button color="primary" type="submit" [disabled]="saving()">
+            @if (saving()) { Guardando… } @else { Guardar }
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+}

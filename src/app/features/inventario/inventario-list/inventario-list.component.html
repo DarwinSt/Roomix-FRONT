@@ -1,0 +1,152 @@
+<div class="page-header row">
+  <div>
+    <h1>Inventario</h1>
+    <p>Vista interactiva de artículos, stock y alertas del hotel.</p>
+  </div>
+  <a mat-flat-button color="primary" routerLink="/inventario/nuevo">
+    <mat-icon>add</mat-icon>
+    Nuevo artículo
+  </a>
+</div>
+
+@if (!loading()) {
+  <div class="resumen-grid">
+    <mat-card class="resumen-card">
+      <mat-icon>inventory_2</mat-icon>
+      <div class="resumen-dato">
+        <span class="valor">{{ resumen().total }}</span>
+        <span class="etiqueta">Artículos visibles</span>
+      </div>
+    </mat-card>
+    <mat-card class="resumen-card alerta" [class.activa]="resumen().stockBajo > 0">
+      <mat-icon>warning_amber</mat-icon>
+      <div class="resumen-dato">
+        <span class="valor">{{ resumen().stockBajo }}</span>
+        <span class="etiqueta">Stock bajo</span>
+      </div>
+    </mat-card>
+    <mat-card class="resumen-card">
+      <mat-icon>category</mat-icon>
+      <div class="resumen-dato">
+        <span class="valor">{{ resumen().categorias }}</span>
+        <span class="etiqueta">Categorías</span>
+      </div>
+    </mat-card>
+  </div>
+}
+
+<div class="panel-filtros">
+  <mat-form-field appearance="outline" class="busqueda">
+    <mat-label>Buscar artículo</mat-label>
+    <mat-icon matPrefix>search</mat-icon>
+    <input
+      matInput
+      [ngModel]="busqueda()"
+      (ngModelChange)="busqueda.set($event)"
+      placeholder="Nombre, descripción, ubicación…"
+    />
+    @if (busqueda()) {
+      <button mat-icon-button matSuffix type="button" (click)="busqueda.set('')" aria-label="Limpiar">
+        <mat-icon>close</mat-icon>
+      </button>
+    }
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="orden">
+    <mat-label>Ordenar por</mat-label>
+    <mat-select [(value)]="orden">
+      <mat-option value="nombre">Nombre (A–Z)</mat-option>
+      <mat-option value="stock-asc">Stock (menor a mayor)</mat-option>
+      <mat-option value="stock-desc">Stock (mayor a menor)</mat-option>
+      <mat-option value="categoria">Categoría</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <mat-checkbox [(ngModel)]="soloStockBajo" (change)="cargar()">Solo stock bajo</mat-checkbox>
+
+  <button mat-stroked-button (click)="cargar()">
+    <mat-icon>refresh</mat-icon>
+    Actualizar
+  </button>
+  <button mat-button (click)="limpiarFiltros()">
+    <mat-icon>filter_alt_off</mat-icon>
+    Limpiar
+  </button>
+</div>
+
+<div class="chips-categorias">
+  <span class="chips-label">Categorías:</span>
+  <mat-chip-set>
+    <mat-chip [highlighted]="filtroCategoriaId === null" (click)="filtrarCategoria(null)">
+      Todas
+    </mat-chip>
+    @for (c of categorias(); track c.id) {
+      <mat-chip [highlighted]="filtroCategoriaId === c.id" (click)="filtrarCategoria(c.id)">
+        <mat-icon matChipAvatar>{{ iconoCat(c.nombre) }}</mat-icon>
+        {{ c.nombre }}
+      </mat-chip>
+    }
+  </mat-chip-set>
+</div>
+
+@if (loading()) {
+  <div class="loading"><mat-spinner diameter="48" /></div>
+} @else if (articulosVisibles().length === 0) {
+  <p class="empty">No hay artículos que coincidan con los filtros.</p>
+} @else {
+  <div class="articulos-grid">
+    @for (a of articulosVisibles(); track a.id) {
+      <mat-card [class]="'articulo-card nivel-' + nivel(a)">
+        <mat-card-header>
+          <mat-icon mat-card-avatar>{{ iconoCat(a.categoria.nombre) }}</mat-icon>
+          <mat-card-title>{{ a.nombre }}</mat-card-title>
+          <mat-card-subtitle>{{ a.categoria.nombre }}</mat-card-subtitle>
+        </mat-card-header>
+
+        <mat-card-content>
+          <p class="descripcion">{{ a.descripcion }}</p>
+
+          <div class="stock-block">
+            <div class="stock-header">
+              <span class="stock-cantidad">{{ a.cantidad }} {{ unidadLabel(a.unidadMedida) }}</span>
+              <span class="stock-badge" [class]="'badge-' + nivel(a)">
+                {{ etiquetaNivel(nivel(a)) }}
+              </span>
+            </div>
+            <div class="stock-bar">
+              <div class="stock-fill" [style.width.%]="porcentaje(a)" [class]="'fill-' + nivel(a)"></div>
+            </div>
+            @if (a.cantidadMinima != null) {
+              <span class="stock-min">Mínimo: {{ a.cantidadMinima }} {{ unidadLabel(a.unidadMedida) }}</span>
+            }
+          </div>
+
+          @if (a.ubicacion) {
+            <p class="detalle">
+              <mat-icon>place</mat-icon>
+              {{ a.ubicacion }}
+            </p>
+          }
+
+          <p class="detalle muted">
+            <mat-icon>update</mat-icon>
+            Actualizado: {{ a.fechaHoraUltimaActualizacion | fechaRoomix }}
+          </p>
+        </mat-card-content>
+
+        <mat-card-actions align="end">
+          <button mat-button (click)="abrirStock(a)">
+            <mat-icon>swap_vert</mat-icon>
+            Movimiento
+          </button>
+          <a mat-icon-button [routerLink]="['/inventario', a.id, 'editar']" matTooltip="Editar">
+            <mat-icon>edit</mat-icon>
+          </a>
+          <button mat-icon-button color="warn" (click)="eliminar(a)" matTooltip="Dar de baja">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </mat-card-actions>
+      </mat-card>
+    }
+  </div>
+}

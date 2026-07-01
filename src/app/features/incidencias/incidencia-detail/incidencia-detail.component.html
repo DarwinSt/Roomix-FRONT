@@ -1,0 +1,113 @@
+@if (loading()) {
+  <div class="loading"><mat-spinner diameter="48" /></div>
+} @else if (incidencia(); as inc) {
+  <div class="page-header row">
+    <div>
+      <a mat-button routerLink="/incidencias"><mat-icon>arrow_back</mat-icon> Incidencias</a>
+      <h1>{{ inc.titulo }}</h1>
+      <p>Habitación {{ inc.habitacionNumero ?? '—' }} · {{ inc.tipo }} · {{ inc.ubicacionEtiqueta }}</p>
+    </div>
+    <span class="estado-badge">{{ etiquetaEstado(inc.estado) }}</span>
+  </div>
+
+  <mat-card class="panel-progreso">
+    <mat-card-content>
+      <div class="progreso-header">
+        <span>{{ resumen(inc) }}</span>
+        <span class="progreso-pct">{{ progreso(inc) }}%</span>
+      </div>
+      <div class="progreso-bar">
+        <div
+          class="progreso-fill"
+          [class]="'fill-' + nivel(progreso(inc))"
+          [style.width.%]="progreso(inc)"
+        ></div>
+      </div>
+      <p class="hint-progreso">
+        25% al asignar personal · 50% al iniciar servicio · avance con checks hasta finalizar
+      </p>
+    </mat-card-content>
+  </mat-card>
+
+  @if (inc.estado === 'CREADA') {
+    <mat-card class="panel-accion">
+      <mat-card-header><mat-card-title>Asignar personal</mat-card-title></mat-card-header>
+      <mat-card-content>
+        <mat-form-field appearance="outline" class="full">
+          <mat-label>Personal</mat-label>
+          <mat-select [(value)]="personalSeleccionado">
+            @for (p of personal(); track p.id) {
+              <mat-option [value]="p.id" [disabled]="p.ocupado">
+                {{ p.nombre }} · {{ p.rol }}
+                @if (p.ocupado) {
+                  (ocupado)
+                }
+              </mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </mat-card-content>
+      <mat-card-actions>
+        <button mat-flat-button color="primary" [disabled]="!personalSeleccionado" (click)="asignar()">
+          Asignar
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  }
+
+  @if (inc.estado === 'ASIGNADA') {
+    <mat-card class="panel-accion">
+      <mat-card-header>
+        <mat-card-title>Iniciar servicio</mat-card-title>
+        <mat-card-subtitle>Asignado a {{ inc.personalAsignadoNombre }}</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-actions>
+        <button mat-flat-button color="primary" (click)="iniciar()">
+          <mat-icon>play_arrow</mat-icon>
+          Iniciar en habitación
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  }
+
+  @if (inc.estado === 'EN_PROGRESO') {
+    <mat-card class="panel-checklist">
+      <mat-card-header>
+        <mat-card-title>Checklist de servicio</mat-card-title>
+        <mat-card-subtitle>Marque cada tarea completada</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        @for (t of inc.tareas; track t.id) {
+          <label class="tarea-row">
+            <mat-checkbox [checked]="t.completada" (change)="toggleTarea(t.id, $event.checked)" />
+            <span [class.completada]="t.completada">{{ t.descripcion }}</span>
+          </label>
+        }
+      </mat-card-content>
+      <mat-card-actions>
+        <button mat-flat-button color="primary" (click)="finalizar()">
+          <mat-icon>task_alt</mat-icon>
+          Finalizar servicio
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  }
+
+  @if (inc.estado === 'FINALIZADA' || inc.estado === 'CANCELADA') {
+    <mat-card class="panel-cierre">
+      <mat-card-content>
+        <mat-icon>{{ inc.estado === 'FINALIZADA' ? 'check_circle' : 'cancel' }}</mat-icon>
+        <p>
+          Incidencia {{ inc.estado === 'FINALIZADA' ? 'finalizada' : 'cancelada' }}
+          @if (inc.fechaHoraFinalizacion) {
+            · {{ inc.fechaHoraFinalizacion | fechaRoomix }}
+          }
+        </p>
+      </mat-card-content>
+    </mat-card>
+  } @else {
+    <div class="acciones-secundarias">
+      <button mat-stroked-button color="warn" (click)="cancelar()">Cancelar incidencia</button>
+    </div>
+  }
+}

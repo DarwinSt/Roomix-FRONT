@@ -1,0 +1,113 @@
+.page-header.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.badge-zona {
+  margin-left: 0.35rem;
+  font-size: 0.75rem;
+  opacity: 0.85;
+}
+
+.incidencias-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.incidencia-card {
+  border-radius: var(--roomix-radius-lg) !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--roomix-shadow-hover);
+  }
+}
+
+.estado-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+}
+
+.estado-badge {
+  display: inline-flex;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  background: rgba(245, 196, 85, 0.25);
+  color: var(--text-strong);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.personal {
+  font-size: 0.85rem;
+  color: var(--text-200);
+}
+
+.progreso-block {
+  margin-bottom: 0.65rem;
+}
+
+.progreso-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  color: var(--text-100);
+  margin-bottom: 0.35rem;
+}
+
+.progreso-pct {
+  font-weight: 700;
+  color: var(--primary-400);
+}
+
+.progreso-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--bg-200);
+  overflow: hidden;
+}
+
+.progreso-fill {
+  height: 100%;
+  border-radius: inherit;
+  transition: width 0.35s ease;
+
+  &.fill-baja {
+    background: linear-gradient(90deg, #fceabb, #f5c455);
+  }
+
+  &.fill-media {
+    background: linear-gradient(90deg, #f5c455, #eabb3a);
+  }
+
+  &.fill-alta {
+    background: linear-gradient(90deg, #73c088, #397d54);
+  }
+
+  &.fill-completa {
+    background: linear-gradient(90deg, #397d54, #235d3a);
+  }
+}
+
+.fecha {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--text-200);
+}

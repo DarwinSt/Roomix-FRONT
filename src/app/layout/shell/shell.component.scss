@@ -1,0 +1,170 @@
+.shell-container {
+  height: 100vh;
+  background: transparent;
+  --shell-header-height: 80px;
+}
+
+.shell-sidenav {
+  width: 260px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(6px);
+  border-right: 1px solid var(--bg-300);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--shell-header-height);
+  padding: 0 1.15rem;
+  border-bottom: 1px solid var(--bg-300);
+  background: #ffffff;
+  text-decoration: none;
+  box-sizing: border-box;
+
+  &:hover {
+    opacity: 0.9;
+  }
+}
+
+// Mismo tamaño visual que en la página de inicio (64px alto)
+.brand-logo {
+  display: block;
+  height: 64px;
+  width: auto;
+  aspect-ratio: 320 / 274;
+  object-fit: contain;
+  object-position: center;
+}
+
+mat-nav-list {
+  padding: 0.5rem 0.5rem 0;
+}
+
+a[mat-list-item] {
+  margin: 0.1rem 0;
+  border-radius: 8px;
+  border: 1.5px solid transparent;
+  box-sizing: border-box;
+  color: var(--text-100);
+
+  mat-icon {
+    color: var(--primary-300);
+  }
+}
+
+.nav-custom-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  object-fit: contain;
+  flex-shrink: 0;
+  border-radius: 6px;
+}
+
+a[mat-list-item].active {
+  background: linear-gradient(
+    to right,
+    #ffffff 0%,
+    #fffaf2 22%,
+    #fceabb 48%,
+    #f5c455 72%,
+    #d4a017 100%
+  ) !important;
+  border-color: var(--accent-200);
+  color: var(--text-strong) !important;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(212, 160, 23, 0.25);
+
+  mat-icon {
+    color: var(--text-strong) !important;
+  }
+}
+
+.sidenav-footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  padding: 1rem 1.15rem;
+  color: var(--text-200);
+  border-top: 1px solid var(--bg-300);
+  background: #ffffff;
+  box-sizing: border-box;
+
+  small {
+    font-size: 0.72rem;
+  }
+}
+
+.shell-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.75rem;
+  height: var(--shell-header-height);
+  min-height: var(--shell-header-height);
+  padding: 0 1rem !important;
+  border-bottom: 1px solid var(--bg-300);
+  box-sizing: border-box;
+
+  .toolbar-leading {
+    display: flex;
+    align-items: center;
+    justify-self: start;
+    gap: 0.25rem;
+    min-height: 40px;
+  }
+
+  .toolbar-title {
+    justify-self: center;
+    text-align: center;
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--roomix-on-primary);
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+
+  .toolbar-trailing {
+    display: flex;
+    align-items: center;
+    justify-self: end;
+  }
+
+  a[mat-button] {
+    color: #ffffff;
+    font-weight: 500;
+
+    &:hover {
+      color: var(--primary-400);
+      background: rgba(255, 255, 255, 0.12);
+    }
+  }
+}
+
+// logo-roomix-icon.png — 128×101
+.toolbar-logo {
+  display: none;
+  height: 34px;
+  width: auto;
+  aspect-ratio: 128 / 101;
+  margin-right: 0.4rem;
+  object-fit: contain;
+  object-position: center;
+  flex-shrink: 0;
+}
+
+.shell-content {
+  padding: 1.5rem 1.75rem;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+@media (max-width: 600px) {
+  .shell-content {
+    padding: 1rem;
+  }
+
+  .toolbar-logo {
+    display: block;
+  }
+}

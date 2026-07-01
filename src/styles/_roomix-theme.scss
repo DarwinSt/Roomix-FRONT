@@ -1,0 +1,54 @@
+// Paleta Roomix — verdes #235D3A · #397D54 · #73C088 · #A8E0B7
+:root {
+  // Escala verde (claro → oscuro)
+  --primary-100: #a8e0b7;
+  --primary-200: #73c088;
+  --primary-300: #397d54;
+  --primary-400: #235d3a;
+
+  // Acentos cálidos (#F5C455 → #D4A017)
+  --accent-100: #f5c455;
+  --accent-200: #d4a017;
+
+  // Detalle / texto
+  --text-100: #4a4a4a;
+  --text-200: #6b6b6b;
+  --text-strong: #235d3a;
+
+  // Fondos (#FDFBF5 → #E0E0E0)
+  --bg-100: #fdfbf5;
+  --bg-200: #e0e0e0;
+  --bg-300: #c8c8c8;
+
+  // Degradados de marca
+  --roomix-gradient-primary: linear-gradient(90deg, #235d3a 0%, #397d54 100%);
+  --roomix-gradient-toolbar: linear-gradient(to right,  #003d4d, #00c996);
+  --roomix-gradient-primary-deep: linear-gradient(90deg, #235d3a 0%, #397d54 100%);
+  --roomix-gradient-primary-soft: linear-gradient(90deg, #73c088 0%, #a8e0b7 100%);
+  --roomix-gradient-bg: linear-gradient(165deg, #fdfbf5 0%, #eef8f1 55%, #e0e0e0 100%);
+  --roomix-gradient-accent: linear-gradient(135deg, #f5c455 0%, #d4a017 100%);
+  --roomix-gradient-detail: linear-gradient(135deg, #4a4a4a 0%, #1a1a1a 100%);
+
+  // Alias en componentes
+  --roomix-primary: var(--primary-300);
+  --roomix-primary-light: var(--primary-100);
+  --roomix-primary-soft: rgba(57, 125, 84, 0.12);
+  --roomix-accent: var(--accent-100);
+  --roomix-accent-dark: var(--accent-200);
+  --roomix-bg: var(--bg-100);
+  --roomix-surface: var(--bg-200);
+  --roomix-surface-elevated: var(--bg-300);
+  --roomix-text: var(--text-100);
+  --roomix-text-muted: var(--text-200);
+  --roomix-text-soft: #8a8a8a;
+  --roomix-border: var(--bg-300);
+  --roomix-shadow: 0 2px 10px rgba(35, 93, 58, 0.08);
+  --roomix-shadow-hover: 0 8px 24px rgba(35, 93, 58, 0.14);
+  --roomix-radius: 10px;
+  --roomix-radius-lg: 12px;
+  --roomix-font: 'Plus Jakarta Sans', 'Segoe UI', system-ui, sans-serif;
+  --roomix-error: #c45c5c;
+  --roomix-error-soft: rgba(196, 92, 92, 0.12);
+  --roomix-toolbar: var(--primary-300);
+  --roomix-on-primary: #ffffff;
+}

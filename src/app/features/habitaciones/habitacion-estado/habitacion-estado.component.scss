@@ -1,0 +1,65 @@
+@use '../habitacion-estados.shared.scss';
+
+.estado-actual-card {
+  margin-bottom: 1.5rem;
+  background: #ffffff !important;
+  border-left: 4px solid var(--accent-100) !important;
+}
+
+.label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-200);
+  font-weight: 600;
+}
+
+.motivo-info,
+.reserva-info {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0.75rem 0 0;
+  color: var(--text-100);
+  font-size: 0.9rem;
+
+  mat-icon {
+    color: var(--primary-300);
+  }
+}
+
+.subtitulo {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--accent-200);
+  margin: 0 0 1rem;
+}
+
+.fecha-card {
+  margin: 1.5rem 0;
+
+  .fecha-ayuda {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-200);
+    font-size: 0.9rem;
+    margin: 0 0 1rem;
+
+    mat-icon {
+      color: var(--accent-200);
+    }
+  }
+}
+
+.acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.sin-opciones {
+  color: var(--text-200);
+  padding: 1rem 0;
+}

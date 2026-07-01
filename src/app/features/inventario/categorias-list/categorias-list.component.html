@@ -1,0 +1,63 @@
+<div class="page-header row">
+  <div>
+    <h1>Categorías de inventario</h1>
+    <p>Clasificación de artículos. Las predefinidas se cargan al iniciar el backend.</p>
+  </div>
+  <a mat-flat-button color="primary" routerLink="/inventario/categorias/nueva">
+    <mat-icon>add</mat-icon>
+    Nueva categoría
+  </a>
+</div>
+
+@if (loading()) {
+  <mat-spinner />
+} @else {
+  <div class="table-wrap">
+    <table mat-table [dataSource]="categorias()">
+      <ng-container matColumnDef="nombre">
+        <th mat-header-cell *matHeaderCellDef>Nombre</th>
+        <td mat-cell *matCellDef="let c"><strong>{{ c.nombre }}</strong></td>
+      </ng-container>
+      <ng-container matColumnDef="descripcion">
+        <th mat-header-cell *matHeaderCellDef>Descripción</th>
+        <td mat-cell *matCellDef="let c">{{ c.descripcion }}</td>
+      </ng-container>
+      <ng-container matColumnDef="ejemplos">
+        <th mat-header-cell *matHeaderCellDef>Ejemplos</th>
+        <td mat-cell *matCellDef="let c" class="ejemplos">{{ c.ejemplosArticulos }}</td>
+      </ng-container>
+      <ng-container matColumnDef="tipo">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let c">
+          @if (c.predefinida) {
+            <mat-chip>Sistema</mat-chip>
+          } @else {
+            <mat-chip color="primary">Personalizada</mat-chip>
+          }
+          @if (!c.activo) {
+            <mat-chip color="warn">Inactiva</mat-chip>
+          }
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="creado">
+        <th mat-header-cell *matHeaderCellDef>Creado</th>
+        <td mat-cell *matCellDef="let c">{{ c.fechaHoraCreacion | fechaRoomix }}</td>
+      </ng-container>
+      <ng-container matColumnDef="acciones">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let c">
+          <a mat-icon-button [routerLink]="['/inventario/categorias', c.id, 'editar']">
+            <mat-icon>edit</mat-icon>
+          </a>
+          @if (!c.predefinida) {
+            <button mat-icon-button color="warn" (click)="eliminar(c)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          }
+        </td>
+      </ng-container>
+      <tr mat-header-row *matHeaderRowDef="columns"></tr>
+      <tr mat-row *matRowDef="let row; columns: columns"></tr>
+    </table>
+  </div>
+}

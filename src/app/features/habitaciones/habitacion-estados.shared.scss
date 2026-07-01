@@ -1,0 +1,107 @@
+// Estados — colores originales (verde / naranja / rojo / azul)
+.estado-libre {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.estado-reservado {
+  background: #fff3e0;
+  color: #ef6c00;
+}
+
+.estado-ocupado {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.estado-inhabilitado {
+  background: #eceff1;
+  color: #455a64;
+}
+
+// Fondos de tarjeta — originales (tinte suave por estado)
+.fondo-estado-libre {
+  background: linear-gradient(160deg, #f1f9f2 0%, #fafcfa 55%, #fff 100%);
+  border: 1px solid rgba(46, 125, 50, 0.15);
+}
+
+.fondo-estado-reservado {
+  background: linear-gradient(160deg, #fff8ef 0%, #fffcf7 55%, #fff 100%);
+  border: 1px solid rgba(239, 108, 0, 0.15);
+}
+
+.fondo-estado-ocupado {
+  background: linear-gradient(160deg, #fff5f5 0%, #fffbfa 55%, #fff 100%);
+  border: 1px solid rgba(198, 40, 40, 0.12);
+}
+
+.fondo-estado-inhabilitado {
+  background: linear-gradient(160deg, #f4f6f7 0%, #fafbfb 55%, #fff 100%);
+  border: 1px solid rgba(69, 90, 100, 0.18);
+}
+
+.estado-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.95rem;
+
+  mat-icon {
+    font-size: 1.35rem;
+    width: 1.35rem;
+    height: 1.35rem;
+  }
+}
+
+.estado-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.estado-opcion {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 1.25rem 1rem;
+  border: 1px solid var(--bg-300);
+  border-radius: var(--roomix-radius-lg);
+  background: #ffffff;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+  text-align: center;
+
+  mat-icon {
+    font-size: 2rem;
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .titulo {
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--text-100);
+  }
+
+  .hint {
+    font-size: 0.8rem;
+    color: var(--text-200);
+    line-height: 1.3;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--roomix-shadow-hover);
+    border-color: var(--accent-100);
+  }
+
+  &.seleccionado {
+    border-color: var(--accent-200);
+    box-shadow: 0 0 0 3px var(--roomix-primary-soft);
+    transform: translateY(-2px);
+  }
+}

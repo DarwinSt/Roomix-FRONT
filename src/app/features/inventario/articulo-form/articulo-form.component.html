@@ -1,0 +1,54 @@
+<div class="page-header">
+  <h1>{{ id ? 'Editar artículo' : 'Nuevo artículo' }}</h1>
+</div>
+
+@if (loading()) {
+  <mat-spinner />
+} @else {
+  <mat-card>
+    <mat-card-content>
+      <form [formGroup]="form" (ngSubmit)="guardar()" class="form-grid">
+        <mat-form-field appearance="outline" class="full">
+          <mat-label>Nombre</mat-label>
+          <input matInput formControlName="nombre" />
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full">
+          <mat-label>Descripción</mat-label>
+          <textarea matInput rows="2" formControlName="descripcion"></textarea>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Categoría</mat-label>
+          <mat-select formControlName="categoriaId">
+            @for (c of categorias(); track c.id) {
+              <mat-option [value]="c.id">{{ c.nombre }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Unidad</mat-label>
+          <mat-select formControlName="unidadMedida">
+            @for (u of unidades; track u.value) {
+              <mat-option [value]="u.value">{{ u.label }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Cantidad</mat-label>
+          <input matInput type="number" formControlName="cantidad" min="0" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Mínimo (alerta)</mat-label>
+          <input matInput type="number" formControlName="cantidadMinima" min="0" />
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full">
+          <mat-label>Ubicación</mat-label>
+          <input matInput formControlName="ubicacion" />
+        </mat-form-field>
+        <div class="actions full">
+          <a mat-button routerLink="/inventario">Cancelar</a>
+          <button mat-flat-button color="primary" type="submit" [disabled]="saving()">Guardar</button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+}

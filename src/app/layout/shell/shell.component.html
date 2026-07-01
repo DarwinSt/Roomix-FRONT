@@ -1,0 +1,61 @@
+<mat-sidenav-container class="shell-container">
+  <mat-sidenav
+    #drawer
+    class="shell-sidenav"
+    [mode]="(isHandset$ | async) ? 'over' : 'side'"
+    [opened]="(isHandset$ | async) === false"
+  >
+    <a class="brand" routerLink="/" aria-label="Roomix — Inicio">
+      <img [src]="logoUrl" alt="Roomix" class="brand-logo" />
+    </a>
+    <mat-nav-list>
+      @for (item of navItems; track item.path) {
+        <a
+          mat-list-item
+          [routerLink]="item.path"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: item.path === '/inventario' }"
+        >
+          @if (item.iconUrl) {
+            <img
+              matListItemIcon
+              [src]="item.iconUrl"
+              alt=""
+              class="nav-custom-icon"
+              aria-hidden="true"
+            />
+          } @else {
+            <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
+          }
+          <span matListItemTitle>{{ item.label }}</span>
+        </a>
+      }
+    </mat-nav-list>
+    <div class="sidenav-footer">
+      <small>Administración hotelera</small>
+    </div>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <mat-toolbar color="primary" class="shell-toolbar">
+      <div class="toolbar-leading">
+        @if (isHandset$ | async) {
+          <button mat-icon-button (click)="drawer.toggle()" aria-label="Menú">
+            <mat-icon>menu</mat-icon>
+          </button>
+        }
+        <img [src]="logoIconUrl" alt="" class="toolbar-logo" aria-hidden="true" />
+      </div>
+      <span class="toolbar-title">Panel Roomix</span>
+      <div class="toolbar-trailing">
+        <a mat-button href="http://localhost:8080/swagger-ui.html" target="_blank" rel="noopener">
+          <mat-icon>api</mat-icon>
+          API Docs
+        </a>
+      </div>
+    </mat-toolbar>
+    <main class="shell-content">
+      <router-outlet />
+    </main>
+  </mat-sidenav-content>
+</mat-sidenav-container>

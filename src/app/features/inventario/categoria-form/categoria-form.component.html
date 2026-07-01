@@ -1,0 +1,41 @@
+<div class="page-header">
+  <h1>{{ id ? 'Editar categoría' : 'Nueva categoría' }}</h1>
+</div>
+
+@if (loading()) {
+  <mat-spinner />
+} @else {
+  <mat-card>
+    <mat-card-content>
+      <form [formGroup]="form" (ngSubmit)="guardar()" class="form-stack">
+        <mat-form-field appearance="outline">
+          <mat-label>Nombre</mat-label>
+          <input matInput formControlName="nombre" placeholder="Spa, Bar, etc." />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Descripción</mat-label>
+          <textarea matInput rows="2" formControlName="descripcion"></textarea>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Ejemplos de artículos</mat-label>
+          <textarea
+            matInput
+            rows="3"
+            formControlName="ejemplosArticulos"
+            placeholder="Liste qué tipo de productos van aquí"
+          ></textarea>
+        </mat-form-field>
+        <mat-checkbox formControlName="activo">Categoría activa</mat-checkbox>
+        <div class="actions">
+          <a mat-button routerLink="/inventario/categorias">Cancelar</a>
+          <button mat-flat-button color="primary" type="submit" [disabled]="saving()">Guardar</button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+}
+
+<style>
+  .form-stack { display: flex; flex-direction: column; gap: 0.25rem; }
+  .actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem; }
+</style>
