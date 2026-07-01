@@ -1,5 +1,5 @@
 import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -52,7 +52,6 @@ import {
 import { TipoIncidencia, ContextoLimpieza } from '../../../core/models/incidencia.model';
 import { formatearFechaDisplay } from '../../../core/utils/date.util';
 import { HabitacionEstadoDialogComponent } from '../habitacion-estado-dialog/habitacion-estado-dialog.component';
-import { HabitacionReservaDialogComponent } from '../habitacion-reserva-dialog/habitacion-reserva-dialog.component';
 import { ConfirmDialogComponent } from '../../../shared/dialogs/confirm-dialog/confirm-dialog.component';
 import { etiquetaUltimaActualizacion, programarAutoRefresh } from '../../../core/utils/auto-refresh.util';
 import { etiquetaEstadoHabitacion, etiquetaContextoLimpieza } from '../../../core/utils/servicios-habitacion.util';
@@ -87,6 +86,7 @@ export class HabitacionesListComponent implements OnInit {
   private readonly errorDialog = inject(ErrorDialogService);
   private readonly dialog = inject(MatDialog);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly estados = ESTADOS_HABITACION;
@@ -297,17 +297,9 @@ export class HabitacionesListComponent implements OnInit {
     return `${accion.label}. ${accion.hint}`;
   }
 
-  abrirReserva(h: Habitacion): void {
-    const ref = this.dialog.open(HabitacionReservaDialogComponent, {
-      ...roomixDialogConfig({ width: '580px' }),
-      data: h,
-    });
-    ref.afterClosed().subscribe((ok) => {
-      if (ok) {
-        this.snackBar.open(`Habitación ${h.numero} reservada`, 'OK', { duration: 3000 });
-        this.cargar(true);
-      }
-    });
+  abrirReserva(h: Habitacion, event?: Event): void {
+    event?.stopPropagation();
+    void this.router.navigate(['/habitaciones', h.id, 'reservar']);
   }
 
   eliminar(h: Habitacion, event: Event): void {
