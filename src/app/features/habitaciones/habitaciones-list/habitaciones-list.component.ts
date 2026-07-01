@@ -1,5 +1,5 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -34,9 +34,9 @@ import {
 import { forkJoin } from 'rxjs';
 import { FechaRoomixPipe } from '../../../shared/pipes/fecha-roomix.pipe';
 import {
-  etiquetaEstado,
   etiquetaMotivoInhabilitacion,
   metaEstado,
+  transicionesDisponibles,
 } from '../../../core/utils/habitacion-estado.util';
 import {
   AccionRapida,
@@ -48,11 +48,13 @@ import {
   payloadCheckIn,
   payloadCheckOut,
 } from '../../../core/utils/habitacion-acciones.util';
-import { TipoIncidencia } from '../../../core/models/incidencia.model';
+import { TipoIncidencia, ContextoLimpieza } from '../../../core/models/incidencia.model';
 import { formatearFechaDisplay } from '../../../core/utils/date.util';
 import { HabitacionEstadoDialogComponent } from '../habitacion-estado-dialog/habitacion-estado-dialog.component';
 import { HabitacionReservaDialogComponent } from '../habitacion-reserva-dialog/habitacion-reserva-dialog.component';
 import { ConfirmDialogComponent } from '../../../shared/dialogs/confirm-dialog/confirm-dialog.component';
+import { etiquetaUltimaActualizacion, programarAutoRefresh } from '../../../core/utils/auto-refresh.util';
+import { etiquetaEstadoHabitacion, etiquetaContextoLimpieza } from '../../../core/utils/servicios-habitacion.util';
 
 type OrdenHabitacion = 'numero' | 'estado' | 'tipo' | 'actualizado-desc';
 
@@ -83,6 +85,8 @@ export class HabitacionesListComponent implements OnInit {
   private readonly snackBar = inject(MatSnackBar);
   private readonly errorDialog = inject(ErrorDialogService);
   private readonly dialog = inject(MatDialog);
+  private readonly route = inject(ActivatedRoute);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly estados = ESTADOS_HABITACION;
   readonly tipos = TIPOS_HABITACION;
@@ -92,6 +96,7 @@ export class HabitacionesListComponent implements OnInit {
   readonly busqueda = signal('');
   readonly filtroEstado = signal<EstadoHabitacion | ''>('');
   readonly tarjetaExpandidaId = signal<number | null>(null);
+  readonly ultimaActualizacion = signal<Date | null>(null);
 
   filtroTipo: TipoHabitacion | '' = '';
   orden: OrdenHabitacion = 'numero';
@@ -143,12 +148,21 @@ export class HabitacionesListComponent implements OnInit {
 
   readonly totalVisible = computed(() => this.habitacionesVisibles().length);
 
+  readonly etiquetaSync = computed(() => etiquetaUltimaActualizacion(this.ultimaActualizacion()));
+
   ngOnInit(): void {
-    this.cargar();
+    this.route.queryParamMap.subscribe((params) => {
+      const estado = params.get('estado') as EstadoHabitacion | null;
+      if (estado && ESTADOS_HABITACION.some((e) => e.value === estado)) {
+        this.filtroEstado.set(estado);
+      }
+      this.cargar(true);
+    });
+    programarAutoRefresh(this.destroyRef, () => this.cargar(false));
   }
 
-  cargar(): void {
-    this.loading.set(true);
+  cargar(mostrarLoading = true): void {
+    if (mostrarLoading) this.loading.set(true);
     forkJoin({
       habitaciones: this.habitacionService.listar(),
       incidencias: this.incidenciaService.listar({ activas: true }),
@@ -163,6 +177,7 @@ export class HabitacionesListComponent implements OnInit {
           map.set(inc.habitacionId, list);
         }
         this.incidenciasPorHabitacion.set(map);
+        this.ultimaActualizacion.set(new Date());
         this.loading.set(false);
       },
       error: (err) => {
@@ -170,6 +185,10 @@ export class HabitacionesListComponent implements OnInit {
         this.errorDialog.mostrarDesdeApi(err);
       },
     });
+  }
+
+  puedeCambiarEstado(h: Habitacion): boolean {
+    return transicionesDisponibles(h).length > 0;
   }
 
   filtrarPorEstado(estado: EstadoHabitacion | ''): void {
@@ -196,7 +215,7 @@ export class HabitacionesListComponent implements OnInit {
     ref.afterClosed().subscribe((ok) => {
       if (ok) {
         this.snackBar.open(`Estado de habitación ${h.numero} actualizado`, 'OK', { duration: 3000 });
-        this.cargar();
+        this.cargar(true);
       }
     });
   }
@@ -214,10 +233,10 @@ export class HabitacionesListComponent implements OnInit {
       case 'RESERVAR':
         this.abrirReserva(h);
         return;
-      case 'GENERAR_INCIDENCIA':
+      case 'SOLICITAR_SERVICIO':
         this.abrirCrearIncidencia(h, event);
         return;
-      case 'ADECUACION':
+      case 'MANTENIMIENTO':
         this.abrirCrearIncidencia(h, event, 'MANTENIMIENTO');
         return;
     }
@@ -234,11 +253,11 @@ export class HabitacionesListComponent implements OnInit {
     const ref = this.dialog.open(ConfirmDialogComponent, {
       data: {
         title: `Habitación ${h.numero}`,
-        message: `${accion.label}. ${accion.hint}`,
+        message: this.mensajeConfirmacion(h, accion),
         confirmLabel: 'Confirmar',
         icon: accion.icon,
       },
-      width: '420px',
+      width: '460px',
       maxWidth: '95vw',
     });
 
@@ -247,11 +266,33 @@ export class HabitacionesListComponent implements OnInit {
       this.habitacionService.actualizarEstado(h.id, payload).subscribe({
         next: () => {
           this.snackBar.open(`Habitación ${h.numero}: ${accion.label}`, 'OK', { duration: 3000 });
-          this.cargar();
+          this.cargar(true);
         },
         error: (err) => this.errorDialog.mostrarDesdeApi(err),
       });
     });
+  }
+
+  private mensajeConfirmacion(h: Habitacion, accion: AccionRapida): string {
+    if (accion.tipo === 'CHECK_OUT') {
+      return (
+        `Registrar la salida del huésped en la habitación ${h.numero}.\n\n` +
+        'La habitación quedará INHABILITADA y se creará automáticamente una incidencia de LIMPIEZA.'
+      );
+    }
+    if (accion.tipo === 'CHECK_IN') {
+      return (
+        `Registrar la llegada del huésped a la habitación ${h.numero}.\n\n` +
+        'El estado pasará a OCUPADO.'
+      );
+    }
+    if (accion.tipo === 'CANCELAR_RESERVA') {
+      return (
+        `Cancelar la reserva de la habitación ${h.numero}.\n\n` +
+        'Volverá a LIBRE y se eliminarán las fechas planificadas.'
+      );
+    }
+    return `${accion.label}. ${accion.hint}`;
   }
 
   abrirReserva(h: Habitacion): void {
@@ -263,7 +304,7 @@ export class HabitacionesListComponent implements OnInit {
     ref.afterClosed().subscribe((ok) => {
       if (ok) {
         this.snackBar.open(`Habitación ${h.numero} reservada`, 'OK', { duration: 3000 });
-        this.cargar();
+        this.cargar(true);
       }
     });
   }
@@ -287,15 +328,15 @@ export class HabitacionesListComponent implements OnInit {
       this.habitacionService.eliminar(h.id).subscribe({
         next: () => {
           this.snackBar.open('Habitación eliminada', 'OK', { duration: 3000 });
-          this.cargar();
+          this.cargar(true);
         },
         error: (err) => this.errorDialog.mostrarDesdeApi(err),
       });
     });
   }
 
-  etiqueta(estado: EstadoHabitacion): string {
-    return etiquetaEstado(estado);
+  etiqueta(h: Habitacion): string {
+    return etiquetaEstadoHabitacion(h);
   }
 
   meta(estado: EstadoHabitacion) {
@@ -314,24 +355,26 @@ export class HabitacionesListComponent implements OnInit {
   formatearFecha = formatearFechaDisplay;
 
   muestraIncidencias(h: Habitacion): boolean {
-    return (
-      h.estado === 'INHABILITADO' ||
-      h.estado === 'OCUPADO' ||
-      this.incidenciasDe(h).length > 0
-    );
+    return this.incidenciasDe(h).length > 0;
   }
 
-  abrirCrearIncidencia(h: Habitacion, event: Event, tipoPreseleccionado?: TipoIncidencia): void {
+  abrirCrearIncidencia(
+    h: Habitacion,
+    event: Event,
+    tipoPreseleccionado?: TipoIncidencia,
+    contextoLimpieza?: ContextoLimpieza,
+  ): void {
     event.stopPropagation();
     const ref = this.dialog.open(IncidenciaCrearDialogComponent, {
-      data: { habitacion: h, tipoPreseleccionado },
-      width: '460px',
+      data: { habitacion: h, tipoPreseleccionado, contextoLimpieza },
+      width: '520px',
       maxWidth: '95vw',
+      panelClass: 'roomix-servicio-dialog',
     });
     ref.afterClosed().subscribe((ok) => {
       if (ok) {
-        this.snackBar.open(`Incidencia creada para habitación ${h.numero}`, 'OK', { duration: 3000 });
-        this.cargar();
+        this.snackBar.open(`Servicio registrado — habitación ${h.numero}`, 'OK', { duration: 3000 });
+        this.cargar(true);
       }
     });
   }
@@ -344,4 +387,5 @@ export class HabitacionesListComponent implements OnInit {
   resumenInc = resumenProgresoIncidencia;
   nivelInc = nivelProgresoIncidencia;
   etiquetaInc = etiquetaEstadoIncidencia;
+  etiquetaContextoLimp = etiquetaContextoLimpieza;
 }

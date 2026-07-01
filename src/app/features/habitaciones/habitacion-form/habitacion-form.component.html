@@ -15,18 +15,28 @@
 
         <mat-form-field appearance="outline">
           <mat-label>Tipo</mat-label>
-          <mat-select formControlName="tipoHabitacion">
+          <mat-select panelClass="roomix-select-panel" formControlName="tipoHabitacion">
             @for (t of tipos; track t.value) {
-              <mat-option [value]="t.value">{{ t.label }}</mat-option>
+              <mat-option [value]="t.value">
+                <span class="roomix-option">
+                  <mat-icon>king_bed</mat-icon>
+                  <span class="roomix-option-label">{{ t.label }}</span>
+                </span>
+              </mat-option>
             }
           </mat-select>
         </mat-form-field>
 
         <mat-form-field appearance="outline">
           <mat-label>Estado</mat-label>
-          <mat-select formControlName="estado">
+          <mat-select panelClass="roomix-select-panel" formControlName="estado">
             @for (e of opcionesEstado(); track e.estadoDestino + (e.motivoInhabilitacion ?? '')) {
-              <mat-option [value]="e.estadoDestino">{{ e.label }}</mat-option>
+              <mat-option [value]="e.estadoDestino">
+                <span class="roomix-option">
+                  <mat-icon>{{ e.icon }}</mat-icon>
+                  <span class="roomix-option-label">{{ e.label }}</span>
+                </span>
+              </mat-option>
             }
           </mat-select>
           <mat-hint>Solo se muestran estados permitidos</mat-hint>

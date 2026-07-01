@@ -1,0 +1,178 @@
+<div class="dialog-accent" aria-hidden="true"></div>
+
+<div mat-dialog-title class="dialog-header">
+  <div class="header-icon">
+    <mat-icon>{{ iconoDialogo() }}</mat-icon>
+  </div>
+  <div class="header-text">
+    <h2>{{ tituloDialogo() }}</h2>
+    @if (habitacionSeleccionada(); as h) {
+      <div class="header-meta">
+        <span class="hab-ref">Habitación {{ h.numero }}</span>
+        <span class="estado-chip" [class]="meta(h.estado).cssClass">
+          <mat-icon>{{ meta(h.estado).icon }}</mat-icon>
+          {{ etiquetaHab(h) }}
+        </span>
+      </div>
+    }
+  </div>
+</div>
+
+<mat-dialog-content>
+  <div class="info-banner">
+    <mat-icon>info</mat-icon>
+    <span>{{ textoHint() }}</span>
+  </div>
+
+  <div class="form-block">
+    @if (!data.habitacion) {
+      <p class="section-label">¿Dónde aplica?</p>
+      <div class="roomix-choice-grid cols-2" role="listbox" aria-label="Alcance del servicio">
+        @for (a of ALCANCES; track a.value) {
+          <button
+            type="button"
+            class="roomix-choice-card"
+            role="option"
+            [class.selected]="alcance === a.value"
+            [attr.aria-selected]="alcance === a.value"
+            (click)="seleccionarAlcance(a.value)"
+          >
+            <mat-icon>{{ a.icon }}</mat-icon>
+            <span class="choice-label">{{ a.label }}</span>
+            @if (a.value === 'HABITACION') {
+              <span class="choice-hint">Servicio en una habitación concreta</span>
+            } @else {
+              <span class="choice-hint">Lobby, piscina u otra área común</span>
+            }
+          </button>
+        }
+      </div>
+    }
+
+    @if (alcance === 'HABITACION') {
+      @if (!data.habitacion) {
+        <p class="section-label">Habitación</p>
+        <mat-form-field appearance="outline" class="full select-roomix">
+          <mat-label>Seleccionar habitación</mat-label>
+          <mat-icon matPrefix>hotel</mat-icon>
+          <mat-select
+            panelClass="roomix-select-panel"
+            [(value)]="habitacionId"
+            (selectionChange)="onHabitacionChange()"
+          >
+            @for (h of habitaciones(); track h.id) {
+              <mat-option [value]="h.id">
+                <span class="roomix-option">
+                  <mat-icon>{{ meta(h.estado).icon }}</mat-icon>
+                  <span class="roomix-option-body">
+                    <span class="roomix-option-label">Habitación {{ h.numero }}</span>
+                    <span class="roomix-option-hint">{{ etiquetaHab(h) }}</span>
+                  </span>
+                </span>
+              </mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      }
+
+      @if (opcionesServicio().length) {
+        <p class="section-label">Tipo de servicio</p>
+        <div class="servicio-grid" role="listbox" aria-label="Tipo de servicio">
+          @for (o of opcionesServicio(); track opcionKey(o)) {
+            <button
+              type="button"
+              class="servicio-card"
+              role="option"
+              [class.selected]="opcionSeleccionadaKey === opcionKey(o)"
+              [attr.aria-selected]="opcionSeleccionadaKey === opcionKey(o)"
+              (click)="seleccionarOpcion(o)"
+            >
+              <mat-icon>{{ o.icon }}</mat-icon>
+              <span class="card-label">{{ o.label }}</span>
+            </button>
+          }
+        </div>
+        @if (opcionActiva(); as op) {
+          <div class="servicio-detalle">
+            <mat-icon>{{ op.icon }}</mat-icon>
+            <span>{{ op.hint }}</span>
+          </div>
+        }
+      }
+    } @else {
+      <mat-form-field appearance="outline" class="full">
+        <mat-label>Ubicación (zona común)</mat-label>
+        <mat-icon matPrefix>place</mat-icon>
+        <input matInput [(ngModel)]="ubicacion" placeholder="Ej. Lobby, Piscina, Pasillo 2..." />
+      </mat-form-field>
+      <p class="section-label">Tipo de servicio</p>
+      <div class="roomix-choice-grid cols-2" role="listbox" aria-label="Tipo en zona común">
+        <button
+          type="button"
+          class="roomix-choice-card"
+          role="option"
+          [class.selected]="tipoZonaComun === 'MANTENIMIENTO'"
+          (click)="tipoZonaComun = 'MANTENIMIENTO'"
+        >
+          <mat-icon>construction</mat-icon>
+          <span class="choice-label">Mantenimiento</span>
+          <span class="choice-hint">Reparación o adecuación</span>
+        </button>
+        <button
+          type="button"
+          class="roomix-choice-card"
+          role="option"
+          [class.selected]="tipoZonaComun === 'OTRO'"
+          (click)="tipoZonaComun = 'OTRO'"
+        >
+          <mat-icon>more_horiz</mat-icon>
+          <span class="choice-label">Otro servicio</span>
+          <span class="choice-hint">Limpieza o pedido adicional</span>
+        </button>
+      </div>
+    }
+
+    @if (tipo === 'MANTENIMIENTO' && alcance === 'HABITACION') {
+      <p class="section-label">Programación</p>
+      <div class="mantenimiento-fechas">
+        <mat-form-field appearance="outline" class="full">
+          <mat-label>Fecha</mat-label>
+          <input matInput [matDatepicker]="pickerProg" [(ngModel)]="fechaProgramada" />
+          <mat-datepicker-toggle matIconSuffix [for]="pickerProg" />
+          <mat-datepicker #pickerProg />
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full">
+          <mat-label>Hora</mat-label>
+          <input matInput type="time" [(ngModel)]="horaProgramada" />
+        </mat-form-field>
+      </div>
+    }
+
+    <mat-form-field appearance="outline" class="full">
+      <mat-label>Notas para el personal (opcional)</mat-label>
+      <textarea
+        matInput
+        rows="3"
+        [(ngModel)]="descripcion"
+        placeholder="Ej. sin gluten, toallas extra, fuga en el baño…"
+      ></textarea>
+    </mat-form-field>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close type="button">Cancelar</button>
+  <button
+    mat-flat-button
+    color="primary"
+    type="button"
+    [disabled]="!puedeCrear() || guardando"
+    (click)="crear()"
+  >
+    @if (guardando) {
+      <mat-spinner diameter="18" />
+    } @else {
+      Enviar solicitud
+    }
+  </button>
+</mat-dialog-actions>

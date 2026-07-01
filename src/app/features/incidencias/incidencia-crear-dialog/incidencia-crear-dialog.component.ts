@@ -12,18 +12,24 @@ import { Habitacion } from '../../../core/models/habitacion.model';
 import {
   ALCANCES_INCIDENCIA,
   AlcanceIncidencia,
-  TIPOS_INCIDENCIA,
+  ContextoLimpieza,
   TipoIncidencia,
 } from '../../../core/models/incidencia.model';
 import { IncidenciaService } from '../../../core/services/incidencia.service';
 import { HabitacionService } from '../../../core/services/habitacion.service';
 import { ErrorDialogService } from '../../../core/services/error-dialog.service';
 import { combinarFechaHora } from '../../../core/utils/date.util';
+import {
+  OpcionServicioHabitacion,
+  etiquetaEstadoHabitacion,
+  serviciosPermitidos,
+} from '../../../core/utils/servicios-habitacion.util';
+import { metaEstado } from '../../../core/utils/habitacion-estado.util';
 
 export interface IncidenciaCrearDialogData {
-  /** Si se abre desde una tarjeta de habitación. */
   habitacion?: Habitacion;
   tipoPreseleccionado?: TipoIncidencia;
+  contextoLimpieza?: ContextoLimpieza;
 }
 
 @Component({
@@ -39,112 +45,8 @@ export interface IncidenciaCrearDialogData {
     MatDatepickerModule,
     MatProgressSpinnerModule,
   ],
-  template: `
-    <h2 mat-dialog-title>{{ tituloDialogo() }}</h2>
-    <mat-dialog-content>
-      <p class="hint">{{ textoHint() }}</p>
-
-      @if (!data.habitacion) {
-        <mat-form-field appearance="outline" class="full">
-          <mat-label>¿Dónde aplica?</mat-label>
-          <mat-select [(value)]="alcance" (selectionChange)="onAlcanceChange()">
-            @for (a of ALCANCES; track a.value) {
-              <mat-option [value]="a.value">{{ a.label }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
-      }
-
-      @if (alcance === 'HABITACION') {
-        @if (!data.habitacion) {
-          <mat-form-field appearance="outline" class="full">
-            <mat-label>Habitación</mat-label>
-            <mat-select [(value)]="habitacionId">
-              @for (h of habitaciones(); track h.id) {
-                <mat-option [value]="h.id">
-                  {{ h.numero }} — {{ h.estado }}
-                </mat-option>
-              }
-            </mat-select>
-          </mat-form-field>
-        }
-      } @else {
-        <mat-form-field appearance="outline" class="full">
-          <mat-label>Ubicación (zona común)</mat-label>
-          <input
-            matInput
-            [(ngModel)]="ubicacion"
-            placeholder="Ej. Lobby, Piscina, Pasillo 2, Cocina..."
-          />
-        </mat-form-field>
-      }
-
-      <mat-form-field appearance="outline" class="full">
-        <mat-label>Tipo de servicio</mat-label>
-        <mat-select [(value)]="tipo">
-          @for (t of tiposDisponibles(); track t.value) {
-            <mat-option [value]="t.value">{{ t.label }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
-
-      @if (tipo === 'MANTENIMIENTO' && alcance === 'HABITACION') {
-        <mat-form-field appearance="outline" class="full">
-          <mat-label>Fecha programada</mat-label>
-          <input matInput [matDatepicker]="pickerProg" [(ngModel)]="fechaProgramada" />
-          <mat-datepicker-toggle matIconSuffix [for]="pickerProg" />
-          <mat-datepicker #pickerProg />
-        </mat-form-field>
-        <mat-form-field appearance="outline" class="full">
-          <mat-label>Hora programada</mat-label>
-          <input matInput type="time" [(ngModel)]="horaProgramada" />
-        </mat-form-field>
-        @if (mantenimientoEsHoy()) {
-          <p class="aviso-hoy">
-            <mat-icon>info</mat-icon>
-            Si la fecha es hoy, la habitación quedará inhabilitada solo ese día.
-          </p>
-        }
-      }
-
-      <mat-form-field appearance="outline" class="full">
-        <mat-label>Descripción (opcional)</mat-label>
-        <textarea matInput rows="2" [(ngModel)]="descripcion"></textarea>
-      </mat-form-field>
-    </mat-dialog-content>
-    <mat-dialog-actions align="end">
-      <button mat-button mat-dialog-close>Cancelar</button>
-      <button mat-flat-button color="primary" [disabled]="!puedeCrear() || guardando" (click)="crear()">
-        @if (guardando) {
-          <mat-spinner diameter="18" />
-        } @else {
-          Crear incidencia
-        }
-      </button>
-    </mat-dialog-actions>
-  `,
-  styles: `
-    :host {
-      display: block;
-      min-width: min(92vw, 520px);
-    }
-
-    mat-dialog-content {
-      padding-top: 0.5rem !important;
-    }
-
-    .full { width: 100%; }
-    .hint { margin: 0 0 1rem; color: var(--text-200); font-size: 0.88rem; }
-    .aviso-hoy {
-      display: flex;
-      align-items: flex-start;
-      gap: 0.35rem;
-      margin: 0 0 1rem;
-      font-size: 0.85rem;
-      color: var(--text-200);
-    }
-    .aviso-hoy mat-icon { font-size: 1.1rem; width: 1.1rem; height: 1.1rem; }
-  `,
+  templateUrl: './incidencia-crear-dialog.component.html',
+  styleUrl: './incidencia-crear-dialog.component.scss',
 })
 export class IncidenciaCrearDialogComponent implements OnInit {
   private readonly dialogRef = inject(MatDialogRef<IncidenciaCrearDialogComponent, boolean>);
@@ -155,17 +57,20 @@ export class IncidenciaCrearDialogComponent implements OnInit {
 
   readonly ALCANCES = ALCANCES_INCIDENCIA;
   readonly habitaciones = signal<Habitacion[]>([]);
+  readonly meta = metaEstado;
+  readonly etiquetaHab = etiquetaEstadoHabitacion;
 
   alcance: AlcanceIncidencia = 'HABITACION';
   habitacionId: number | null = null;
   ubicacion = '';
   tipo: TipoIncidencia | null = null;
+  contextoLimpieza: ContextoLimpieza | null = null;
+  tipoZonaComun: TipoIncidencia = 'MANTENIMIENTO';
+  opcionSeleccionadaKey = '';
   descripcion = '';
   fechaProgramada: Date | null = null;
   horaProgramada = '09:00';
   guardando = false;
-
-  private readonly hoy = signal(this.inicioDia(new Date()));
 
   readonly habitacionSeleccionada = computed(() => {
     if (this.data.habitacion) return this.data.habitacion;
@@ -173,106 +78,132 @@ export class IncidenciaCrearDialogComponent implements OnInit {
     return id != null ? this.habitaciones().find((h) => h.id === id) ?? null : null;
   });
 
-  readonly tiposDisponibles = computed(() => {
-    if (this.alcance === 'ZONA_COMUN') {
-      return TIPOS_INCIDENCIA.filter((t) => t.value === 'MANTENIMIENTO' || t.value === 'OTRO');
-    }
+  readonly opcionesServicio = computed(() => {
     const h = this.habitacionSeleccionada();
-    if (!h) {
-      return TIPOS_INCIDENCIA;
-    }
-    if (h.estado === 'OCUPADO') {
-      return TIPOS_INCIDENCIA.filter((t) => t.value !== 'LIMPIEZA' && t.value !== 'MANTENIMIENTO');
-    }
-    if (h.estado === 'INHABILITADO') {
-      return TIPOS_INCIDENCIA;
-    }
-    if (h.estado === 'LIBRE' || h.estado === 'RESERVADO') {
-      return TIPOS_INCIDENCIA.filter((t) => t.value === 'MANTENIMIENTO' || t.value === 'OTRO');
-    }
-    return TIPOS_INCIDENCIA;
+    if (!h || this.alcance !== 'HABITACION') return [];
+    return serviciosPermitidos(h.estado);
   });
+
+  readonly opcionActiva = (): OpcionServicioHabitacion | null => {
+    const key = this.opcionSeleccionadaKey;
+    return this.opcionesServicio().find((o) => this.opcionKey(o) === key) ?? null;
+  };
 
   ngOnInit(): void {
     if (this.data.habitacion) {
       this.alcance = 'HABITACION';
       this.habitacionId = this.data.habitacion.id;
+      this.aplicarPreseleccion();
     } else {
       this.habitacionService.listar().subscribe({
         next: (list) => this.habitaciones.set(list),
         error: (err) => this.errorDialog.mostrarDesdeApi(err),
       });
     }
-
-    const pre = this.data.tipoPreseleccionado;
-    if (pre && this.tiposDisponibles().some((t) => t.value === pre)) {
-      this.tipo = pre;
-      if (pre === 'MANTENIMIENTO' && !this.fechaProgramada) {
-        this.fechaProgramada = new Date();
-      }
-      return;
-    }
-    if (this.data.habitacion?.estado === 'OCUPADO') {
-      this.tipo = 'SERVICIO_CUARTO';
-    }
   }
 
   tituloDialogo(): string {
     if (this.data.habitacion) {
-      return `Nueva incidencia — Habitación ${this.data.habitacion.numero}`;
+      if (this.data.tipoPreseleccionado === 'MANTENIMIENTO') {
+        return `Programar mantenimiento — Hab. ${this.data.habitacion.numero}`;
+      }
+      if (this.data.habitacion.estado === 'OCUPADO') {
+        return 'Solicitar servicio al huésped';
+      }
+      return `Nuevo servicio — Hab. ${this.data.habitacion.numero}`;
     }
-    return 'Nueva incidencia';
+    return 'Nuevo servicio';
+  }
+
+  iconoDialogo(): string {
+    if (this.data.tipoPreseleccionado === 'MANTENIMIENTO') return 'construction';
+    if (this.habitacionSeleccionada()?.estado === 'OCUPADO') return 'room_service';
+    if (this.alcance === 'ZONA_COMUN') return 'meeting_room';
+    return 'support_agent';
   }
 
   textoHint(): string {
     if (this.alcance === 'ZONA_COMUN') {
-      return 'Reparaciones o servicios fuera de habitaciones: lobby, pasillos, piscina, etc.';
+      return 'Mantenimiento u otro servicio fuera de habitaciones.';
     }
     const h = this.habitacionSeleccionada();
     if (!h) return 'Seleccione la habitación y el tipo de servicio.';
     if (h.estado === 'OCUPADO') {
-      return 'Huésped en la habitación: servicio al cuarto u otro.';
+      return 'El huésped sigue con reserva activa. Los servicios no cambian el estado de la habitación.';
     }
     if (h.estado === 'INHABILITADO') {
-      return 'Limpieza, mantenimiento, servicio al cuarto u otro. Puede haber varios servicios activos a la vez.';
+      return 'La limpieza post check-out se crea sola. Aquí puede agregar mantenimiento u otro servicio.';
     }
-    if (h.estado === 'LIBRE' || h.estado === 'RESERVADO') {
-      return 'Mantenimiento u otro. Tras el check-out la limpieza se crea automáticamente al inhabilitar la habitación.';
+    if (h.estado === 'LIBRE') {
+      return 'Solo reservable si está Libre y sin mantenimiento en las fechas. La limpieza post check-out es automática.';
     }
-    return 'Seleccione el tipo de servicio para la habitación.';
+    if (h.estado === 'RESERVADO') {
+      return 'Mantenimiento u otro antes del check-in. No se programa limpieza manual aquí.';
+    }
+    return 'Seleccione el servicio.';
+  }
+
+  opcionKey(o: OpcionServicioHabitacion): string {
+    return `${o.tipo}:${o.contextoLimpieza ?? ''}`;
   }
 
   onAlcanceChange(): void {
     this.tipo = null;
+    this.contextoLimpieza = null;
+    this.opcionSeleccionadaKey = '';
     this.ubicacion = '';
     this.habitacionId = null;
   }
 
-  mantenimientoEsHoy(): boolean {
-    if (!this.fechaProgramada) return false;
-    return this.inicioDia(this.fechaProgramada).getTime() === this.hoy().getTime();
+  seleccionarAlcance(valor: AlcanceIncidencia): void {
+    if (this.alcance === valor) return;
+    this.alcance = valor;
+    this.onAlcanceChange();
+  }
+
+  onHabitacionChange(): void {
+    this.opcionSeleccionadaKey = '';
+    this.tipo = null;
+    this.contextoLimpieza = null;
+  }
+
+  onOpcionChange(): void {
+    const op = this.opcionActiva();
+    if (!op) return;
+    this.aplicarOpcion(op);
+  }
+
+  seleccionarOpcion(o: OpcionServicioHabitacion): void {
+    this.opcionSeleccionadaKey = this.opcionKey(o);
+    this.aplicarOpcion(o);
+  }
+
+  private aplicarOpcion(o: OpcionServicioHabitacion): void {
+    this.tipo = o.tipo;
+    this.contextoLimpieza = o.contextoLimpieza ?? null;
+    if (o.tipo === 'MANTENIMIENTO' && !this.fechaProgramada) {
+      this.fechaProgramada = new Date();
+    }
   }
 
   puedeCrear(): boolean {
-    if (!this.tipo) return false;
-    if (this.alcance === 'HABITACION' && !this.habitacionId) return false;
-    if (this.alcance === 'ZONA_COMUN' && !this.ubicacion.trim()) return false;
-    if (
-      this.tipo === 'MANTENIMIENTO' &&
-      this.alcance === 'HABITACION' &&
-      (!this.fechaProgramada || !this.horaProgramada)
-    ) {
-      return false;
+    if (this.alcance === 'ZONA_COMUN') {
+      if (!this.ubicacion.trim()) return false;
+      return !!this.tipoZonaComun;
     }
+    if (!this.habitacionId || !this.tipo) return false;
+    if (this.tipo === 'LIMPIEZA' && !this.contextoLimpieza) return false;
+    if (this.tipo === 'MANTENIMIENTO' && (!this.fechaProgramada || !this.horaProgramada)) return false;
     return true;
   }
 
   crear(): void {
-    if (!this.tipo) return;
+    const tipo = this.alcance === 'ZONA_COMUN' ? this.tipoZonaComun : this.tipo;
+    if (!tipo) return;
     this.guardando = true;
 
     let fechaHoraProgramada: string | null = null;
-    if (this.tipo === 'MANTENIMIENTO' && this.alcance === 'HABITACION' && this.fechaProgramada) {
+    if (tipo === 'MANTENIMIENTO' && this.alcance === 'HABITACION' && this.fechaProgramada) {
       const [h, m] = this.horaProgramada.split(':').map(Number);
       const hora = new Date();
       hora.setHours(h, m, 0, 0);
@@ -284,7 +215,8 @@ export class IncidenciaCrearDialogComponent implements OnInit {
         alcance: this.alcance,
         habitacionId: this.alcance === 'HABITACION' ? this.habitacionId : null,
         ubicacion: this.alcance === 'ZONA_COMUN' ? this.ubicacion.trim() : null,
-        tipo: this.tipo,
+        tipo,
+        contextoLimpieza: tipo === 'LIMPIEZA' ? this.contextoLimpieza : null,
         descripcion: this.descripcion.trim() || null,
         fechaHoraProgramada,
       })
@@ -297,9 +229,19 @@ export class IncidenciaCrearDialogComponent implements OnInit {
       });
   }
 
-  private inicioDia(fecha: Date): Date {
-    const d = new Date(fecha);
-    d.setHours(0, 0, 0, 0);
-    return d;
+  private aplicarPreseleccion(): void {
+    const preTipo = this.data.tipoPreseleccionado;
+    const preCtx = this.data.contextoLimpieza;
+    const opciones = this.opcionesServicio();
+    const match = opciones.find(
+      (o) =>
+        o.tipo === preTipo &&
+        (preCtx == null ? !o.contextoLimpieza : o.contextoLimpieza === preCtx),
+    );
+    if (match) {
+      this.seleccionarOpcion(match);
+    } else if (opciones.length === 1) {
+      this.seleccionarOpcion(opciones[0]);
+    }
   }
 }

@@ -6,6 +6,53 @@
   border-radius: var(--roomix-radius-lg) !important;
 }
 
+.flujo-stepper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0;
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  background: #ffffff;
+  border: 1px solid var(--bg-300);
+  border-radius: var(--roomix-radius-lg);
+}
+
+.paso {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex: 1;
+  min-width: 5rem;
+  font-size: 0.78rem;
+  color: var(--text-200);
+
+  .punto {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--bg-300);
+    flex-shrink: 0;
+  }
+
+  &.activo {
+    color: var(--primary-400);
+    font-weight: 600;
+
+    .punto {
+      background: var(--primary-300);
+      box-shadow: 0 0 0 3px var(--roomix-primary-soft);
+    }
+  }
+
+  &.completado {
+    color: var(--primary-300);
+
+    .punto {
+      background: var(--primary-200);
+    }
+  }
+}
+
 .estado-badge {
   align-self: center;
   padding: 0.35rem 0.85rem;

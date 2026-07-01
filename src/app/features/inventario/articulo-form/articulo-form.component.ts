@@ -8,6 +8,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatIconModule } from '@angular/material/icon';
 import { InventarioService } from '../../../core/services/inventario.service';
 import { ErrorDialogService } from '../../../core/services/error-dialog.service';
 import { UNIDADES_MEDIDA, CategoriaInventario, UnidadMedida } from '../../../core/models/inventario.model';
@@ -24,6 +25,7 @@ import { UNIDADES_MEDIDA, CategoriaInventario, UnidadMedida } from '../../../cor
     MatButtonModule,
     MatSnackBarModule,
     MatProgressSpinnerModule,
+    MatIconModule,
   ],
   templateUrl: './articulo-form.component.html',
   styleUrl: './articulo-form.component.scss',

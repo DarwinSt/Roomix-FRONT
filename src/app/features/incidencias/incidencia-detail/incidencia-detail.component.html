@@ -5,10 +5,31 @@
     <div>
       <a mat-button routerLink="/incidencias"><mat-icon>arrow_back</mat-icon> Incidencias</a>
       <h1>{{ inc.titulo }}</h1>
-      <p>Habitación {{ inc.habitacionNumero ?? '—' }} · {{ inc.tipo }} · {{ inc.ubicacionEtiqueta }}</p>
+      <p>
+        Habitación {{ inc.habitacionNumero ?? '—' }} · {{ inc.tipo }}
+        @if (inc.tipo === 'LIMPIEZA' && inc.contextoLimpieza) {
+          · {{ etiquetaContexto(inc.contextoLimpieza) }}
+        }
+        · {{ inc.ubicacionEtiqueta }}
+      </p>
     </div>
     <span class="estado-badge">{{ etiquetaEstado(inc.estado) }}</span>
   </div>
+
+  @if (inc.estado !== 'CANCELADA') {
+    <div class="flujo-stepper">
+      @for (paso of pasosFlujo; track paso.estado) {
+        <div
+          class="paso"
+          [class.activo]="pasoActivo(inc.estado, paso.estado)"
+          [class.completado]="pasoCompletado(inc.estado, paso.estado)"
+        >
+          <span class="punto"></span>
+          <span class="label">{{ paso.label }}</span>
+        </div>
+      }
+    </div>
+  }
 
   <mat-card class="panel-progreso">
     <mat-card-content>
@@ -35,13 +56,21 @@
       <mat-card-content>
         <mat-form-field appearance="outline" class="full">
           <mat-label>Personal</mat-label>
-          <mat-select [(value)]="personalSeleccionado">
+          <mat-select panelClass="roomix-select-panel" [(value)]="personalSeleccionado">
             @for (p of personal(); track p.id) {
               <mat-option [value]="p.id" [disabled]="p.ocupado">
-                {{ p.nombre }} · {{ p.rol }}
-                @if (p.ocupado) {
-                  (ocupado)
-                }
+                <span class="roomix-option">
+                  <mat-icon>badge</mat-icon>
+                  <span class="roomix-option-body">
+                    <span class="roomix-option-label">{{ p.nombre }}</span>
+                    <span class="roomix-option-hint">
+                      {{ p.rol }}
+                      @if (p.ocupado) {
+                        · Ocupado
+                      }
+                    </span>
+                  </span>
+                </span>
               </mat-option>
             }
           </mat-select>

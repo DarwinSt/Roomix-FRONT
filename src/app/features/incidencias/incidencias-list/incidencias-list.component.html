@@ -1,101 +1,300 @@
 <div class="page-header row">
+
   <div>
+
     <h1>Incidencias</h1>
-    <p>Servicios en habitaciones y zonas comunes del hotel.</p>
+
+    <p>Cola de servicios en habitaciones y zonas comunes.</p>
+
+    @if (etiquetaSync()) {
+
+      <p class="sync-hint">
+
+        <mat-icon>sync</mat-icon>
+
+        {{ etiquetaSync() }}
+
+      </p>
+
+    }
+
   </div>
+
   <div class="header-actions">
+
     <button mat-flat-button color="primary" (click)="abrirCrear()">
+
       <mat-icon>add</mat-icon>
+
       Nueva incidencia
+
     </button>
-    <button mat-stroked-button (click)="cargar()">
+
+    <button mat-stroked-button (click)="cargar(true)">
+
       <mat-icon>refresh</mat-icon>
+
       Actualizar
+
     </button>
+
   </div>
+
 </div>
 
-<div class="panel-filtros">
-  <mat-form-field appearance="outline" class="busqueda">
-    <mat-label>Buscar</mat-label>
-    <mat-icon matPrefix>search</mat-icon>
-    <input
-      matInput
-      [ngModel]="busqueda()"
-      (ngModelChange)="busqueda.set($event)"
-      placeholder="Ubicación, título, personal…"
-    />
-  </mat-form-field>
 
-  <mat-form-field appearance="outline">
-    <mat-label>Estado</mat-label>
-    <mat-select [(value)]="filtroEstado" (selectionChange)="cargar()">
-      <mat-option value="">Todos</mat-option>
-      <mat-option value="CREADA">Creada</mat-option>
-      <mat-option value="ASIGNADA">Asignada</mat-option>
-      <mat-option value="EN_PROGRESO">En progreso</mat-option>
-      <mat-option value="FINALIZADA">Finalizada</mat-option>
-      <mat-option value="CANCELADA">Cancelada</mat-option>
-    </mat-select>
-  </mat-form-field>
+
+<div class="filtros-rapidos">
 
   <mat-chip-set>
-    <mat-chip [highlighted]="soloActivas" (click)="soloActivas = true; cargar()">Activas</mat-chip>
-    <mat-chip [highlighted]="!soloActivas" (click)="soloActivas = false; cargar()">Todas</mat-chip>
+
+    <mat-chip
+
+      [highlighted]="filtroRapido === 'sin-asignar'"
+
+      (click)="setFiltroRapido('sin-asignar')"
+
+    >
+
+      Sin asignar
+
+    </mat-chip>
+
+    <mat-chip
+
+      [highlighted]="filtroRapido === 'habitacion'"
+
+      (click)="setFiltroRapido('habitacion')"
+
+    >
+
+      Habitación
+
+    </mat-chip>
+
+    <mat-chip
+
+      [highlighted]="filtroRapido === 'zona-comun'"
+
+      (click)="setFiltroRapido('zona-comun')"
+
+    >
+
+      Zona común
+
+    </mat-chip>
+
+    <mat-chip [highlighted]="soloActivas" (click)="soloActivas = true; onSoloActivasChange()">
+
+      Activas
+
+    </mat-chip>
+
+    <mat-chip [highlighted]="!soloActivas" (click)="soloActivas = false; onSoloActivasChange()">
+
+      Todas
+
+    </mat-chip>
+
   </mat-chip-set>
+
 </div>
 
+
+
+<div class="panel-filtros">
+
+  <mat-form-field appearance="outline" class="busqueda">
+
+    <mat-label>Buscar</mat-label>
+
+    <mat-icon matPrefix>search</mat-icon>
+
+    <input
+
+      matInput
+
+      [ngModel]="busqueda()"
+
+      (ngModelChange)="busqueda.set($event)"
+
+      placeholder="Ubicación, título, personal…"
+
+    />
+
+  </mat-form-field>
+
+
+
+  <mat-form-field appearance="outline">
+
+    <mat-label>Estado</mat-label>
+
+    <mat-select panelClass="roomix-select-panel" [(value)]="filtroEstado">
+
+      <mat-option value="">Todos los estados</mat-option>
+
+      <mat-option value="CREADA">
+        <span class="roomix-option">
+          <mat-icon>fiber_new</mat-icon>
+          <span class="roomix-option-label">Creada</span>
+        </span>
+      </mat-option>
+
+      <mat-option value="ASIGNADA">
+        <span class="roomix-option">
+          <mat-icon>person</mat-icon>
+          <span class="roomix-option-label">Asignada</span>
+        </span>
+      </mat-option>
+
+      <mat-option value="EN_PROGRESO">
+        <span class="roomix-option">
+          <mat-icon>autorenew</mat-icon>
+          <span class="roomix-option-label">En progreso</span>
+        </span>
+      </mat-option>
+
+      <mat-option value="FINALIZADA">
+        <span class="roomix-option">
+          <mat-icon>check_circle</mat-icon>
+          <span class="roomix-option-label">Finalizada</span>
+        </span>
+      </mat-option>
+
+      <mat-option value="CANCELADA">
+        <span class="roomix-option">
+          <mat-icon>cancel</mat-icon>
+          <span class="roomix-option-label">Cancelada</span>
+        </span>
+      </mat-option>
+
+    </mat-select>
+
+  </mat-form-field>
+
+</div>
+
+
+
 @if (loading()) {
+
   <div class="loading"><mat-spinner diameter="48" /></div>
+
 } @else if (incidenciasVisibles().length === 0) {
+
   <div class="empty-state">
+
     <mat-icon>report_problem</mat-icon>
+
     <h2>Sin incidencias</h2>
+
     <p>Cree una incidencia manualmente o desde una habitación (acciones rápidas).</p>
+
     <button mat-flat-button color="primary" (click)="abrirCrear()">
+
       <mat-icon>add</mat-icon>
+
       Nueva incidencia
+
     </button>
+
   </div>
+
 } @else {
+
   <div class="incidencias-grid">
+
     @for (i of incidenciasVisibles(); track i.id) {
+
       <mat-card class="incidencia-card">
+
         <mat-card-header>
+
           <mat-card-title>{{ i.titulo }}</mat-card-title>
+
           <mat-card-subtitle>
             {{ i.ubicacionEtiqueta }} · {{ i.tipo }}
+            @if (i.tipo === 'LIMPIEZA' && i.contextoLimpieza) {
+              <span class="badge-contexto">{{ etiquetaContexto(i.contextoLimpieza) }}</span>
+            }
             @if (i.alcance === 'ZONA_COMUN') {
               <span class="badge-zona">Zona común</span>
             }
           </mat-card-subtitle>
+
         </mat-card-header>
+
         <mat-card-content>
+
           <div class="estado-row">
+
             <span class="estado-badge">{{ etiquetaEstado(i.estado) }}</span>
+
             @if (i.personalAsignadoNombre) {
+
               <span class="personal">{{ i.personalAsignadoNombre }}</span>
+
             }
+
           </div>
+
           <div class="progreso-block">
+
             <div class="progreso-header">
+
               <span>{{ resumen(i) }}</span>
+
               <span class="progreso-pct">{{ progreso(i) }}%</span>
+
             </div>
+
             <div class="progreso-bar">
+
               <div
+
                 class="progreso-fill"
+
                 [class]="'fill-' + nivel(progreso(i))"
+
                 [style.width.%]="progreso(i)"
+
               ></div>
+
             </div>
+
           </div>
+
           <p class="fecha">Actualizada {{ i.fechaHoraUltimaActualizacion | fechaRoomix }}</p>
+
         </mat-card-content>
+
         <mat-card-actions>
-          <a mat-flat-button color="primary" [routerLink]="['/incidencias', i.id]">Gestionar</a>
+
+          @if (siguienteAccion(i); as accion) {
+
+            <a mat-flat-button color="primary" [routerLink]="['/incidencias', i.id]" [matTooltip]="accion.hint">
+
+              <mat-icon>{{ accion.icon }}</mat-icon>
+
+              {{ accion.label }}
+
+            </a>
+
+          } @else {
+
+            <a mat-flat-button color="primary" [routerLink]="['/incidencias', i.id]">Ver detalle</a>
+
+          }
+
         </mat-card-actions>
+
       </mat-card>
+
     }
+
   </div>
+
 }
+
+

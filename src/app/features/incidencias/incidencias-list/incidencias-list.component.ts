@@ -1,5 +1,5 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -10,6 +10,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { IncidenciaCrearDialogComponent } from '../incidencia-crear-dialog/incidencia-crear-dialog.component';
 import { IncidenciaService } from '../../../core/services/incidencia.service';
 import { ErrorDialogService } from '../../../core/services/error-dialog.service';
@@ -20,7 +21,12 @@ import {
   progresoIncidencia,
   resumenProgresoIncidencia,
 } from '../../../core/utils/incidencia-progreso.util';
+import { siguienteAccionIncidencia } from '../../../core/utils/incidencia-accion.util';
+import { etiquetaUltimaActualizacion, programarAutoRefresh } from '../../../core/utils/auto-refresh.util';
+import { etiquetaContextoLimpieza } from '../../../core/utils/servicios-habitacion.util';
 import { FechaRoomixPipe } from '../../../shared/pipes/fecha-roomix.pipe';
+
+type FiltroRapido = '' | 'sin-asignar' | 'habitacion' | 'zona-comun';
 
 @Component({
   selector: 'app-incidencias-list',
@@ -37,6 +43,7 @@ import { FechaRoomixPipe } from '../../../shared/pipes/fecha-roomix.pipe';
     MatProgressSpinnerModule,
     MatChipsModule,
     MatDialogModule,
+    MatTooltipModule,
   ],
   templateUrl: './incidencias-list.component.html',
   styleUrl: './incidencias-list.component.scss',
@@ -45,16 +52,27 @@ export class IncidenciasListComponent implements OnInit {
   private readonly incidenciaService = inject(IncidenciaService);
   private readonly errorDialog = inject(ErrorDialogService);
   private readonly dialog = inject(MatDialog);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly loading = signal(true);
   readonly incidencias = signal<Incidencia[]>([]);
   readonly busqueda = signal('');
+  readonly ultimaActualizacion = signal<Date | null>(null);
+
   filtroEstado: EstadoIncidencia | '' = '';
+  filtroRapido: FiltroRapido = '';
   soloActivas = true;
 
   readonly incidenciasVisibles = computed(() => {
     const q = this.busqueda().trim().toLowerCase();
     return this.incidencias().filter((i) => {
+      if (this.filtroRapido === 'sin-asignar' && i.estado !== 'CREADA') return false;
+      if (this.filtroRapido === 'habitacion' && i.alcance !== 'HABITACION') return false;
+      if (this.filtroRapido === 'zona-comun' && i.alcance !== 'ZONA_COMUN') return false;
+      if (this.filtroEstado && i.estado !== this.filtroEstado) return false;
+
       if (q) {
         const match =
           i.titulo.toLowerCase().includes(q) ||
@@ -68,16 +86,37 @@ export class IncidenciasListComponent implements OnInit {
     });
   });
 
-  cargar(): void {
-    this.loading.set(true);
+  readonly etiquetaSync = computed(() => etiquetaUltimaActualizacion(this.ultimaActualizacion()));
+
+  etiquetaEstado = etiquetaEstadoIncidencia;
+  progreso = progresoIncidencia;
+  resumen = resumenProgresoIncidencia;
+  nivel = nivelProgresoIncidencia;
+  siguienteAccion = siguienteAccionIncidencia;
+  etiquetaContexto = etiquetaContextoLimpieza;
+
+  ngOnInit(): void {
+    this.route.queryParamMap.subscribe((params) => {
+      const vista = params.get('vista') as FiltroRapido | null;
+      if (vista === 'sin-asignar' || vista === 'habitacion' || vista === 'zona-comun') {
+        this.filtroRapido = vista;
+      }
+      this.cargar(true);
+    });
+    programarAutoRefresh(this.destroyRef, () => this.cargar(false));
+  }
+
+  cargar(mostrarLoading: boolean): void {
+    if (mostrarLoading) this.loading.set(true);
+
     this.incidenciaService
       .listar({
-        estado: this.filtroEstado || undefined,
         activas: this.soloActivas ? true : undefined,
       })
       .subscribe({
         next: (data) => {
           this.incidencias.set(data);
+          this.ultimaActualizacion.set(new Date());
           this.loading.set(false);
         },
         error: (err) => {
@@ -87,13 +126,17 @@ export class IncidenciasListComponent implements OnInit {
       });
   }
 
-  etiquetaEstado = etiquetaEstadoIncidencia;
-  progreso = progresoIncidencia;
-  resumen = resumenProgresoIncidencia;
-  nivel = nivelProgresoIncidencia;
+  setFiltroRapido(filtro: FiltroRapido): void {
+    this.filtroRapido = this.filtroRapido === filtro ? '' : filtro;
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { vista: this.filtroRapido || null },
+      queryParamsHandling: 'merge',
+    });
+  }
 
-  ngOnInit(): void {
-    this.cargar();
+  onSoloActivasChange(): void {
+    this.cargar(true);
   }
 
   abrirCrear(): void {
@@ -101,9 +144,10 @@ export class IncidenciasListComponent implements OnInit {
       data: {},
       width: '520px',
       maxWidth: '95vw',
+      panelClass: 'roomix-servicio-dialog',
     });
     ref.afterClosed().subscribe((ok) => {
-      if (ok) this.cargar();
+      if (ok) this.cargar(true);
     });
   }
 }

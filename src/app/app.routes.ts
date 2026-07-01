@@ -95,6 +95,13 @@ export const routes: Routes = [
             (m) => m.IncidenciaDetailComponent,
           ),
       },
+      {
+        path: 'personal',
+        loadComponent: () =>
+          import('./features/personal/personal-list/personal-list.component').then(
+            (m) => m.PersonalListComponent,
+          ),
+      },
     ],
   },
   { path: '**', redirectTo: 'inicio' },

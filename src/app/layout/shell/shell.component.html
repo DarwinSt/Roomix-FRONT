@@ -14,7 +14,7 @@
           mat-list-item
           [routerLink]="item.path"
           routerLinkActive="active"
-          [routerLinkActiveOptions]="{ exact: item.path === '/inventario' }"
+          [routerLinkActiveOptions]="{ exact: item.path === '/inventario' || item.path === '/inicio' }"
         >
           @if (item.iconUrl) {
             <img
@@ -33,6 +33,10 @@
     </mat-nav-list>
     <div class="sidenav-footer">
       <small>Administración hotelera</small>
+      <a class="api-link" href="http://localhost:8080/swagger-ui.html" target="_blank" rel="noopener">
+        <mat-icon>api</mat-icon>
+        API Docs
+      </a>
     </div>
   </mat-sidenav>
 
@@ -47,12 +51,7 @@
         <img [src]="logoIconUrl" alt="" class="toolbar-logo" aria-hidden="true" />
       </div>
       <span class="toolbar-title">Panel Roomix</span>
-      <div class="toolbar-trailing">
-        <a mat-button href="http://localhost:8080/swagger-ui.html" target="_blank" rel="noopener">
-          <mat-icon>api</mat-icon>
-          API Docs
-        </a>
-      </div>
+      <div class="toolbar-trailing"></div>
     </mat-toolbar>
     <main class="shell-content">
       <router-outlet />

@@ -5,8 +5,8 @@ export type TipoAccionRapida =
   | 'CHECK_IN'
   | 'CHECK_OUT'
   | 'CANCELAR_RESERVA'
-  | 'ADECUACION'
-  | 'GENERAR_INCIDENCIA';
+  | 'MANTENIMIENTO'
+  | 'SOLICITAR_SERVICIO';
 
 export interface AccionRapida {
   tipo: TipoAccionRapida;
@@ -20,9 +20,8 @@ const CLASE_INHABILITADO = 'estado-inhabilitado';
 const CLASE_OCUPADO = 'estado-ocupado';
 const CLASE_RESERVADO = 'estado-reservado';
 const CLASE_LIBRE = 'estado-libre';
-const CLASE_INCIDENCIA = 'estado-incidencia';
 
-/** Acciones rápidas según estado operativo de la habitación. */
+/** Acciones operativas según estado (sin duplicar creación manual de incidencias). */
 export function accionesRapidasDisponibles(habitacion: Habitacion): AccionRapida[] {
   switch (habitacion.estado) {
     case 'LIBRE':
@@ -31,14 +30,14 @@ export function accionesRapidasDisponibles(habitacion: Habitacion): AccionRapida
           tipo: 'RESERVAR',
           label: 'Reservar',
           icon: 'event_available',
-          hint: 'Confirma reserva → estado Reservado',
+          hint: 'Solo si no hay mantenimiento programado en las fechas',
           cssClass: CLASE_RESERVADO,
         },
         {
-          tipo: 'ADECUACION',
-          label: 'Mantenimiento',
+          tipo: 'MANTENIMIENTO',
+          label: 'Programar mantenimiento',
           icon: 'construction',
-          hint: 'Programar mantenimiento; inhabilita solo el día indicado',
+          hint: 'Bloquea reservas en el rango de fechas indicado',
           cssClass: CLASE_INHABILITADO,
         },
       ];
@@ -48,48 +47,48 @@ export function accionesRapidasDisponibles(habitacion: Habitacion): AccionRapida
           tipo: 'CHECK_IN',
           label: 'Check-in',
           icon: 'login',
-          hint: 'Registrar llegada del huésped → Ocupado',
+          hint: 'Registrar llegada del huésped',
           cssClass: CLASE_OCUPADO,
         },
         {
           tipo: 'CANCELAR_RESERVA',
           label: 'Cancelar reserva',
           icon: 'event_busy',
-          hint: 'Cancelar reserva → Libre',
+          hint: 'Vuelve a Libre',
           cssClass: CLASE_LIBRE,
         },
         {
-          tipo: 'ADECUACION',
-          label: 'Mantenimiento',
+          tipo: 'MANTENIMIENTO',
+          label: 'Programar mantenimiento',
           icon: 'construction',
-          hint: 'Programar mantenimiento antes del check-in',
+          hint: 'Antes del check-in del huésped',
           cssClass: CLASE_INHABILITADO,
         },
       ];
     case 'OCUPADO':
       return [
         {
+          tipo: 'SOLICITAR_SERVICIO',
+          label: 'Solicitar servicio',
+          icon: 'room_service',
+          hint: 'Comida, limpieza urgente, limpieza con huésped ausente u otro',
+          cssClass: CLASE_OCUPADO,
+        },
+        {
           tipo: 'CHECK_OUT',
           label: 'Check-out',
           icon: 'logout',
-          hint: 'Registrar salida → Inhabilitado + limpieza automática',
+          hint: 'Finaliza estadía → pendiente limpieza post check-out',
           cssClass: CLASE_INHABILITADO,
-        },
-        {
-          tipo: 'GENERAR_INCIDENCIA',
-          label: 'Generar incidencia',
-          icon: 'report_problem',
-          hint: 'Mantenimiento, servicio al cuarto u otro (sin cambiar estado)',
-          cssClass: CLASE_INCIDENCIA,
         },
       ];
     case 'INHABILITADO':
       return [
         {
-          tipo: 'GENERAR_INCIDENCIA',
-          label: 'Nuevo mantenimiento',
-          icon: 'add',
-          hint: 'Agregar otro servicio de mantenimiento',
+          tipo: 'MANTENIMIENTO',
+          label: 'Agregar mantenimiento',
+          icon: 'build',
+          hint: 'Reparación adicional antes de habilitar la habitación',
           cssClass: CLASE_INHABILITADO,
         },
       ];

@@ -18,17 +18,27 @@
         </mat-form-field>
         <mat-form-field appearance="outline">
           <mat-label>Categoría</mat-label>
-          <mat-select formControlName="categoriaId">
+          <mat-select panelClass="roomix-select-panel" formControlName="categoriaId">
             @for (c of categorias(); track c.id) {
-              <mat-option [value]="c.id">{{ c.nombre }}</mat-option>
+              <mat-option [value]="c.id">
+                <span class="roomix-option">
+                  <mat-icon>category</mat-icon>
+                  <span class="roomix-option-label">{{ c.nombre }}</span>
+                </span>
+              </mat-option>
             }
           </mat-select>
         </mat-form-field>
         <mat-form-field appearance="outline">
           <mat-label>Unidad</mat-label>
-          <mat-select formControlName="unidadMedida">
+          <mat-select panelClass="roomix-select-panel" formControlName="unidadMedida">
             @for (u of unidades; track u.value) {
-              <mat-option [value]="u.value">{{ u.label }}</mat-option>
+              <mat-option [value]="u.value">
+                <span class="roomix-option">
+                  <mat-icon>straighten</mat-icon>
+                  <span class="roomix-option-label">{{ u.label }}</span>
+                </span>
+              </mat-option>
             }
           </mat-select>
         </mat-form-field>

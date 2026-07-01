@@ -1,71 +1,215 @@
 .home-header {
   display: flex;
-  align-items: center;
-  gap: 1.5rem;
+  align-items: flex-start;
+  gap: 1.25rem;
   flex-wrap: wrap;
+
+  .home-logo {
+    display: block;
+    height: 56px;
+    width: auto;
+    aspect-ratio: 320 / 274;
+    object-fit: contain;
+  }
+
+  > div {
+    flex: 1;
+    min-width: min(100%, 220px);
+  }
 }
 
-// logo-roomix.png — 320×274
-.home-logo {
-  display: block;
-  height: 64px;
-  width: auto;
-  aspect-ratio: 320 / 274;
-  object-fit: contain;
-  object-position: center;
+.sync-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin: 0.35rem 0 0;
+  font-size: 0.82rem;
+  color: var(--text-200);
+
+  mat-icon {
+    font-size: 1rem;
+    width: 1rem;
+    height: 1rem;
+  }
+}
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.kpi-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 1rem 0.75rem;
+  border-radius: var(--roomix-radius-lg);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+  font: inherit;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--roomix-shadow-hover);
+  }
+
+  mat-icon {
+    font-size: 1.5rem;
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  .kpi-valor {
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .kpi-etiqueta {
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+}
+
+.metricas-secundarias {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.metrica-card {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.85rem 1rem !important;
+  cursor: pointer;
+  transition: box-shadow 0.15s, transform 0.15s;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--roomix-shadow-hover) !important;
+  }
+
+  mat-icon {
+    color: var(--primary-300);
+    font-size: 1.75rem;
+    width: 1.75rem;
+    height: 1.75rem;
+  }
+
+  .metrica-valor {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-strong);
+    line-height: 1.1;
+  }
+
+  .metrica-etiqueta {
+    font-size: 0.82rem;
+    color: var(--text-200);
+  }
+}
+
+.cola-section {
+  margin-bottom: 1.75rem;
+}
+
+.cola-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+
+  h2 {
+    margin: 0;
+    font-size: 1.15rem;
+    color: var(--primary-300);
+  }
+}
+
+.cola-vacia {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.25rem !important;
+  color: var(--primary-300);
+
+  mat-icon {
+    font-size: 2rem;
+    width: 2rem;
+    height: 2rem;
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
+.cola-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.cola-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 0.85rem 1rem !important;
+}
+
+.cola-item-body {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  min-width: 0;
+
+  strong {
+    display: block;
+    font-size: 0.95rem;
+  }
+
+  p {
+    margin: 0.2rem 0 0;
+    font-size: 0.82rem;
+    color: var(--text-200);
+  }
+}
+
+.cola-icon {
+  color: var(--accent-200);
   flex-shrink: 0;
 }
 
-.home-header > div {
-  flex: 1;
-  min-width: min(100%, 260px);
+.accesos-rapidos {
+  h2 {
+    margin: 0 0 0.75rem;
+    font-size: 1.05rem;
+    color: var(--text-200);
+  }
+}
+
+.accesos-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+
+  a mat-icon {
+    margin-right: 0.35rem;
+  }
 }
 
 @media (max-width: 600px) {
   .home-header {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
   }
-
-  .home-logo {
-    height: 56px;
-  }
-}
-
-.cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.25rem;
-}
-
-mat-card {
-  transition: box-shadow 0.2s ease, transform 0.2s ease;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--roomix-shadow-hover) !important;
-    border-color: var(--accent-100) !important;
-  }
-}
-
-mat-card-header mat-icon[mat-card-avatar] {
-  font-size: 1.85rem;
-  width: 1.85rem;
-  height: 1.85rem;
-  color: var(--primary-300);
-  background: var(--primary-100);
-  border-radius: 10px;
-  padding: 0.35rem;
-  box-sizing: content-box;
-}
-
-.module-icon-img {
-  width: 2.55rem;
-  height: 2.55rem;
-  object-fit: contain;
-  border-radius: 10px;
-  background: transparent;
-  padding: 0.15rem;
-  box-sizing: border-box;
 }

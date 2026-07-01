@@ -27,7 +27,7 @@ import { ArticuloInventario, TipoMovimientoStock } from '../../../core/models/in
       <form [formGroup]="form" class="form-grid">
         <mat-form-field appearance="outline">
           <mat-label>Tipo</mat-label>
-          <mat-select formControlName="tipo" placeholder="Seleccionar">
+          <mat-select panelClass="roomix-select-panel" formControlName="tipo" placeholder="Seleccionar">
             <mat-option value="ENTRADA">Entrada</mat-option>
             <mat-option value="SALIDA">Salida</mat-option>
           </mat-select>

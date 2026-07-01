@@ -1,5 +1,38 @@
 @use '../habitacion-estados.shared.scss';
 
+.sync-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin: 0.35rem 0 0;
+  font-size: 0.82rem;
+  color: var(--text-200);
+
+  mat-icon {
+    font-size: 1rem;
+    width: 1rem;
+    height: 1rem;
+  }
+}
+
+.reserva-compacta {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0 0 0.65rem;
+  padding: 0.45rem 0.65rem;
+  border-radius: 8px;
+  background: rgba(239, 108, 0, 0.08);
+  font-size: 0.85rem;
+  color: #e65100;
+
+  mat-icon {
+    font-size: 1.1rem;
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+}
+
 .resumen-estados {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));

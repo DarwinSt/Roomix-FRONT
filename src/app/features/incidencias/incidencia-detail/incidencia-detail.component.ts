@@ -11,13 +11,14 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { IncidenciaService } from '../../../core/services/incidencia.service';
 import { ErrorDialogService } from '../../../core/services/error-dialog.service';
-import { Incidencia, Personal } from '../../../core/models/incidencia.model';
+import { EstadoIncidencia, Incidencia, Personal } from '../../../core/models/incidencia.model';
 import {
   etiquetaEstadoIncidencia,
   nivelProgresoIncidencia,
   progresoIncidencia,
   resumenProgresoIncidencia,
 } from '../../../core/utils/incidencia-progreso.util';
+import { etiquetaContextoLimpieza } from '../../../core/utils/servicios-habitacion.util';
 import { FechaRoomixPipe } from '../../../shared/pipes/fecha-roomix.pipe';
 import { ConfirmDialogComponent } from '../../../shared/dialogs/confirm-dialog/confirm-dialog.component';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -54,9 +55,36 @@ export class IncidenciaDetailComponent implements OnInit {
   personalSeleccionado: number | null = null;
 
   etiquetaEstado = etiquetaEstadoIncidencia;
+  etiquetaContexto = etiquetaContextoLimpieza;
   progreso = progresoIncidencia;
   resumen = resumenProgresoIncidencia;
   nivel = nivelProgresoIncidencia;
+
+  readonly pasosFlujo: { estado: EstadoIncidencia; label: string }[] = [
+    { estado: 'CREADA', label: 'Creada' },
+    { estado: 'ASIGNADA', label: 'Asignada' },
+    { estado: 'EN_PROGRESO', label: 'En progreso' },
+    { estado: 'FINALIZADA', label: 'Finalizada' },
+  ];
+
+  ordenEstado(estado: EstadoIncidencia): number {
+    const orden: Record<EstadoIncidencia, number> = {
+      CREADA: 0,
+      ASIGNADA: 1,
+      EN_PROGRESO: 2,
+      FINALIZADA: 3,
+      CANCELADA: -1,
+    };
+    return orden[estado];
+  }
+
+  pasoCompletado(estadoActual: EstadoIncidencia, paso: EstadoIncidencia): boolean {
+    return this.ordenEstado(estadoActual) > this.ordenEstado(paso);
+  }
+
+  pasoActivo(estadoActual: EstadoIncidencia, paso: EstadoIncidencia): boolean {
+    return estadoActual === paso;
+  }
 
   ngOnInit(): void {
     this.incidenciaService.listarPersonal().subscribe({

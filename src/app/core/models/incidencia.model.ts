@@ -4,6 +4,9 @@ export type AlcanceIncidencia = 'HABITACION' | 'ZONA_COMUN';
 
 export type EstadoIncidencia = 'CREADA' | 'ASIGNADA' | 'EN_PROGRESO' | 'FINALIZADA' | 'CANCELADA';
 
+/** Subtipo de limpieza (solo cuando tipo = LIMPIEZA). */
+export type ContextoLimpieza = 'POST_CHECKOUT' | 'URGENCIA' | 'HUESPED_AUSENTE';
+
 export interface IncidenciaTarea {
   id: number;
   descripcion: string;
@@ -22,6 +25,7 @@ export interface Incidencia {
   personalAsignadoId: number | null;
   personalAsignadoNombre: string | null;
   tipo: TipoIncidencia;
+  contextoLimpieza: ContextoLimpieza | null;
   titulo: string;
   descripcion: string;
   estado: EstadoIncidencia;
@@ -38,6 +42,7 @@ export interface CrearIncidenciaRequest {
   habitacionId?: number | null;
   ubicacion?: string | null;
   tipo: TipoIncidencia;
+  contextoLimpieza?: ContextoLimpieza | null;
   descripcion?: string | null;
   fechaHoraProgramada?: string | null;
 }
@@ -45,6 +50,23 @@ export interface CrearIncidenciaRequest {
 export const ALCANCES_INCIDENCIA: { value: AlcanceIncidencia; label: string; icon: string }[] = [
   { value: 'HABITACION', label: 'Habitación', icon: 'hotel' },
   { value: 'ZONA_COMUN', label: 'Zona común / otra área', icon: 'apartment' },
+];
+
+export const CONTEXTOS_LIMPIEZA: {
+  value: ContextoLimpieza;
+  label: string;
+  hint: string;
+}[] = [
+  {
+    value: 'URGENCIA',
+    label: 'Urgente (huésped presente)',
+    hint: 'Derrame, rotura u otra urgencia con el huésped en la habitación',
+  },
+  {
+    value: 'HUESPED_AUSENTE',
+    label: 'Huésped ausente temporalmente',
+    hint: 'El huésped salió un rato; la reserva sigue activa',
+  },
 ];
 
 export const TIPOS_INCIDENCIA: { value: TipoIncidencia; label: string; icon: string }[] = [

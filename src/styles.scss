@@ -1,4 +1,5 @@
 @use 'styles/roomix-theme';
+@use 'styles/mat-select';
 @use '@angular/material' as mat;
 
 html {
@@ -187,6 +188,9 @@ a.mat-mdc-button:not(.mat-primary) {
   --mdc-outlined-text-field-label-text-color: var(--text-200);
   --mdc-outlined-text-field-input-text-color: var(--text-100);
   --mat-select-enabled-trigger-text-color: var(--text-100);
+  --mat-select-panel-background-color: #ffffff;
+  --mat-option-selected-state-label-text-color: var(--primary-400);
+  --mat-option-label-text-color: var(--text-100);
 }
 
 .mat-mdc-checkbox {
@@ -203,4 +207,18 @@ a.mat-mdc-button:not(.mat-primary) {
 .mat-mdc-raised-button.mat-primary {
   background: var(--roomix-gradient-primary) !important;
   color: var(--roomix-on-primary) !important;
+}
+
+.roomix-servicio-dialog {
+  .mat-mdc-dialog-container {
+    --mdc-dialog-container-shape: 20px;
+    padding: 1.25rem 1.5rem 1rem !important;
+    overflow: hidden;
+    max-width: calc(100vw - 2rem);
+    background: var(--bg-100) !important;
+  }
+
+  .mat-mdc-dialog-surface {
+    overflow: hidden;
+  }
 }

@@ -1,0 +1,78 @@
+<div class="page-header row">
+  <div>
+    <h1>Personal</h1>
+    <p>Equipo asignable a incidencias y servicios del hotel.</p>
+    @if (etiquetaSync()) {
+      <p class="sync-hint">
+        <mat-icon>sync</mat-icon>
+        {{ etiquetaSync() }}
+      </p>
+    }
+  </div>
+  <button mat-stroked-button type="button" (click)="cargar(true)">
+    <mat-icon>refresh</mat-icon>
+    Actualizar
+  </button>
+</div>
+
+@if (!loading()) {
+  <div class="resumen-grid">
+    <mat-card class="resumen-card">
+      <mat-icon>groups</mat-icon>
+      <div>
+        <span class="valor">{{ resumen().total }}</span>
+        <span class="etiqueta">Personal activo</span>
+      </div>
+    </mat-card>
+    <mat-card class="resumen-card ocupado">
+      <mat-icon>engineering</mat-icon>
+      <div>
+        <span class="valor">{{ resumen().ocupados }}</span>
+        <span class="etiqueta">Ocupados</span>
+      </div>
+    </mat-card>
+    <mat-card class="resumen-card libre">
+      <mat-icon>how_to_reg</mat-icon>
+      <div>
+        <span class="valor">{{ resumen().libres }}</span>
+        <span class="etiqueta">Disponibles</span>
+      </div>
+    </mat-card>
+  </div>
+}
+
+@if (loading()) {
+  <div class="loading"><mat-spinner diameter="48" /></div>
+} @else if (personal().length === 0) {
+  <div class="empty-state">
+    <mat-icon>groups</mat-icon>
+    <h2>Sin personal registrado</h2>
+    <p>El backend carga personal de ejemplo al primer arranque.</p>
+  </div>
+} @else {
+  <div class="personal-grid">
+    @for (p of personal(); track p.id) {
+      <mat-card class="personal-card" [class.ocupado]="p.ocupado">
+        <mat-card-header>
+          <mat-icon mat-card-avatar class="avatar">{{ p.ocupado ? 'engineering' : 'person' }}</mat-icon>
+          <mat-card-title>{{ p.nombre }}</mat-card-title>
+          <mat-card-subtitle>{{ p.rol }}@if (p.departamento) { · {{ p.departamento }} }</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <mat-chip-set>
+            @if (p.ocupado) {
+              <mat-chip class="chip-ocupado">Ocupado en servicio</mat-chip>
+            } @else {
+              <mat-chip class="chip-libre">Disponible</mat-chip>
+            }
+          </mat-chip-set>
+        </mat-card-content>
+        <mat-card-actions>
+          <a mat-button routerLink="/incidencias" [queryParams]="{ vista: 'sin-asignar' }">
+            Ver cola de incidencias
+          </a>
+        </mat-card-actions>
+      </mat-card>
+    }
+  </div>
+}

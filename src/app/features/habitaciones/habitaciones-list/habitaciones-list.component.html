@@ -2,6 +2,12 @@
   <div>
     <h1>Habitaciones</h1>
     <p>Vista interactiva del estado operativo de cada habitación.</p>
+    @if (etiquetaSync()) {
+      <p class="sync-hint">
+        <mat-icon>sync</mat-icon>
+        {{ etiquetaSync() }}
+      </p>
+    }
   </div>
   <a mat-flat-button color="primary" routerLink="/habitaciones/nueva">
     <mat-icon>add</mat-icon>
@@ -47,25 +53,50 @@
 
   <mat-form-field appearance="outline" class="tipo">
     <mat-label>Tipo</mat-label>
-    <mat-select [(value)]="filtroTipo">
-      <mat-option value="">Todos</mat-option>
+    <mat-select panelClass="roomix-select-panel" [(value)]="filtroTipo">
+      <mat-option value="">Todos los tipos</mat-option>
       @for (t of tipos; track t.value) {
-        <mat-option [value]="t.value">{{ t.label }}</mat-option>
+        <mat-option [value]="t.value">
+          <span class="roomix-option">
+            <mat-icon>king_bed</mat-icon>
+            <span class="roomix-option-label">{{ t.label }}</span>
+          </span>
+        </mat-option>
       }
     </mat-select>
   </mat-form-field>
 
   <mat-form-field appearance="outline" class="orden">
     <mat-label>Ordenar por</mat-label>
-    <mat-select [(value)]="orden">
-      <mat-option value="numero">Número</mat-option>
-      <mat-option value="estado">Estado</mat-option>
-      <mat-option value="tipo">Tipo</mat-option>
-      <mat-option value="actualizado-desc">Última actualización</mat-option>
+    <mat-select panelClass="roomix-select-panel" [(value)]="orden">
+      <mat-option value="numero">
+        <span class="roomix-option">
+          <mat-icon>tag</mat-icon>
+          <span class="roomix-option-label">Número</span>
+        </span>
+      </mat-option>
+      <mat-option value="estado">
+        <span class="roomix-option">
+          <mat-icon>toggle_on</mat-icon>
+          <span class="roomix-option-label">Estado</span>
+        </span>
+      </mat-option>
+      <mat-option value="tipo">
+        <span class="roomix-option">
+          <mat-icon>category</mat-icon>
+          <span class="roomix-option-label">Tipo</span>
+        </span>
+      </mat-option>
+      <mat-option value="actualizado-desc">
+        <span class="roomix-option">
+          <mat-icon>schedule</mat-icon>
+          <span class="roomix-option-label">Última actualización</span>
+        </span>
+      </mat-option>
     </mat-select>
   </mat-form-field>
 
-  <button mat-stroked-button (click)="cargar()">
+  <button mat-stroked-button (click)="cargar(true)">
     <mat-icon>refresh</mat-icon>
     Actualizar
   </button>
@@ -110,12 +141,20 @@
           </div>
           <div class="estado-badge compacto" [class]="meta(h.estado).cssClass">
             <mat-icon>{{ meta(h.estado).icon }}</mat-icon>
-            <span>{{ etiqueta(h.estado) }}</span>
+            <span>{{ etiqueta(h) }}</span>
           </div>
         </mat-card-header>
 
         <mat-card-content>
           <p class="descripcion">{{ h.descripcion }}</p>
+
+          @if (h.fechaEntrada && h.fechaSalida) {
+            <p class="detalle reserva-compacta">
+              <mat-icon>event</mat-icon>
+              {{ formatearFecha(h.fechaEntrada) }} → {{ formatearFecha(h.fechaSalida) }}
+              · {{ h.cantidadNoches }} noche(s)
+            </p>
+          }
 
           @if (etiquetaMotivo(h); as motivo) {
             <p class="detalle motivo">
@@ -127,32 +166,20 @@
           @if (muestraIncidencias(h)) {
             <div class="incidencias-block" (click)="$event.stopPropagation()">
               <div class="incidencias-block-header">
-                <span>{{ h.estado === 'OCUPADO' ? 'Incidencias activas' : 'Servicios en curso' }}</span>
-                @if (h.estado === 'INHABILITADO' || h.estado === 'LIBRE' || h.estado === 'RESERVADO') {
-                  <button mat-stroked-button type="button" (click)="abrirCrearIncidencia(h, $event)">
-                    <mat-icon>add</mat-icon>
-                    {{ h.estado === 'INHABILITADO' ? 'Nuevo mantenimiento' : 'Nuevo servicio' }}
-                  </button>
-                }
+                <span>Servicios activos</span>
               </div>
-              @if (incidenciasDe(h).length === 0) {
-                <p class="sin-servicios">
-                  @if (h.estado === 'OCUPADO') {
-                    Sin incidencias. Use «Generar incidencia» en acciones rápidas.
-                  } @else if (h.estado === 'LIBRE') {
-                    Tras el check-out se creará limpieza automáticamente.
-                  } @else {
-                    Sin servicios activos.
-                  }
-                </p>
-              }
               @for (inc of incidenciasDe(h); track inc.id) {
                 <div class="incidencia-item">
                   <div class="incidencia-header">
-                  <span class="incidencia-titulo">{{ inc.titulo }}</span>
+                    <span class="incidencia-titulo">{{ inc.titulo }}</span>
                     <a mat-button [routerLink]="['/incidencias', inc.id]">Gestionar</a>
                   </div>
-                  <p class="incidencia-resumen">{{ resumenInc(inc) }} · {{ etiquetaInc(inc.estado) }}</p>
+                  <p class="incidencia-resumen">
+                    {{ resumenInc(inc) }} · {{ etiquetaInc(inc.estado) }}
+                    @if (inc.tipo === 'LIMPIEZA' && inc.contextoLimpieza) {
+                      · {{ etiquetaContextoLimp(inc.contextoLimpieza) }}
+                    }
+                  </p>
                   <div class="incidencia-bar">
                     <div
                       class="incidencia-fill"
@@ -235,10 +262,12 @@
         </mat-card-content>
 
         <mat-card-actions align="end" (click)="$event.stopPropagation()">
-          <button mat-button type="button" (click)="abrirCambioEstado(h)">
-            <mat-icon>swap_horiz</mat-icon>
-            Cambiar estado
-          </button>
+          @if (puedeCambiarEstado(h)) {
+            <button mat-button type="button" (click)="abrirCambioEstado(h)">
+              <mat-icon>swap_horiz</mat-icon>
+              Cambiar estado
+            </button>
+          }
           <a mat-icon-button [routerLink]="['/habitaciones', h.id, 'editar']" matTooltip="Editar">
             <mat-icon>edit</mat-icon>
           </a>

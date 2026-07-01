@@ -54,11 +54,31 @@
 
   <mat-form-field appearance="outline" class="orden">
     <mat-label>Ordenar por</mat-label>
-    <mat-select [(value)]="orden">
-      <mat-option value="nombre">Nombre (A–Z)</mat-option>
-      <mat-option value="stock-asc">Stock (menor a mayor)</mat-option>
-      <mat-option value="stock-desc">Stock (mayor a menor)</mat-option>
-      <mat-option value="categoria">Categoría</mat-option>
+    <mat-select panelClass="roomix-select-panel" [(value)]="orden">
+      <mat-option value="nombre">
+        <span class="roomix-option">
+          <mat-icon>sort_by_alpha</mat-icon>
+          <span class="roomix-option-label">Nombre (A–Z)</span>
+        </span>
+      </mat-option>
+      <mat-option value="stock-asc">
+        <span class="roomix-option">
+          <mat-icon>trending_up</mat-icon>
+          <span class="roomix-option-label">Stock (menor a mayor)</span>
+        </span>
+      </mat-option>
+      <mat-option value="stock-desc">
+        <span class="roomix-option">
+          <mat-icon>trending_down</mat-icon>
+          <span class="roomix-option-label">Stock (mayor a menor)</span>
+        </span>
+      </mat-option>
+      <mat-option value="categoria">
+        <span class="roomix-option">
+          <mat-icon>category</mat-icon>
+          <span class="roomix-option-label">Categoría</span>
+        </span>
+      </mat-option>
     </mat-select>
   </mat-form-field>
 

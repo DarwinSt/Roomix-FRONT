@@ -30,6 +30,7 @@ import { formatearFechaIso } from '../../../core/utils/date.util';
     <mat-dialog-content>
       <p class="hint">
         La reserva define fechas planificadas. Si el huésped llega tarde, las noches reservadas no cambian.
+        No se puede reservar si hay limpieza pendiente o mantenimiento programado en alguna noche del rango.
       </p>
       <mat-form-field appearance="outline" class="full">
         <mat-label>Fecha de entrada</mat-label>

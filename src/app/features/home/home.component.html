@@ -1,55 +1,118 @@
 <div class="page-header home-header">
   <img [src]="logoUrl" alt="Roomix" class="home-logo" />
   <div>
-    <h1>Bienvenido a Roomix</h1>
-    <p>Gestión de habitaciones e inventario con una interfaz clara y dinámica.</p>
+    <h1>Panel del día</h1>
+    <p>Resumen operativo: habitaciones, servicios pendientes e inventario.</p>
+    @if (etiquetaSync()) {
+      <p class="sync-hint">
+        <mat-icon>sync</mat-icon>
+        {{ etiquetaSync() }}
+      </p>
+    }
   </div>
+  <button mat-stroked-button type="button" (click)="cargar(true)">
+    <mat-icon>refresh</mat-icon>
+    Actualizar
+  </button>
 </div>
 
-<div class="cards">
-  <mat-card>
-    <mat-card-header>
-      <img
-        mat-card-avatar
-        [src]="bedroomIconUrl"
-        alt=""
-        class="module-icon-img"
-        aria-hidden="true"
-      />
-      <mat-card-title>Habitaciones</mat-card-title>
-      <mat-card-subtitle>Estados, reservas y check-in</mat-card-subtitle>
-    </mat-card-header>
-    <mat-card-actions>
-      <a mat-flat-button color="primary" routerLink="/habitaciones">Ir al módulo</a>
-    </mat-card-actions>
-  </mat-card>
+@if (loading()) {
+  <div class="loading"><mat-spinner diameter="48" /></div>
+} @else {
+  <section class="kpi-grid">
+    @for (e of resumenHabitaciones(); track e.value) {
+      <button
+        type="button"
+        class="kpi-card"
+        [class]="e.cssClass"
+        (click)="irAHabitaciones(e.value)"
+      >
+        <mat-icon>{{ e.icon }}</mat-icon>
+        <span class="kpi-valor">{{ e.count }}</span>
+        <span class="kpi-etiqueta">{{ e.label }}</span>
+      </button>
+    }
+  </section>
 
-  <mat-card>
-    <mat-card-header>
-      <img
-        mat-card-avatar
-        [src]="inventoryIconUrl"
-        alt=""
-        class="module-icon-img"
-        aria-hidden="true"
-      />
-      <mat-card-title>Inventario</mat-card-title>
-      <mat-card-subtitle>Artículos, stock y categorías</mat-card-subtitle>
-    </mat-card-header>
-    <mat-card-actions>
-      <a mat-flat-button color="primary" routerLink="/inventario">Ver inventario</a>
-      <a mat-button routerLink="/inventario/categorias">Categorías</a>
-    </mat-card-actions>
-  </mat-card>
+  <div class="metricas-secundarias">
+    <mat-card class="metrica-card" (click)="irAIncidencias('sin-asignar')">
+      <mat-icon>assignment_late</mat-icon>
+      <div>
+        <span class="metrica-valor">{{ incidenciasSinAsignar() }}</span>
+        <span class="metrica-etiqueta">Incidencias sin asignar</span>
+      </div>
+    </mat-card>
+    <mat-card class="metrica-card" routerLink="/incidencias">
+      <mat-icon>engineering</mat-icon>
+      <div>
+        <span class="metrica-valor">{{ incidenciasActivas().length }}</span>
+        <span class="metrica-etiqueta">Servicios activos</span>
+      </div>
+    </mat-card>
+    <mat-card class="metrica-card" routerLink="/inventario">
+      <mat-icon>warning_amber</mat-icon>
+      <div>
+        <span class="metrica-valor">{{ stockBajo().length }}</span>
+        <span class="metrica-etiqueta">Artículos con stock bajo</span>
+      </div>
+    </mat-card>
+    <mat-card class="metrica-card" routerLink="/personal">
+      <mat-icon>groups</mat-icon>
+      <div>
+        <span class="metrica-valor">{{ personalOcupado() }}</span>
+        <span class="metrica-etiqueta">Personal ocupado</span>
+      </div>
+    </mat-card>
+  </div>
 
-  <mat-card>
-    <mat-card-header>
-      <mat-icon mat-card-avatar class="module-icon-mat">report_problem</mat-icon>
-      <mat-card-title>Incidencias</mat-card-title>
-      <mat-card-subtitle>Limpieza, asignación y seguimiento</mat-card-subtitle>
-    </mat-card-header>
-    <mat-card-actions>
-      <a mat-flat-button color="primary" routerLink="/incidencias">Ver incidencias</a>
-    </mat-card-actions>
-  </mat-card>
-</div>
+  <section class="cola-section">
+    <div class="cola-header">
+      <h2>Cola de trabajo priorizada</h2>
+      <a mat-button routerLink="/incidencias">Ver todas las incidencias</a>
+    </div>
+
+    @if (colaOperativa().length === 0) {
+      <mat-card class="cola-vacia">
+        <mat-icon>check_circle</mat-icon>
+        <p>No hay tareas urgentes pendientes. Todo al día.</p>
+      </mat-card>
+    } @else {
+      <div class="cola-lista">
+        @for (item of colaOperativa(); track item.id) {
+          <mat-card class="cola-item">
+            <div class="cola-item-body">
+              <mat-icon class="cola-icon">{{ item.icon }}</mat-icon>
+              <div>
+                <strong>{{ item.titulo }}</strong>
+                <p>{{ item.subtitulo }}</p>
+              </div>
+            </div>
+            <a mat-flat-button color="primary" [routerLink]="item.ruta">{{ item.accionLabel }}</a>
+          </mat-card>
+        }
+      </div>
+    }
+  </section>
+
+  <section class="accesos-rapidos">
+    <h2>Accesos rápidos</h2>
+    <div class="accesos-grid">
+      <a mat-stroked-button routerLink="/habitaciones">
+        <mat-icon>hotel</mat-icon>
+        Habitaciones
+      </a>
+      <a mat-stroked-button routerLink="/incidencias">
+        <mat-icon>report_problem</mat-icon>
+        Incidencias
+      </a>
+      <a mat-stroked-button routerLink="/personal">
+        <mat-icon>groups</mat-icon>
+        Personal
+      </a>
+      <a mat-stroked-button routerLink="/inventario">
+        <mat-icon>inventory_2</mat-icon>
+        Inventario
+      </a>
+    </div>
+  </section>
+}

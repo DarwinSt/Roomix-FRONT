@@ -60,8 +60,8 @@ export function etiquetaEstado(estado: EstadoHabitacion): string {
 
 export function etiquetaMotivoInhabilitacion(motivo: MotivoInhabilitacion): string {
   return motivo === 'POST_CHECKOUT'
-    ? 'Limpieza pendiente tras check-out'
-    : 'Mantenimiento programado para hoy';
+    ? 'Pendiente limpieza post check-out — no reservable hasta finalizar'
+    : 'Mantenimiento programado — no reservable hoy';
 }
 
 /** Transiciones permitidas según estado actual (sin INHABILITADO manual). */

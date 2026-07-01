@@ -55,6 +55,7 @@ export interface ConfirmDialogData {
       margin: 0;
       color: var(--text-100);
       line-height: 1.5;
+      white-space: pre-line;
     }
   `,
 })
