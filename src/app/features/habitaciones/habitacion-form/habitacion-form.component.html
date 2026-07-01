@@ -16,6 +16,7 @@
         <mat-form-field appearance="outline">
           <mat-label>Tipo</mat-label>
           <mat-select panelClass="roomix-select-panel" formControlName="tipoHabitacion">
+            <mat-select-trigger>{{ etiquetaTipo(form.controls.tipoHabitacion.value) }}</mat-select-trigger>
             @for (t of tipos; track t.value) {
               <mat-option [value]="t.value">
                 <span class="roomix-option">
@@ -28,8 +29,23 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline">
+          <mat-label>Precio por noche (€)</mat-label>
+          <mat-icon matPrefix>euro</mat-icon>
+          <input
+            matInput
+            type="number"
+            min="0.01"
+            step="0.01"
+            formControlName="precioNoche"
+            placeholder="120.00"
+          />
+          <mat-hint>Tarifa específica de esta habitación</mat-hint>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
           <mat-label>Estado</mat-label>
           <mat-select panelClass="roomix-select-panel" formControlName="estado">
+            <mat-select-trigger>{{ etiquetaEstadoForm(form.controls.estado.value) }}</mat-select-trigger>
             @for (e of opcionesEstado(); track e.estadoDestino + (e.motivoInhabilitacion ?? '')) {
               <mat-option [value]="e.estadoDestino">
                 <span class="roomix-option">

@@ -1,0 +1,178 @@
+<div class="page-header row">
+  <div>
+    <h1>Reservas</h1>
+    <p>Listado e historial de estadías. Consulte disponibilidad al crear una nueva reserva desde Habitaciones.</p>
+    @if (etiquetaSync()) {
+      <p class="sync-hint">
+        <mat-icon>sync</mat-icon>
+        {{ etiquetaSync() }}
+      </p>
+    }
+  </div>
+  <div class="header-actions">
+    <mat-button-toggle-group [value]="vista()" (change)="cambiarVista($event.value)">
+      <mat-button-toggle value="listado">
+        <mat-icon>view_list</mat-icon>
+        Listado
+      </mat-button-toggle>
+      <mat-button-toggle value="calendario">
+        <mat-icon>calendar_month</mat-icon>
+        Calendario
+      </mat-button-toggle>
+    </mat-button-toggle-group>
+    <a mat-flat-button color="primary" routerLink="/habitaciones">
+      <mat-icon>bed</mat-icon>
+      Nueva reserva
+    </a>
+    <button mat-stroked-button type="button" (click)="cargar(true)">
+      <mat-icon>refresh</mat-icon>
+      Actualizar
+    </button>
+  </div>
+</div>
+
+<div class="resumen-grid">
+  <mat-card class="resumen-card">
+    <mat-icon>event_note</mat-icon>
+    <div>
+      <span class="valor">{{ resumen().total }}</span>
+      <span class="etiqueta">En el periodo</span>
+    </div>
+  </mat-card>
+  <mat-card class="resumen-card activas">
+    <mat-icon>pending_actions</mat-icon>
+    <div>
+      <span class="valor">{{ resumen().activas }}</span>
+      <span class="etiqueta">Activas</span>
+    </div>
+  </mat-card>
+  <mat-card class="resumen-card finalizadas">
+    <mat-icon>history</mat-icon>
+    <div>
+      <span class="valor">{{ resumen().finalizadas }}</span>
+      <span class="etiqueta">Finalizadas</span>
+    </div>
+  </mat-card>
+</div>
+
+<div class="panel-filtros">
+  <mat-form-field appearance="outline" class="filtro-estado">
+    <mat-label>Estado</mat-label>
+    <mat-select
+      panelClass="roomix-select-panel"
+      [ngModel]="filtroEstado()"
+      (ngModelChange)="filtroEstado.set($event); onFiltroEstadoChange()"
+    >
+      @for (e of estadosFiltro; track e.value) {
+        <mat-option [value]="e.value">{{ e.label }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  @if (vista() === 'listado') {
+    <mat-form-field appearance="outline" class="busqueda">
+      <mat-label>Buscar huésped o habitación</mat-label>
+      <mat-icon matPrefix>search</mat-icon>
+      <input matInput [ngModel]="busqueda()" (ngModelChange)="busqueda.set($event)" />
+    </mat-form-field>
+  }
+</div>
+
+@if (loading()) {
+  <div class="loading"><mat-spinner diameter="48" /></div>
+} @else if (vista() === 'listado') {
+  @if (reservasVisibles().length === 0) {
+    <mat-card class="empty-state">
+      <mat-icon>event_busy</mat-icon>
+      <h2>Sin reservas</h2>
+      <p>No hay reservas que coincidan con los filtros del mes actual.</p>
+      <a mat-stroked-button routerLink="/habitaciones">Ir a habitaciones</a>
+    </mat-card>
+  } @else {
+    <mat-card class="tabla-card">
+      <table mat-table [dataSource]="reservasVisibles()" class="reservas-table">
+        <ng-container matColumnDef="habitacion">
+          <th mat-header-cell *matHeaderCellDef>Habitación</th>
+          <td mat-cell *matCellDef="let r">
+            <strong>{{ r.habitacionNumero }}</strong>
+            <span class="sub">{{ etiquetaTipo(r.tipoHabitacion) }}</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="huesped">
+          <th mat-header-cell *matHeaderCellDef>Huésped</th>
+          <td mat-cell *matCellDef="let r">
+            {{ r.huesped.nombreCompleto }}
+            <span class="sub">{{ r.huesped.numeroDocumento }}</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="fechas">
+          <th mat-header-cell *matHeaderCellDef>Fechas</th>
+          <td mat-cell *matCellDef="let r">{{ r.fechaEntrada }} → {{ r.fechaSalida }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="noches">
+          <th mat-header-cell *matHeaderCellDef>Noches</th>
+          <td mat-cell *matCellDef="let r">{{ r.cantidadNoches }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="total">
+          <th mat-header-cell *matHeaderCellDef>Total</th>
+          <td mat-cell *matCellDef="let r">
+            {{ formatearMoneda(r.totalEstimado) }}
+            <span class="sub">{{ formatearMoneda(r.tarifaNoche) }}/noche</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="estado">
+          <th mat-header-cell *matHeaderCellDef>Estado</th>
+          <td mat-cell *matCellDef="let r">
+            <span class="estado-chip {{ claseEstado(r.estadoReserva) }}">
+              {{ etiquetaEstado(r.estadoReserva) }}
+            </span>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="columnas"></tr>
+        <tr mat-row *matRowDef="let row; columns: columnas"></tr>
+      </table>
+    </mat-card>
+  }
+} @else {
+  <mat-card class="calendario-card">
+    <div class="calendario-toolbar">
+      <button mat-icon-button type="button" (click)="mesAnterior()" aria-label="Mes anterior">
+        <mat-icon>chevron_left</mat-icon>
+      </button>
+      <h2>{{ etiquetaMes() }}</h2>
+      <button mat-icon-button type="button" (click)="mesSiguiente()" aria-label="Mes siguiente">
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+    </div>
+
+    <div class="calendario-grid">
+      <div class="dia-semana">Lun</div>
+      <div class="dia-semana">Mar</div>
+      <div class="dia-semana">Mié</div>
+      <div class="dia-semana">Jue</div>
+      <div class="dia-semana">Vie</div>
+      <div class="dia-semana">Sáb</div>
+      <div class="dia-semana">Dom</div>
+
+      @for (dia of diasCalendario(); track dia.fecha.toISOString()) {
+        <div class="dia-celda" [class.fuera-mes]="!dia.enMes" [class.con-reservas]="dia.reservas.length > 0">
+          <span class="numero">{{ dia.fecha.getDate() }}</span>
+          @for (r of dia.reservas; track r.id) {
+            <span
+              class="reserva-chip {{ claseEstado(r.estadoReserva) }}"
+              [matTooltip]="r.habitacionNumero + ' · ' + r.huesped.nombreCompleto"
+            >
+              {{ r.habitacionNumero }}
+            </span>
+          }
+        </div>
+      }
+    </div>
+  </mat-card>
+}

@@ -48,6 +48,7 @@ export class ShellComponent {
   readonly navItems: NavItem[] = [
     { path: '/inicio', icon: 'dashboard', label: 'Inicio' },
     { path: '/habitaciones', iconUrl: ROOMIX_BEDROOM_ICON_URL, label: 'Habitaciones' },
+    { path: '/reservas', icon: 'event_note', label: 'Reservas' },
     { path: '/incidencias', icon: 'report_problem', label: 'Incidencias' },
     { path: '/huespedes', icon: 'person', label: 'Huéspedes' },
     { path: '/personal', icon: 'groups', label: 'Personal' },

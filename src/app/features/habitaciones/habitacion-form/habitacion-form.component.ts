@@ -11,6 +11,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatIconModule } from '@angular/material/icon';
 import { HabitacionService } from '../../../core/services/habitacion.service';
+import { TarifaService } from '../../../core/services/tarifa.service';
 import { ErrorDialogService } from '../../../core/services/error-dialog.service';
 import {
   EstadoHabitacion,
@@ -21,6 +22,7 @@ import {
 import { formatearFechaIso, parsearFechaApi } from '../../../core/utils/date.util';
 import {
   TransicionOpcion,
+  etiquetaEstado,
   opcionesEstadoAlta,
   opcionesEstadoEdicion,
 } from '../../../core/utils/habitacion-estado.util';
@@ -48,6 +50,7 @@ export class HabitacionFormComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly habitacionService = inject(HabitacionService);
+  private readonly tarifaService = inject(TarifaService);
   private readonly snackBar = inject(MatSnackBar);
   private readonly errorDialog = inject(ErrorDialogService);
 
@@ -69,10 +72,22 @@ export class HabitacionFormComponent implements OnInit {
     () => this.form.controls.estado.value === 'RESERVADO',
   );
 
+  etiquetaTipo(tipo: TipoHabitacion | null): string {
+    if (!tipo) return '';
+    return this.tipos.find((t) => t.value === tipo)?.label ?? tipo;
+  }
+
+  etiquetaEstadoForm(estado: EstadoHabitacion | null): string {
+    if (!estado) return '';
+    const opcion = this.opcionesEstado().find((o) => o.estadoDestino === estado);
+    return opcion?.label ?? etiquetaEstado(estado);
+  }
+
   readonly form = this.fb.group({
     numero: ['', [Validators.required, Validators.maxLength(20)]],
     descripcion: ['', [Validators.required, Validators.maxLength(500)]],
     tipoHabitacion: ['DOBLE' as TipoHabitacion, Validators.required],
+    precioNoche: [null as number | null, [Validators.required, Validators.min(0.01)]],
     estado: ['LIBRE' as EstadoHabitacion, Validators.required],
     caracteristicasTexto: [''],
     fechaEntrada: [null as Date | null],
@@ -84,7 +99,16 @@ export class HabitacionFormComponent implements OnInit {
     if (idParam && idParam !== 'nueva') {
       this.id = Number(idParam);
       this.cargar(this.id);
+    } else {
+      const tipo = this.form.controls.tipoHabitacion.value;
+      if (tipo) this.sugerirPrecioPorTipo(tipo);
     }
+
+    this.form.controls.tipoHabitacion.valueChanges.subscribe((tipo) => {
+      if (!this.id && tipo) {
+        this.sugerirPrecioPorTipo(tipo);
+      }
+    });
 
     this.form.controls.estado.valueChanges.subscribe((estado) => {
       if (estado !== 'RESERVADO') {
@@ -107,6 +131,7 @@ export class HabitacionFormComponent implements OnInit {
           numero: h.numero,
           descripcion: h.descripcion,
           tipoHabitacion: h.tipoHabitacion,
+          precioNoche: h.precioNoche,
           estado: h.estado,
           caracteristicasTexto: h.caracteristicas.join(', '),
           fechaEntrada: parsearFechaApi(h.fechaEntrada),
@@ -143,6 +168,7 @@ export class HabitacionFormComponent implements OnInit {
       numero: v.numero!,
       descripcion: v.descripcion!,
       tipoHabitacion: v.tipoHabitacion!,
+      precioNoche: Number(v.precioNoche),
       estado: v.estado!,
       caracteristicas,
       fechaEntrada:
@@ -166,6 +192,17 @@ export class HabitacionFormComponent implements OnInit {
       error: (err) => {
         this.saving.set(false);
         this.errorDialog.mostrarDesdeApi(err);
+      },
+    });
+  }
+
+  private sugerirPrecioPorTipo(tipo: TipoHabitacion): void {
+    this.tarifaService.listar().subscribe({
+      next: (tarifas) => {
+        const tarifa = tarifas.find((t) => t.tipoHabitacion === tipo);
+        if (tarifa != null) {
+          this.form.patchValue({ precioNoche: Number(tarifa.precioNoche) });
+        }
       },
     });
   }

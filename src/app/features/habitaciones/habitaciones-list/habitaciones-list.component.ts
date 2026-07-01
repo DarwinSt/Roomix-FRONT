@@ -24,6 +24,7 @@ import {
   TIPOS_HABITACION,
   TipoHabitacion,
 } from '../../../core/models/habitacion.model';
+import { formatearMoneda } from '../../../core/models/reserva.model';
 import { Incidencia } from '../../../core/models/incidencia.model';
 import { IncidenciaCrearDialogComponent } from '../../incidencias/incidencia-crear-dialog/incidencia-crear-dialog.component';
 import {
@@ -91,6 +92,7 @@ export class HabitacionesListComponent implements OnInit {
 
   readonly estados = ESTADOS_HABITACION;
   readonly tipos = TIPOS_HABITACION;
+  readonly formatearMoneda = formatearMoneda;
   readonly loading = signal(true);
   readonly habitaciones = signal<Habitacion[]>([]);
   readonly incidenciasPorHabitacion = signal<Map<number, Incidencia[]>>(new Map());

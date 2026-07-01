@@ -78,6 +78,12 @@
     font-weight: 500;
   }
 
+  // Evita que el trigger muestre el ligature del mat-icon (ej. "check_circleLibre")
+  .mat-mdc-select-value-text .roomix-option mat-icon,
+  .mat-mdc-select-min-line .roomix-option mat-icon {
+    display: none !important;
+  }
+
   .mat-mdc-select-arrow {
     color: var(--primary-300) !important;
   }

@@ -1,0 +1,235 @@
+.sync-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin: 0.35rem 0 0;
+  font-size: 0.82rem;
+  color: var(--text-200);
+
+  mat-icon {
+    font-size: 1rem;
+    width: 1rem;
+    height: 1rem;
+  }
+}
+
+.header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  align-items: center;
+}
+
+.resumen-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.resumen-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem !important;
+
+  mat-icon {
+    font-size: 1.75rem;
+    width: 1.75rem;
+    height: 1.75rem;
+    color: var(--primary-300);
+  }
+
+  .valor {
+    display: block;
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--text-strong);
+    line-height: 1.1;
+  }
+
+  .etiqueta {
+    font-size: 0.8rem;
+    color: var(--text-200);
+  }
+
+  &.activas mat-icon {
+    color: var(--accent-200);
+  }
+
+  &.finalizadas mat-icon {
+    color: var(--primary-400);
+  }
+}
+
+.panel-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+
+  .filtro-estado {
+    min-width: 180px;
+  }
+
+  .busqueda {
+    flex: 1 1 280px;
+    min-width: 0;
+  }
+}
+
+.tabla-card {
+  overflow-x: auto;
+}
+
+.reservas-table {
+  width: 100%;
+
+  .sub {
+    display: block;
+    font-size: 0.78rem;
+    color: var(--text-200);
+  }
+}
+
+.estado-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+
+  &.estado-confirmada {
+    background: rgba(245, 196, 85, 0.35);
+    color: #6b4f00;
+  }
+
+  &.estado-en-curso {
+    background: rgba(212, 160, 23, 0.35);
+    color: #5c4200;
+  }
+
+  &.estado-finalizada {
+    background: rgba(168, 224, 183, 0.45);
+    color: #235d3a;
+  }
+
+  &.estado-cancelada {
+    background: rgba(196, 92, 92, 0.2);
+    color: #8b2e2e;
+  }
+}
+
+.calendario-card {
+  padding: 1rem !important;
+}
+
+.calendario-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+
+  h2 {
+    margin: 0;
+    min-width: 180px;
+    text-align: center;
+    text-transform: capitalize;
+    font-size: 1.1rem;
+    color: var(--primary-300);
+  }
+}
+
+.calendario-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.35rem;
+}
+
+.dia-semana {
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-200);
+  padding: 0.25rem 0;
+}
+
+.dia-celda {
+  min-height: 88px;
+  border: 1px solid var(--border-soft, rgba(0, 0, 0, 0.08));
+  border-radius: 8px;
+  padding: 0.35rem;
+  background: var(--surface-100, #fff);
+
+  &.fuera-mes {
+    opacity: 0.45;
+  }
+
+  &.con-reservas {
+    border-color: rgba(57, 125, 84, 0.25);
+    background: rgba(168, 224, 183, 0.08);
+  }
+
+  .numero {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-strong);
+    margin-bottom: 0.25rem;
+  }
+}
+
+.reserva-chip {
+  display: block;
+  font-size: 0.68rem;
+  padding: 0.1rem 0.3rem;
+  border-radius: 4px;
+  margin-bottom: 0.15rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  &.estado-confirmada {
+    background: rgba(245, 196, 85, 0.5);
+  }
+
+  &.estado-en-curso {
+    background: rgba(212, 160, 23, 0.45);
+  }
+
+  &.estado-finalizada {
+    background: rgba(168, 224, 183, 0.55);
+  }
+}
+
+.empty-state {
+  text-align: center;
+  padding: 2.5rem 1rem;
+
+  mat-icon {
+    font-size: 3rem;
+    width: 3rem;
+    height: 3rem;
+    color: var(--primary-200);
+    margin-bottom: 0.5rem;
+  }
+
+  h2 {
+    margin: 0 0 0.35rem;
+    color: var(--primary-300);
+  }
+
+  p {
+    margin: 0 0 1rem;
+    color: var(--text-200);
+  }
+}
+
+.loading {
+  display: grid;
+  place-items: center;
+  padding: 3rem;
+}

@@ -20,6 +20,7 @@ export interface Habitacion {
   caracteristicas: string[];
   tipoHabitacion: TipoHabitacion;
   descripcion: string;
+  precioNoche: number | null;
   estado: EstadoHabitacion;
   /** Reserva planificada */
   fechaEntrada: string | null;
@@ -39,6 +40,7 @@ export interface HabitacionRequest {
   caracteristicas: string[];
   tipoHabitacion: TipoHabitacion;
   descripcion: string;
+  precioNoche: number;
   estado?: EstadoHabitacion;
   fechaEntrada?: string | null;
   fechaSalida?: string | null;

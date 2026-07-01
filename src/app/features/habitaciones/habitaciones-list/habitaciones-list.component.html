@@ -137,7 +137,12 @@
         <mat-card-header>
           <div class="card-titulo">
             <mat-card-title>Habitación {{ h.numero }}</mat-card-title>
-            <mat-card-subtitle>{{ etiquetaTipo(h.tipoHabitacion) }}</mat-card-subtitle>
+            <mat-card-subtitle>
+              {{ etiquetaTipo(h.tipoHabitacion) }}
+              @if (h.precioNoche != null) {
+                · {{ formatearMoneda(h.precioNoche) }}/noche
+              }
+            </mat-card-subtitle>
           </div>
           <div class="estado-badge compacto" [class]="meta(h.estado).cssClass">
             <mat-icon>{{ meta(h.estado).icon }}</mat-icon>

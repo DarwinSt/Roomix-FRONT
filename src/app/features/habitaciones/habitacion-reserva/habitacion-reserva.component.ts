@@ -1,4 +1,5 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -10,7 +11,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatCardModule } from '@angular/material/card';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { switchMap } from 'rxjs';
+import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
 import {
   calcularNoches,
   Habitacion,
@@ -18,10 +19,12 @@ import {
   TipoHabitacion,
 } from '../../../core/models/habitacion.model';
 import { TIPOS_DOCUMENTO, TipoDocumento } from '../../../core/models/huesped.model';
+import { formatearMoneda } from '../../../core/models/reserva.model';
 import { HabitacionService } from '../../../core/services/habitacion.service';
 import { HuespedService } from '../../../core/services/huesped.service';
+import { ReservaService } from '../../../core/services/reserva.service';
+import { TarifaService } from '../../../core/services/tarifa.service';
 import { ErrorDialogService } from '../../../core/services/error-dialog.service';
-import { payloadReservar } from '../../../core/utils/habitacion-acciones.util';
 import { formatearFechaIso } from '../../../core/utils/date.util';
 import { etiquetaEstado, metaEstado } from '../../../core/utils/habitacion-estado.util';
 
@@ -49,15 +52,23 @@ export class HabitacionReservaComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly habitacionService = inject(HabitacionService);
   private readonly huespedService = inject(HuespedService);
+  private readonly reservaService = inject(ReservaService);
+  private readonly tarifaService = inject(TarifaService);
   private readonly snackBar = inject(MatSnackBar);
   private readonly errorDialog = inject(ErrorDialogService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly loading = signal(true);
   readonly guardando = signal(false);
+  readonly verificandoDisponibilidad = signal(false);
   readonly habitacion = signal<Habitacion | null>(null);
+  readonly tarifaNoche = signal<number | null>(null);
+  readonly disponibleEnFechas = signal<boolean | null>(null);
+  readonly errorDisponibilidad = signal<string | null>(null);
   readonly tiposDocumento = TIPOS_DOCUMENTO;
   readonly etiqueta = etiquetaEstado;
   readonly meta = metaEstado;
+  readonly formatearMoneda = formatearMoneda;
 
   readonly form = this.fb.group({
     nombre: ['', [Validators.required, Validators.maxLength(80)]],
@@ -80,13 +91,23 @@ export class HabitacionReservaComponent implements OnInit {
     this.habitacionService.obtener(id).subscribe({
       next: (h) => {
         this.habitacion.set(h);
+        if (h.precioNoche != null) {
+          this.tarifaNoche.set(Number(h.precioNoche));
+        } else {
+          this.cargarTarifa(h.tipoHabitacion);
+        }
         this.loading.set(false);
+        this.verificarDisponibilidad();
       },
       error: (err) => {
         this.errorDialog.mostrarDesdeApi(err);
         void this.router.navigate(['/habitaciones']);
       },
     });
+
+    this.form.valueChanges
+      .pipe(debounceTime(350), distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.verificarDisponibilidad());
   }
 
   puedeReservar(): boolean {
@@ -104,12 +125,42 @@ export class HabitacionReservaComponent implements OnInit {
     return calcularNoches(formatearFechaIso(entrada), formatearFechaIso(salida));
   }
 
+  get totalEstimado(): number | null {
+    const tarifa = this.tarifaNoche();
+    const noches = this.noches;
+    if (tarifa == null || noches == null || noches < 1) return null;
+    return tarifa * noches;
+  }
+
   get puedeConfirmar(): boolean {
-    return this.puedeReservar() && this.form.valid && (this.noches ?? 0) >= 1 && !this.guardando();
+    return (
+      this.puedeReservar() &&
+      this.form.valid &&
+      (this.noches ?? 0) >= 1 &&
+      this.disponibleEnFechas() === true &&
+      this.tarifaNoche() != null &&
+      !this.guardando() &&
+      !this.verificandoDisponibilidad()
+    );
   }
 
   get mensajeValidacion(): string | null {
     if (!this.puedeReservar() || this.guardando() || this.puedeConfirmar) return null;
+
+    if (this.verificandoDisponibilidad()) {
+      return 'Comprobando disponibilidad para las fechas seleccionadas…';
+    }
+
+    if (this.errorDisponibilidad()) {
+      return this.errorDisponibilidad();
+    }
+
+    if (this.disponibleEnFechas() === false) {
+      return (
+        this.errorDisponibilidad() ??
+        'La habitación no está disponible en esas fechas (reserva solapada, mantenimiento o limpieza pendiente).'
+      );
+    }
 
     const f = this.form.controls;
     if (f.nombre.invalid || f.apellidos.invalid || f.tipoDocumento.invalid || f.numeroDocumento.invalid) {
@@ -123,6 +174,9 @@ export class HabitacionReservaComponent implements OnInit {
     if ((this.noches ?? 0) < 1) {
       return 'La fecha de salida debe ser posterior a la de entrada (mínimo 1 noche).';
     }
+    if (this.tarifaNoche() == null) {
+      return 'No se pudo cargar la tarifa para este tipo de habitación.';
+    }
     return null;
   }
 
@@ -134,6 +188,8 @@ export class HabitacionReservaComponent implements OnInit {
     }
 
     const v = this.form.getRawValue();
+    const fechaEntrada = formatearFechaIso(v.fechaEntrada!);
+    const fechaSalida = formatearFechaIso(v.fechaSalida!);
     this.guardando.set(true);
 
     this.huespedService
@@ -148,10 +204,12 @@ export class HabitacionReservaComponent implements OnInit {
       })
       .pipe(
         switchMap((huesped) =>
-          this.habitacionService.actualizarEstado(
-            habitacion.id,
-            payloadReservar(v.fechaEntrada!, v.fechaSalida!, huesped.id),
-          ),
+          this.reservaService.crear({
+            habitacionId: habitacion.id,
+            huespedId: huesped.id,
+            fechaEntrada,
+            fechaSalida,
+          }),
         ),
       )
       .subscribe({
@@ -164,6 +222,50 @@ export class HabitacionReservaComponent implements OnInit {
           this.errorDialog.mostrarDesdeApi(err);
         },
       });
+  }
+
+  private cargarTarifa(tipo: TipoHabitacion): void {
+    this.tarifaService.listar().subscribe({
+      next: (tarifas) => {
+        const tarifa = tarifas.find((t) => t.tipoHabitacion === tipo);
+        this.tarifaNoche.set(tarifa?.precioNoche ?? null);
+      },
+      error: () => this.tarifaNoche.set(null),
+    });
+  }
+
+  private verificarDisponibilidad(): void {
+    const habitacion = this.habitacion();
+    const entrada = this.form.controls.fechaEntrada.value;
+    const salida = this.form.controls.fechaSalida.value;
+    if (!habitacion || !entrada || !salida || (this.noches ?? 0) < 1) {
+      this.disponibleEnFechas.set(null);
+      this.errorDisponibilidad.set(null);
+      return;
+    }
+
+    this.verificandoDisponibilidad.set(true);
+    this.errorDisponibilidad.set(null);
+    const fechaEntrada = formatearFechaIso(entrada);
+    const fechaSalida = formatearFechaIso(salida);
+
+    this.reservaService
+      .disponibilidadHabitacion(habitacion.id, fechaEntrada, fechaSalida, habitacion.tipoHabitacion)
+      .subscribe({
+      next: (resultado) => {
+        this.disponibleEnFechas.set(resultado.disponible);
+        this.tarifaNoche.set(Number(resultado.tarifaNoche));
+        this.errorDisponibilidad.set(null);
+        this.verificandoDisponibilidad.set(false);
+      },
+      error: (err) => {
+        this.disponibleEnFechas.set(null);
+        this.errorDisponibilidad.set(
+          err?.error?.detail ?? 'No se pudo comprobar la disponibilidad. Intente de nuevo.',
+        );
+        this.verificandoDisponibilidad.set(false);
+      },
+    });
   }
 
   private sumaDias(fecha: Date, dias: number): Date {

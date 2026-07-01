@@ -19,6 +19,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'reservas',
+        loadComponent: () =>
+          import('./features/reservas/reservas-list/reservas-list.component').then(
+            (m) => m.ReservasListComponent,
+          ),
+      },
+      {
         path: 'habitaciones/nueva',
         loadComponent: () =>
           import('./features/habitaciones/habitacion-form/habitacion-form.component').then(

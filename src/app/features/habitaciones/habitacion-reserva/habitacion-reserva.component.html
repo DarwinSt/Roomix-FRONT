@@ -32,6 +32,12 @@
             <span class="resumen-label">Tipo</span>
             <strong>{{ etiquetaTipo(h.tipoHabitacion) }}</strong>
           </div>
+          @if (h.precioNoche != null) {
+            <div class="resumen-item">
+              <span class="resumen-label">Tarifa</span>
+              <strong>{{ formatearMoneda(h.precioNoche) }}/noche</strong>
+            </div>
+          }
           <div class="resumen-item">
             <span class="resumen-label">Estado actual</span>
             <span class="estado-chip {{ meta(h.estado).cssClass }}">
@@ -50,7 +56,9 @@
       <mat-card-content>
         <div class="info-banner">
           <mat-icon>info</mat-icon>
-          <span>Si el huésped llega tarde, las noches reservadas no cambian.</span>
+          <span>
+            Si el huésped llega tarde, las noches reservadas no cambian. La disponibilidad se valida al elegir fechas.
+          </span>
         </div>
 
         <form [formGroup]="form" class="form-block">
@@ -112,12 +120,14 @@
           </div>
         </form>
 
-        @if (puedeConfirmar && noches !== null) {
+        @if (puedeConfirmar && noches !== null && totalEstimado !== null) {
           <div class="dialog-summary-bar">
             <mat-icon>nights_stay</mat-icon>
             <span>
               Al confirmar:
               <strong>{{ noches }} noche(s)</strong>
+              · {{ formatearMoneda(tarifaNoche()!) }}/noche
+              · total <strong>{{ formatearMoneda(totalEstimado) }}</strong>
               · quedará en estado
               <span class="estado-chip estado-reservado">Reservado</span>
             </span>
