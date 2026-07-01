@@ -299,7 +299,7 @@ export class HabitacionesListComponent implements OnInit {
 
   abrirReserva(h: Habitacion): void {
     const ref = this.dialog.open(HabitacionReservaDialogComponent, {
-      ...roomixDialogConfig({ width: '480px' }),
+      ...roomixDialogConfig({ width: '580px' }),
       data: h,
     });
     ref.afterClosed().subscribe((ok) => {

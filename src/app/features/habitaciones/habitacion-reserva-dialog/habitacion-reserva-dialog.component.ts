@@ -33,8 +33,6 @@ import { HuespedCrearDialogComponent } from '../../huespedes/huesped-crear-dialo
     MatProgressSpinnerModule,
   ],
   template: `
-    <div class="dialog-accent" aria-hidden="true"></div>
-
     <div mat-dialog-title class="dialog-header">
       <div class="header-icon">
         <mat-icon>event_available</mat-icon>
@@ -81,64 +79,73 @@ import { HuespedCrearDialogComponent } from '../../huespedes/huesped-crear-dialo
         </div>
 
         <p class="section-label">Fechas</p>
-        <div class="dialog-form-grid">
-          <mat-form-field appearance="outline" class="full">
+        <div class="dialog-form-grid fechas-grid">
+          <mat-form-field appearance="outline">
             <mat-label>Fecha de entrada</mat-label>
             <input matInput [matDatepicker]="pickerEntrada" [(ngModel)]="fechaEntrada" />
             <mat-datepicker-toggle matIconSuffix [for]="pickerEntrada" />
             <mat-datepicker #pickerEntrada />
           </mat-form-field>
-          <mat-form-field appearance="outline" class="full">
+          <mat-form-field appearance="outline">
             <mat-label>Fecha de salida</mat-label>
             <input matInput [matDatepicker]="pickerSalida" [(ngModel)]="fechaSalida" [min]="fechaEntrada" />
             <mat-datepicker-toggle matIconSuffix [for]="pickerSalida" />
             <mat-datepicker #pickerSalida />
           </mat-form-field>
         </div>
-        @if (noches !== null) {
-          <p class="noches">
-            <mat-icon>nights_stay</mat-icon>
-            {{ noches }} noche(s) · Estado: <strong>Reservado</strong>
-          </p>
-        }
       </div>
     </mat-dialog-content>
-    <mat-dialog-actions align="end">
-      <button mat-button mat-dialog-close type="button">Cancelar</button>
-      <button
-        mat-flat-button
-        color="primary"
-        type="button"
-        [disabled]="!huespedId || !fechaEntrada || !fechaSalida || noches === null || noches < 1 || guardando"
-        (click)="confirmar()"
-      >
-        @if (guardando) {
-          <mat-spinner diameter="18" />
-        } @else {
-          Confirmar reserva
-        }
-      </button>
-    </mat-dialog-actions>
+
+    <div class="dialog-footer">
+      @if (puedeConfirmar && noches !== null) {
+        <div class="dialog-summary-bar">
+          <mat-icon>nights_stay</mat-icon>
+          <span>
+            Al confirmar:
+            <strong>{{ noches }} noche(s)</strong>
+            · quedará en estado
+            <span class="estado-chip estado-reservado">Reservado</span>
+          </span>
+        </div>
+      } @else if (mensajeValidacion) {
+        <div class="dialog-summary-bar validation">
+          <mat-icon>info</mat-icon>
+          <span>{{ mensajeValidacion }}</span>
+        </div>
+      }
+
+      <mat-dialog-actions align="end">
+        <button mat-button mat-dialog-close type="button">Cancelar</button>
+        <button
+          mat-flat-button
+          color="primary"
+          type="button"
+          [disabled]="!puedeConfirmar"
+          (click)="confirmar()"
+        >
+          @if (guardando) {
+            <mat-spinner diameter="18" />
+          } @else {
+            Confirmar reserva
+          }
+        </button>
+      </mat-dialog-actions>
+    </div>
   `,
   styles: `
     .huesped-row {
       display: flex;
-      gap: 0.5rem;
-      align-items: flex-start;
-      margin-bottom: 0.5rem;
+      gap: 0.75rem;
+      align-items: center;
+      margin-bottom: 0.25rem;
       min-width: 0;
 
       .full { flex: 1; min-width: 0; }
-      .btn-nuevo { flex-shrink: 0; margin-top: 0.35rem; }
+      .btn-nuevo { flex-shrink: 0; }
     }
-    .noches {
-      display: flex;
-      align-items: center;
-      gap: 0.35rem;
-      margin: 0.5rem 0 0;
-      font-size: 0.9rem;
-      color: var(--accent-200);
-      mat-icon { font-size: 1.1rem; width: 1.1rem; height: 1.1rem; }
+
+    .fechas-grid {
+      gap: 0.5rem 1.15rem;
     }
   `,
 })
@@ -170,8 +177,35 @@ export class HabitacionReservaDialogComponent implements OnInit {
     return calcularNoches(formatearFechaIso(this.fechaEntrada), formatearFechaIso(this.fechaSalida));
   }
 
+  get puedeConfirmar(): boolean {
+    return (
+      !!this.huespedId &&
+      !!this.fechaEntrada &&
+      !!this.fechaSalida &&
+      (this.noches ?? 0) >= 1 &&
+      !this.guardando
+    );
+  }
+
+  get mensajeValidacion(): string | null {
+    if (this.guardando || this.puedeConfirmar) return null;
+    if (!this.huespedId) {
+      if (this.huespedesDisponibles().length === 0) {
+        return 'No hay huéspedes disponibles. Pulse «Nuevo» para registrar uno.';
+      }
+      return 'Seleccione el huésped que ocupará la habitación.';
+    }
+    if (!this.fechaEntrada || !this.fechaSalida) {
+      return 'Indique la fecha de entrada y la de salida.';
+    }
+    if ((this.noches ?? 0) < 1) {
+      return 'La fecha de salida debe ser posterior a la de entrada (mínimo 1 noche).';
+    }
+    return null;
+  }
+
   registrarHuesped(): void {
-    const ref = this.dialog.open(HuespedCrearDialogComponent, roomixDialogConfig({ width: '480px' }));
+    const ref = this.dialog.open(HuespedCrearDialogComponent, roomixDialogConfig({ width: '520px' }));
     ref.afterClosed().subscribe((h) => {
       if (!h) return;
       this.cargarHuespedes(() => {
@@ -181,10 +215,10 @@ export class HabitacionReservaDialogComponent implements OnInit {
   }
 
   confirmar(): void {
-    if (!this.huespedId || !this.fechaEntrada || !this.fechaSalida || (this.noches ?? 0) < 1) return;
+    if (!this.puedeConfirmar) return;
     this.guardando = true;
     this.habitacionService
-      .actualizarEstado(this.data.id, payloadReservar(this.fechaEntrada, this.fechaSalida, this.huespedId))
+      .actualizarEstado(this.data.id, payloadReservar(this.fechaEntrada!, this.fechaSalida!, this.huespedId!))
       .subscribe({
         next: () => this.dialogRef.close(true),
         error: (err) => {

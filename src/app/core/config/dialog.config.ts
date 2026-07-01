@@ -4,6 +4,8 @@
  * Patrón para nuevos modales:
  * 1. Abrir con `...roomixDialogConfig({ width: '480px' })` y `data`.
  * 2. En el componente: `host: { class: 'roomix-dialog-shell' }`.
+ *    (El padding interno lo aplica `_roomix-dialog.scss` en `.mat-mdc-dialog-surface`,
+ *     porque Material usa `display: contents` en el host del componente.)
  * 3. Plantilla: `dialog-accent`, `dialog-header`, `info-banner`, `dialog-form-grid`, etc.
  *    (ver `styles/_roomix-dialog.scss`).
  */
