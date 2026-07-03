@@ -89,10 +89,11 @@
   align-items: center;
   flex-wrap: wrap;
   margin-bottom: 1rem;
-  padding: 1rem;
-  background: var(--bg-200);
-  border: 1px solid var(--bg-300);
+  padding: 1rem 1.1rem;
+  background: linear-gradient(145deg, rgba(168, 224, 183, 0.22) 0%, rgba(255, 255, 255, 0.98) 55%);
+  border: 1px solid rgba(57, 125, 84, 0.22);
   border-radius: var(--roomix-radius-lg);
+  box-shadow: 0 2px 10px rgba(35, 93, 58, 0.06);
 
   .busqueda {
     flex: 1;
@@ -102,6 +103,46 @@
   .tipo,
   .orden {
     min-width: 170px;
+  }
+
+  mat-form-field {
+    --mdc-outlined-text-field-container-color: #ffffff;
+    --mdc-outlined-text-field-outline-color: rgba(57, 125, 84, 0.28);
+    --mdc-outlined-text-field-hover-outline-color: rgba(57, 125, 84, 0.45);
+    --mdc-outlined-text-field-focus-outline-color: var(--primary-300);
+    --mdc-outlined-text-field-label-text-color: var(--text-200);
+    --mdc-outlined-text-field-focus-label-text-color: var(--primary-400);
+    --mat-form-field-container-vertical-padding: 12px;
+
+    border-radius: 12px;
+  }
+
+  button[mat-stroked-button] {
+    border-color: rgba(57, 125, 84, 0.4);
+    color: var(--primary-400);
+    background: rgba(255, 255, 255, 0.85);
+
+    mat-icon {
+      color: var(--primary-300);
+    }
+
+    &:hover {
+      background: rgba(168, 224, 183, 0.25);
+      border-color: var(--primary-300);
+    }
+  }
+
+  button[mat-button] {
+    color: var(--text-200);
+
+    mat-icon {
+      color: var(--primary-300);
+    }
+
+    &:hover {
+      color: var(--primary-400);
+      background: rgba(168, 224, 183, 0.18);
+    }
   }
 }
 

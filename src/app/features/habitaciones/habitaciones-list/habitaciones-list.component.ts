@@ -59,6 +59,13 @@ import { etiquetaEstadoHabitacion, etiquetaContextoLimpieza } from '../../../cor
 
 type OrdenHabitacion = 'numero' | 'estado' | 'tipo' | 'actualizado-desc';
 
+const OPCIONES_ORDEN: { value: OrdenHabitacion; label: string; icon: string }[] = [
+  { value: 'numero', label: 'Número', icon: 'tag' },
+  { value: 'estado', label: 'Estado', icon: 'toggle_on' },
+  { value: 'tipo', label: 'Tipo', icon: 'category' },
+  { value: 'actualizado-desc', label: 'Última actualización', icon: 'schedule' },
+];
+
 @Component({
   selector: 'app-habitaciones-list',
   imports: [
@@ -92,6 +99,7 @@ export class HabitacionesListComponent implements OnInit {
 
   readonly estados = ESTADOS_HABITACION;
   readonly tipos = TIPOS_HABITACION;
+  readonly opcionesOrden = OPCIONES_ORDEN;
   readonly formatearMoneda = formatearMoneda;
   readonly loading = signal(true);
   readonly habitaciones = signal<Habitacion[]>([]);
@@ -343,6 +351,15 @@ export class HabitacionesListComponent implements OnInit {
 
   etiquetaTipo(tipo: TipoHabitacion): string {
     return TIPOS_HABITACION.find((t) => t.value === tipo)?.label ?? tipo;
+  }
+
+  etiquetaTipoFiltro(valor: TipoHabitacion | ''): string {
+    if (!valor) return 'Todos los tipos';
+    return this.etiquetaTipo(valor);
+  }
+
+  etiquetaOrden(valor: OrdenHabitacion): string {
+    return OPCIONES_ORDEN.find((o) => o.value === valor)?.label ?? valor;
   }
 
   etiquetaReserva = etiquetaEstadoReserva;

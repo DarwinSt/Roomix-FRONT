@@ -54,6 +54,7 @@
   <mat-form-field appearance="outline" class="tipo">
     <mat-label>Tipo</mat-label>
     <mat-select panelClass="roomix-select-panel" [(value)]="filtroTipo">
+      <mat-select-trigger>{{ etiquetaTipoFiltro(filtroTipo) }}</mat-select-trigger>
       <mat-option value="">Todos los tipos</mat-option>
       @for (t of tipos; track t.value) {
         <mat-option [value]="t.value">
@@ -69,30 +70,15 @@
   <mat-form-field appearance="outline" class="orden">
     <mat-label>Ordenar por</mat-label>
     <mat-select panelClass="roomix-select-panel" [(value)]="orden">
-      <mat-option value="numero">
-        <span class="roomix-option">
-          <mat-icon>tag</mat-icon>
-          <span class="roomix-option-label">Número</span>
-        </span>
-      </mat-option>
-      <mat-option value="estado">
-        <span class="roomix-option">
-          <mat-icon>toggle_on</mat-icon>
-          <span class="roomix-option-label">Estado</span>
-        </span>
-      </mat-option>
-      <mat-option value="tipo">
-        <span class="roomix-option">
-          <mat-icon>category</mat-icon>
-          <span class="roomix-option-label">Tipo</span>
-        </span>
-      </mat-option>
-      <mat-option value="actualizado-desc">
-        <span class="roomix-option">
-          <mat-icon>schedule</mat-icon>
-          <span class="roomix-option-label">Última actualización</span>
-        </span>
-      </mat-option>
+      <mat-select-trigger>{{ etiquetaOrden(orden) }}</mat-select-trigger>
+      @for (o of opcionesOrden; track o.value) {
+        <mat-option [value]="o.value">
+          <span class="roomix-option">
+            <mat-icon>{{ o.icon }}</mat-icon>
+            <span class="roomix-option-label">{{ o.label }}</span>
+          </span>
+        </mat-option>
+      }
     </mat-select>
   </mat-form-field>
 
