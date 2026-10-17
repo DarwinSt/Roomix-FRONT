@@ -68,6 +68,13 @@ export function etiquetaEstadoReserva(estado: EstadoReserva): string {
   return map[estado] ?? estado;
 }
 
+const FORMATO_MONEDA = new Intl.NumberFormat('es-CO', {
+  style: 'currency',
+  currency: 'COP',
+  maximumFractionDigits: 0,
+});
+
+/** Pesos colombianos sin decimales, ej. "$ 265.000". */
 export function formatearMoneda(valor: number): string {
-  return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(valor);
+  return FORMATO_MONEDA.format(valor);
 }

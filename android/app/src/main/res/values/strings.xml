@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Roomix</string>
+    <string name="title_activity_main">Roomix</string>
+    <string name="package_name">com.roomix.app</string>
+    <string name="custom_url_scheme">com.roomix.app</string>
+</resources>

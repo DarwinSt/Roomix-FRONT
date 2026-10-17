@@ -1,3 +1,5 @@
+@use '../../../../styles/responsive' as rx;
+
 .page-header.row {
   display: flex;
   flex-wrap: wrap;
@@ -45,7 +47,7 @@
 
 .incidencias-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
   gap: 1rem;
 }
 
@@ -134,4 +136,18 @@
   margin: 0;
   font-size: 0.78rem;
   color: var(--text-200);
+}
+
+.panel-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: flex-start;
+
+  .busqueda {
+    flex: 1 1 280px;
+    min-width: 0;
+  }
+
+  @include rx.filtros-apilados;
 }

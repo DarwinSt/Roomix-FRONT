@@ -6,7 +6,7 @@
       <a mat-button routerLink="/incidencias"><mat-icon>arrow_back</mat-icon> Incidencias</a>
       <h1>{{ inc.titulo }}</h1>
       <p>
-        Habitación {{ inc.habitacionNumero ?? '—' }} · {{ inc.tipo }}
+        Habitación {{ inc.habitacionNumero ?? '—' }} · {{ etiquetaTipo(inc.tipo) }}
         @if (inc.tipo === 'LIMPIEZA' && inc.contextoLimpieza) {
           · {{ etiquetaContexto(inc.contextoLimpieza) }}
         }

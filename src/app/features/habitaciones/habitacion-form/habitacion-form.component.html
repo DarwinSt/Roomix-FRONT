@@ -64,8 +64,9 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full">
-          <mat-label>Características (separadas por coma)</mat-label>
+          <mat-label>Características</mat-label>
           <input matInput formControlName="caracteristicasTexto" placeholder="WiFi, TV, Minibar" />
+          <mat-hint>Separadas por coma</mat-hint>
         </mat-form-field>
 
         @if (mostrarFechasReserva()) {

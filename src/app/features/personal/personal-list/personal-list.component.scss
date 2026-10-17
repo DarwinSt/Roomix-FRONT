@@ -1,3 +1,5 @@
+@use '../../../../styles/responsive' as rx;
+
 .sync-hint {
   display: flex;
   align-items: center;
@@ -15,9 +17,11 @@
 
 .resumen-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
   gap: 0.75rem;
   margin-bottom: 1.25rem;
+
+  @include rx.resumen-compacto;
 }
 
 .resumen-card {
@@ -56,7 +60,7 @@
 
 .personal-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
   gap: 1rem;
 }
 

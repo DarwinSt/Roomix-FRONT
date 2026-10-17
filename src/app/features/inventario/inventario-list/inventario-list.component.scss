@@ -1,8 +1,12 @@
+@use '../../../../styles/responsive' as rx;
+
 .resumen-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
   gap: 1rem;
   margin-bottom: 1.25rem;
+
+  @include rx.resumen-compacto;
 }
 
 .resumen-card {
@@ -76,6 +80,12 @@
   .orden {
     min-width: 200px;
   }
+
+  @include rx.filtros-apilados;
+
+  @media (max-width: 600px) {
+    padding: 0.75rem;
+  }
 }
 
 .chips-categorias {
@@ -98,7 +108,7 @@
 
 .articulos-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
   gap: 1.15rem;
 }
 

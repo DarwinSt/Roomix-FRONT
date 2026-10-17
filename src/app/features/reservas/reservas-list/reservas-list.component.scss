@@ -1,3 +1,5 @@
+@use '../../../../styles/responsive' as rx;
+
 .sync-hint {
   display: flex;
   align-items: center;
@@ -22,9 +24,11 @@
 
 .resumen-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
   gap: 0.85rem;
   margin-bottom: 1rem;
+
+  @include rx.resumen-compacto;
 }
 
 .resumen-card {
@@ -77,6 +81,8 @@
     flex: 1 1 280px;
     min-width: 0;
   }
+
+  @include rx.filtros-apilados;
 }
 
 .tabla-card {
@@ -90,6 +96,19 @@
     display: block;
     font-size: 0.78rem;
     color: var(--text-200);
+  }
+
+  @include rx.tabla-a-tarjetas;
+
+  // Tarjeta: habitación | estado · huésped · fechas · total | noches
+  @media (max-width: 720px) {
+    .mat-column-habitacion { order: 1; }
+    .mat-column-estado { order: 2; justify-self: end; }
+    .mat-column-estado::before { text-align: right; }
+    .mat-column-huesped { order: 3; grid-column: 1 / -1; }
+    .mat-column-fechas { order: 4; grid-column: 1 / -1; }
+    .mat-column-total { order: 5; }
+    .mat-column-noches { order: 6; }
   }
 }
 
@@ -158,6 +177,12 @@
 }
 
 .dia-celda {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
   min-height: 88px;
   border: 1px solid var(--border-soft, rgba(0, 0, 0, 0.08));
   border-radius: 8px;
@@ -173,12 +198,102 @@
     background: rgba(168, 224, 183, 0.08);
   }
 
+  &.seleccionado {
+    outline: 2px solid var(--primary-300);
+    outline-offset: -1px;
+  }
+
   .numero {
     display: block;
     font-size: 0.8rem;
     font-weight: 600;
     color: var(--text-strong);
     margin-bottom: 0.25rem;
+  }
+
+  // Solo en teléfonos: número de reservas en lugar de las etiquetas por habitación
+  .contador {
+    display: none;
+  }
+}
+
+.dia-detalle {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--bg-300);
+
+  h3 {
+    margin: 0 0 0.5rem;
+    font-size: 0.95rem;
+    color: var(--primary-300);
+    text-transform: capitalize;
+  }
+}
+
+.dia-detalle-item {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0;
+  border-bottom: 1px solid var(--bg-300);
+  font-size: 0.88rem;
+
+  .nombre {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.sin-reservas {
+  margin: 0;
+  color: var(--text-200);
+  font-size: 0.85rem;
+}
+
+@media (max-width: 720px) {
+  .calendario-card {
+    padding: 0.75rem !important;
+  }
+
+  .calendario-grid {
+    gap: 0.2rem;
+  }
+
+  .dia-celda {
+    min-height: 0;
+    aspect-ratio: 1;
+    padding: 0.2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+
+    .numero {
+      margin: 0;
+    }
+
+    .reserva-chip {
+      display: none;
+    }
+
+    .contador {
+      display: grid;
+      place-items: center;
+      min-width: 1.3rem;
+      height: 1.3rem;
+      padding: 0 0.2rem;
+      border-radius: 999px;
+      background: var(--primary-300);
+      color: #fff;
+      font-size: 0.68rem;
+      font-weight: 700;
+    }
+  }
+
+  .calendario-toolbar h2 {
+    min-width: 0;
   }
 }
 

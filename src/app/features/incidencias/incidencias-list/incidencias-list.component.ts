@@ -14,7 +14,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { IncidenciaCrearDialogComponent } from '../incidencia-crear-dialog/incidencia-crear-dialog.component';
 import { IncidenciaService } from '../../../core/services/incidencia.service';
 import { ErrorDialogService } from '../../../core/services/error-dialog.service';
-import { EstadoIncidencia, Incidencia } from '../../../core/models/incidencia.model';
+import { EstadoIncidencia, Incidencia, etiquetaTipoIncidencia } from '../../../core/models/incidencia.model';
 import {
   etiquetaEstadoIncidencia,
   nivelProgresoIncidencia,
@@ -95,6 +95,7 @@ export class IncidenciasListComponent implements OnInit {
   nivel = nivelProgresoIncidencia;
   siguienteAccion = siguienteAccionIncidencia;
   etiquetaContexto = etiquetaContextoLimpieza;
+  etiquetaTipo = etiquetaTipoIncidencia;
 
   ngOnInit(): void {
     this.route.queryParamMap.subscribe((params) => {

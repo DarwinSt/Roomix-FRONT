@@ -1,0 +1,5 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist/roomix/browser",
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+}

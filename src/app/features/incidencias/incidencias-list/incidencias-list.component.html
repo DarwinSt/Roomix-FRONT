@@ -214,7 +214,7 @@
           <mat-card-title>{{ i.titulo }}</mat-card-title>
 
           <mat-card-subtitle>
-            {{ i.ubicacionEtiqueta }} · {{ i.tipo }}
+            {{ i.ubicacionEtiqueta }} · {{ etiquetaTipo(i.tipo) }}
             @if (i.tipo === 'LIMPIEZA' && i.contextoLimpieza) {
               <span class="badge-contexto">{{ etiquetaContexto(i.contextoLimpieza) }}</span>
             }

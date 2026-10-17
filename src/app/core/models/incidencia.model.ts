@@ -76,6 +76,10 @@ export const TIPOS_INCIDENCIA: { value: TipoIncidencia; label: string; icon: str
   { value: 'OTRO', label: 'Otro servicio', icon: 'more_horiz' },
 ];
 
+export function etiquetaTipoIncidencia(tipo: TipoIncidencia): string {
+  return TIPOS_INCIDENCIA.find((t) => t.value === tipo)?.label ?? tipo;
+}
+
 export interface Personal {
   id: number;
   nombre: string;

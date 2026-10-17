@@ -1,7 +1,26 @@
+@use '../../../../styles/responsive' as rx;
+
 .muted {
   color: var(--roomix-text-muted);
 }
 
 .table-wrap {
   overflow-x: auto;
+}
+
+.categorias-table {
+  width: 100%;
+
+  // Muchas columnas de texto: pasa a tarjetas también en tablets verticales
+  @include rx.tabla-a-tarjetas(960px);
+
+  // Tarjeta: nombre | tipo · descripción · ejemplos · creado | acciones
+  @media (max-width: 960px) {
+    .mat-column-nombre { order: 1; font-size: 1rem; }
+    .mat-column-tipo { order: 2; justify-self: end; }
+    .mat-column-descripcion { order: 3; grid-column: 1 / -1; }
+    .mat-column-ejemplos { order: 4; grid-column: 1 / -1; }
+    .mat-column-creado { order: 5; align-self: center; }
+    .mat-column-acciones { order: 6; justify-self: end; }
+  }
 }

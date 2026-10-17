@@ -147,7 +147,7 @@ import { parsearFechaApi } from '../../../core/utils/date.util';
     }
 
     .estado-grid {
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(min(160px, 100%), 1fr));
     }
 
     .fecha-field {

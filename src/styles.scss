@@ -136,11 +136,12 @@ mat-card-subtitle {
   box-shadow: var(--roomix-shadow);
 }
 
+// safe-area-inset-top: espacio de la barra de estado/notch en la app Android (edge-to-edge)
 mat-toolbar.mat-primary.shell-toolbar {
   display: grid !important;
-  height: var(--shell-header-height, 80px) !important;
-  min-height: var(--shell-header-height, 80px) !important;
-  padding-block: 0 !important;
+  height: calc(var(--shell-header-height, 80px) + env(safe-area-inset-top)) !important;
+  min-height: calc(var(--shell-header-height, 80px) + env(safe-area-inset-top)) !important;
+  padding-block: env(safe-area-inset-top) 0 !important;
   border-bottom: 1px solid var(--bg-300) !important;
   box-sizing: border-box !important;
 }

@@ -11,7 +11,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { IncidenciaService } from '../../../core/services/incidencia.service';
 import { ErrorDialogService } from '../../../core/services/error-dialog.service';
-import { EstadoIncidencia, Incidencia, Personal } from '../../../core/models/incidencia.model';
+import { EstadoIncidencia, Incidencia, Personal, etiquetaTipoIncidencia } from '../../../core/models/incidencia.model';
 import {
   etiquetaEstadoIncidencia,
   nivelProgresoIncidencia,
@@ -44,6 +44,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
   styleUrl: './incidencia-detail.component.scss',
 })
 export class IncidenciaDetailComponent implements OnInit {
+  readonly etiquetaTipo = etiquetaTipoIncidencia;
   private readonly route = inject(ActivatedRoute);
   private readonly incidenciaService = inject(IncidenciaService);
   private readonly snackBar = inject(MatSnackBar);

@@ -1,5 +1,7 @@
 .shell-container {
   height: 100vh;
+  // dvh: altura real en móviles (descuenta la barra del navegador)
+  height: 100dvh;
   background: transparent;
   --shell-header-height: 80px;
 }
@@ -9,14 +11,22 @@
   background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(6px);
   border-right: 1px solid var(--bg-300);
+  max-width: 85vw;
+
+  // Contenido en columna: el pie queda abajo sin superponerse a la lista en pantallas bajas
+  ::ng-deep .mat-drawer-inner-container {
+    display: flex;
+    flex-direction: column;
+  }
 }
 
 .brand {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: var(--shell-header-height);
-  padding: 0 1.15rem;
+  height: calc(var(--shell-header-height) + env(safe-area-inset-top));
+  flex-shrink: 0;
+  padding: env(safe-area-inset-top) 1.15rem 0;
   border-bottom: 1px solid var(--bg-300);
   background: #ffffff;
   text-decoration: none;
@@ -81,10 +91,11 @@ a[mat-list-item].active {
 }
 
 .sidenav-footer {
-  position: absolute;
+  position: sticky;
   bottom: 0;
   width: 100%;
   margin-top: auto;
+  padding-bottom: calc(1.25rem + env(safe-area-inset-bottom));
   padding: 1rem 1.15rem 1.25rem;
   border-top: 1px solid var(--bg-300);
   background: #ffffff;
@@ -119,13 +130,15 @@ a[mat-list-item].active {
 }
 
 .shell-toolbar {
+  // Fija arriba al hacer scroll para tener siempre el menú a mano
+  position: sticky;
+  top: 0;
+  z-index: 10;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
   gap: 0.75rem;
-  height: var(--shell-header-height);
-  min-height: var(--shell-header-height);
-  padding: 0 1rem !important;
+  padding-inline: 1rem !important;
   border-bottom: 1px solid var(--bg-300);
   box-sizing: border-box;
 
@@ -139,6 +152,9 @@ a[mat-list-item].active {
 
   .toolbar-title {
     justify-self: center;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
     text-align: center;
     font-weight: 600;
     font-size: 1rem;
@@ -177,17 +193,29 @@ a[mat-list-item].active {
 }
 
 .shell-content {
-  padding: 1.5rem 1.75rem;
+  padding: 1.5rem 1.75rem calc(1.5rem + env(safe-area-inset-bottom));
   max-width: 1280px;
   margin: 0 auto;
 }
 
-@media (max-width: 600px) {
-  .shell-content {
-    padding: 1rem;
-  }
-
+@media (max-width: 1023.98px) {
   .toolbar-logo {
     display: block;
+  }
+}
+
+@media (max-width: 600px) {
+  .shell-container {
+    --shell-header-height: 64px;
+  }
+
+  .shell-content {
+    padding: 1rem 1rem calc(1rem + env(safe-area-inset-bottom));
+  }
+}
+
+@media (max-width: 359.98px) {
+  .shell-content {
+    padding-inline: 0.75rem;
   }
 }

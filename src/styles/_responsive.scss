@@ -1,0 +1,103 @@
+// Utilidades responsive compartidas por las pantallas de listado.
+// Uso en un componente: @use '../../../../styles/responsive' as rx;
+
+$movil: 600px;
+$tablet: 1023.98px;
+
+/// Tarjetas de resumen (contadores) en una sola fila compacta en teléfonos,
+/// en lugar de una tarjeta a lo ancho por contador.
+@mixin resumen-compacto($columnas: 3) {
+  @media (max-width: $movil) {
+    grid-template-columns: repeat($columnas, minmax(0, 1fr));
+    gap: 0.5rem;
+
+    .resumen-card {
+      gap: 0.25rem;
+      padding: 0.6rem 0.35rem !important;
+      text-align: center;
+
+      mat-icon {
+        font-size: 1.35rem;
+        width: 1.35rem;
+        height: 1.35rem;
+        padding: 0.2rem;
+      }
+
+      .valor {
+        font-size: 1.15rem;
+      }
+
+      .etiqueta {
+        display: block;
+        font-size: 0.7rem;
+        line-height: 1.2;
+      }
+    }
+  }
+}
+
+/// Convierte un mat-table en tarjetas apiladas en pantallas pequeñas.
+/// Cada <td> debe tener data-label="Título" para mostrar su etiqueta.
+@mixin tabla-a-tarjetas($breakpoint: 720px) {
+  @media (max-width: $breakpoint) {
+    display: block;
+    width: 100%;
+    background: transparent;
+
+    // mat-table crea <thead>/<tbody> en tiempo de ejecución: no llevan el atributo de
+    // encapsulación del componente, por eso se alcanzan con ::ng-deep
+    ::ng-deep thead,
+    tr.mat-mdc-header-row {
+      display: none;
+    }
+
+    ::ng-deep tbody {
+      display: block;
+      width: 100%;
+    }
+
+    tr.mat-mdc-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.6rem 0.9rem;
+      height: auto;
+      padding: 0.9rem 1rem;
+      border-bottom: 1px solid var(--bg-300);
+    }
+
+    td.mat-mdc-cell {
+      display: block;
+      min-width: 0;
+      padding: 0;
+      border: 0;
+      overflow-wrap: anywhere;
+
+      &[data-label]::before {
+        content: attr(data-label);
+        display: block;
+        margin-bottom: 0.1rem;
+        font-size: 0.68rem;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--text-200);
+      }
+    }
+
+    // Celdas que deben ocupar toda la fila de la tarjeta
+    td.ancho-completo {
+      grid-column: 1 / -1;
+    }
+  }
+}
+
+/// Campos de filtro a todo el ancho en teléfonos.
+@mixin filtros-apilados {
+  @media (max-width: $movil) {
+    mat-form-field {
+      flex: 1 1 100%;
+      width: 100%;
+      min-width: 0 !important;
+    }
+  }
+}

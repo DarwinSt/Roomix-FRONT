@@ -65,6 +65,8 @@ export class ReservasListComponent implements OnInit {
   readonly mesActual = signal(this.inicioMes(new Date()));
   readonly filtroEstado = signal<EstadoReserva | ''>('');
   readonly busqueda = signal('');
+  /** Día elegido en el calendario (ISO yyyy-MM-dd); muestra sus reservas debajo. */
+  readonly diaSeleccionado = signal<string>(formatearFechaIso(new Date()));
 
   readonly estadosFiltro = ESTADOS_RESERVA_FILTRO;
   readonly columnas = ['habitacion', 'huesped', 'fechas', 'noches', 'total', 'estado'];
@@ -129,6 +131,20 @@ export class ReservasListComponent implements OnInit {
     return dias;
   });
 
+  readonly reservasDiaSeleccionado = computed(() => {
+    const iso = this.diaSeleccionado();
+    return this.diasCalendario().find((d) => formatearFechaIso(d.fecha) === iso)?.reservas ?? [];
+  });
+
+  readonly etiquetaDiaSeleccionado = computed(() => {
+    const [anio, mes, dia] = this.diaSeleccionado().split('-').map(Number);
+    return new Date(anio, mes - 1, dia).toLocaleDateString('es-ES', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+    });
+  });
+
   ngOnInit(): void {
     this.cargar(true);
     programarAutoRefresh(this.destroyRef, () => this.cargar(false));
@@ -170,10 +186,19 @@ export class ReservasListComponent implements OnInit {
     this.vista.set(vista);
   }
 
+  seleccionarDia(dia: DiaCalendario): void {
+    this.diaSeleccionado.set(formatearFechaIso(dia.fecha));
+  }
+
+  esDiaSeleccionado(dia: DiaCalendario): boolean {
+    return formatearFechaIso(dia.fecha) === this.diaSeleccionado();
+  }
+
   mesAnterior(): void {
     const mes = new Date(this.mesActual());
     mes.setMonth(mes.getMonth() - 1);
     this.mesActual.set(this.inicioMes(mes));
+    this.diaSeleccionado.set(formatearFechaIso(this.inicioMes(mes)));
     this.cargar(true);
   }
 
@@ -181,6 +206,7 @@ export class ReservasListComponent implements OnInit {
     const mes = new Date(this.mesActual());
     mes.setMonth(mes.getMonth() + 1);
     this.mesActual.set(this.inicioMes(mes));
+    this.diaSeleccionado.set(formatearFechaIso(this.inicioMes(mes)));
     this.cargar(true);
   }
 

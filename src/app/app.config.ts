@@ -5,6 +5,7 @@ import { provideAnimationsAsync } from '@angular/platform-browser/animations/asy
 
 import { routes } from './app.routes';
 import { ROOMIX_DATE_PROVIDERS } from './core/config/date.config';
+import { provideMobilePlatform } from './core/config/mobile.config';
 import { LOCALE_ID } from '@angular/core';
 import { registerLocaleData } from '@angular/common';
 import localeEs from '@angular/common/locales/es';
@@ -19,5 +20,6 @@ export const appConfig: ApplicationConfig = {
     provideAnimationsAsync(),
     { provide: LOCALE_ID, useValue: 'es-ES' },
     ...ROOMIX_DATE_PROVIDERS,
+    provideMobilePlatform(),
   ],
 };
