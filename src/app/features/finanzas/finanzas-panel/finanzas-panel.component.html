@@ -1,0 +1,168 @@
+<div class="page-header row">
+  <div>
+    <h1>Finanzas</h1>
+    <p>Ingresos, egresos y estado de resultados del hotel. Los pagos de facturas y las compras de inventario se registran solos.</p>
+  </div>
+  <div class="rx-acciones">
+    <button mat-stroked-button (click)="registrar('INGRESO')"><mat-icon>trending_up</mat-icon>Ingreso</button>
+    <button mat-flat-button color="primary" (click)="registrar('EGRESO')"><mat-icon>trending_down</mat-icon>Egreso</button>
+  </div>
+</div>
+
+<div class="rx-toolbar">
+  <rx-periodo inicial="mes" (cambio)="cambiarPeriodo($event)" />
+  <div class="rx-toolbar-acciones">
+    <mat-button-toggle-group [value]="vista()" (change)="cambiarVista($event.value)" class="vista">
+      <mat-button-toggle value="resumen"><mat-icon>insights</mat-icon> Resumen</mat-button-toggle>
+      <mat-button-toggle value="movimientos"><mat-icon>list</mat-icon> Movimientos</mat-button-toggle>
+    </mat-button-toggle-group>
+  </div>
+</div>
+
+@if (vista() === 'resumen') {
+  @if (cargando() && !resumen()) {
+    <div class="rx-cargando"><mat-spinner diameter="44" /></div>
+  } @else if (resumen(); as r) {
+    <div class="rx-kpis">
+      <div class="rx-kpi">
+        <span class="rx-kpi-etiqueta"><mat-icon>trending_up</mat-icon>Ingresos</span>
+        <span class="rx-kpi-valor">{{ moneda(r.totalIngresos) }}</span>
+        <span class="rx-kpi-sub">{{ variacion(r.periodoAnterior.variacionIngresosPct) }}</span>
+      </div>
+      <div class="rx-kpi">
+        <span class="rx-kpi-etiqueta"><mat-icon>trending_down</mat-icon>Egresos</span>
+        <span class="rx-kpi-valor">{{ moneda(r.totalEgresos) }}</span>
+        <span class="rx-kpi-sub">{{ variacion(r.periodoAnterior.variacionEgresosPct) }}</span>
+      </div>
+      <div class="rx-kpi">
+        <span class="rx-kpi-etiqueta"><mat-icon>savings</mat-icon>Utilidad</span>
+        <span class="rx-kpi-valor" [class.positivo]="r.utilidad >= 0" [class.negativo]="r.utilidad < 0">{{ moneda(r.utilidad) }}</span>
+        <span class="rx-kpi-sub">Margen {{ porcentaje(r.margenPct) }}</span>
+      </div>
+      <div class="rx-kpi" [class.rx-kpi--alerta]="r.saldoPorCobrar > 0">
+        <span class="rx-kpi-etiqueta"><mat-icon>pending_actions</mat-icon>Por cobrar</span>
+        <span class="rx-kpi-valor">{{ moneda(r.saldoPorCobrar) }}</span>
+        <span class="rx-kpi-sub"><a routerLink="/facturas" [queryParams]="{ estado: 'PENDIENTE' }">Ver facturas pendientes</a></span>
+      </div>
+    </div>
+
+    <section class="rx-card">
+      <div class="rx-card-titulo">
+        <mat-icon>bar_chart</mat-icon>
+        Ingresos y egresos {{ r.granularidad === 'MES' ? 'por mes' : 'por día' }}
+      </div>
+      <rx-grafico [etiquetas]="etiquetas()" [series]="series()" [formato]="moneda" [alto]="260"
+                  descripcion="Ingresos y egresos del periodo" />
+      <div class="rx-acciones">
+        <button mat-button (click)="verTabla.set(!verTabla())"><mat-icon>table_rows</mat-icon>{{ verTabla() ? 'Ocultar' : 'Ver' }} tabla</button>
+        <button mat-button (click)="exportarResumen()"><mat-icon>download</mat-icon>Exportar CSV</button>
+      </div>
+      @if (verTabla()) {
+        <div class="tabla-serie">
+          <table class="rx-tabla">
+            <thead><tr><th>Periodo</th><th class="derecha">Ingresos</th><th class="derecha">Egresos</th><th class="derecha">Utilidad</th></tr></thead>
+            <tbody>
+              @for (p of r.serie; track p.desde) {
+                <tr>
+                  <td data-label="Periodo">{{ p.etiqueta }}</td>
+                  <td data-label="Ingresos" class="derecha rx-num">{{ moneda(p.ingresos) }}</td>
+                  <td data-label="Egresos" class="derecha rx-num">{{ moneda(p.egresos) }}</td>
+                  <td data-label="Utilidad" class="derecha rx-num">{{ moneda(p.ingresos - p.egresos) }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+
+    <div class="rx-grid-2">
+      <section class="rx-card">
+        <div class="rx-card-titulo"><mat-icon>call_received</mat-icon>Ingresos por categoría</div>
+        <rx-barras-horizontales [items]="ingresosCat()" [color]="colores.ingresos" [formato]="moneda" />
+      </section>
+      <section class="rx-card">
+        <div class="rx-card-titulo"><mat-icon>call_made</mat-icon>Egresos por categoría</div>
+        <rx-barras-horizontales [items]="egresosCat()" [color]="colores.egresos" [formato]="moneda" />
+      </section>
+    </div>
+
+    <p class="comparativo">
+      Periodo anterior ({{ fecha(r.periodoAnterior.desde) }} – {{ fecha(r.periodoAnterior.hasta) }}):
+      ingresos {{ moneda(r.periodoAnterior.ingresos) }}, egresos {{ moneda(r.periodoAnterior.egresos) }},
+      utilidad {{ moneda(r.periodoAnterior.utilidad) }}. Valores con IVA incluido.
+    </p>
+  }
+} @else {
+  <div class="rx-toolbar">
+    <mat-form-field appearance="outline">
+      <mat-label>Tipo</mat-label>
+      <mat-select [(ngModel)]="filtroTipo" (selectionChange)="filtroCategoria = ''; cargarMovimientos(0)" panelClass="roomix-select-panel">
+        <mat-option value="">Todos</mat-option>
+        <mat-option value="INGRESO">Ingresos</mat-option>
+        <mat-option value="EGRESO">Egresos</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Categoría</mat-label>
+      <mat-select [(ngModel)]="filtroCategoria" (selectionChange)="cargarMovimientos(0)" panelClass="roomix-select-panel">
+        <mat-option value="">Todas</mat-option>
+        @for (c of categoriasFiltro(); track c.codigo) { <mat-option [value]="c.codigo">{{ c.nombre }}</mat-option> }
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Buscar concepto, tercero o referencia</mat-label>
+      <mat-icon matPrefix>search</mat-icon>
+      <input matInput [(ngModel)]="filtroTexto" (keyup.enter)="cargarMovimientos(0)" />
+    </mat-form-field>
+    <div class="rx-toolbar-acciones">
+      <mat-checkbox [(ngModel)]="incluirAnulados" (change)="cargarMovimientos(0)">Incluir anulados</mat-checkbox>
+      <button mat-button (click)="exportarMovimientos()" [disabled]="movimientos().length === 0"><mat-icon>download</mat-icon>CSV</button>
+    </div>
+  </div>
+
+  @if (cargandoMov()) {
+    <div class="rx-cargando"><mat-spinner diameter="44" /></div>
+  } @else if (movimientos().length === 0) {
+    <div class="rx-vacio"><mat-icon>receipt</mat-icon><p>No hay movimientos con esos filtros.</p></div>
+  } @else {
+    <div class="rx-tabla-wrap">
+      <table class="rx-tabla">
+        <thead>
+          <tr><th>Fecha</th><th>Concepto</th><th>Categoría</th><th>Método</th><th class="derecha">Valor</th><th></th></tr>
+        </thead>
+        <tbody>
+          @for (m of movimientos(); track m.id) {
+            <tr [class.anulado]="m.anulado">
+              <td data-label="Fecha" class="rx-num">{{ fecha(m.fecha) }}</td>
+              <td data-label="Concepto" class="ancho">
+                {{ m.concepto }}
+                <span class="sub">
+                  @if (m.tercero) { {{ m.tercero }} · } @if (m.referencia) { {{ m.referencia }} · } {{ m.registradoPor }}
+                  @if (m.anulado) { · Anulado: {{ m.motivoAnulacion }} }
+                </span>
+              </td>
+              <td data-label="Categoría"><span class="rx-chip" [class.info]="m.tipo === 'INGRESO'" [class.alerta]="m.tipo === 'EGRESO'">{{ m.categoriaNombre }}</span></td>
+              <td data-label="Método">{{ metodo(m.metodoPago) }}</td>
+              <td data-label="Valor" class="derecha rx-num" [class.positivo]="m.tipo === 'INGRESO'" [class.negativo]="m.tipo === 'EGRESO'">
+                {{ m.tipo === 'EGRESO' ? '−' : '+' }}{{ moneda(m.valor) }}
+              </td>
+              <td class="acciones derecha">
+                @if (m.facturaId) {
+                  <a mat-icon-button [routerLink]="['/facturas', m.facturaId]" matTooltip="Ver factura" aria-label="Ver factura"><mat-icon>receipt_long</mat-icon></a>
+                } @else if (!m.anulado) {
+                  <button mat-icon-button (click)="anular(m)" matTooltip="Anular" aria-label="Anular movimiento"><mat-icon>block</mat-icon></button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+      <div class="rx-paginacion">
+        <span>{{ totalMov() }} movimiento(s) · página {{ pagina() + 1 }} de {{ totalPaginas() || 1 }}</span>
+        <button mat-icon-button (click)="cargarMovimientos(pagina() - 1)" [disabled]="pagina() === 0" aria-label="Anterior"><mat-icon>chevron_left</mat-icon></button>
+        <button mat-icon-button (click)="cargarMovimientos(pagina() + 1)" [disabled]="pagina() + 1 >= totalPaginas()" aria-label="Siguiente"><mat-icon>chevron_right</mat-icon></button>
+      </div>
+    </div>
+  }
+}

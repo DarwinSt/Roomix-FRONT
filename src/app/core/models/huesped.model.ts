@@ -13,6 +13,9 @@ export interface Huesped {
   fechaNacimiento: string | null;
   notas: string | null;
   activo: boolean;
+  /** Autorización de tratamiento de datos (Ley 1581 de 2012) */
+  autorizaTratamientoDatos: boolean;
+  fechaHoraAutorizacion: string | null;
   habitacionActualNumero: string | null;
   fechaHoraCreacion: string;
   fechaHoraUltimaActualizacion: string;
@@ -38,7 +41,14 @@ export interface HuespedRequest {
   fechaNacimiento?: string | null;
   notas?: string | null;
   activo?: boolean;
+  /** Obligatoria: el backend la exige en true (Ley 1581 de 2012) */
+  autorizaTratamientoDatos: boolean;
 }
+
+/** Texto de la autorización que se muestra en los formularios de registro. */
+export const TEXTO_AUTORIZACION_DATOS =
+  'El huésped autoriza el tratamiento de sus datos personales para la gestión de su reserva y estadía, ' +
+  'conforme a la Ley 1581 de 2012 y la política de privacidad del hotel.';
 
 export const TIPOS_DOCUMENTO: { value: TipoDocumento; label: string }[] = [
   { value: 'DNI', label: 'DNI / Identidad' },

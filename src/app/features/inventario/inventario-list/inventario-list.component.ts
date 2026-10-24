@@ -29,7 +29,9 @@ import {
   nivelStock,
   porcentajeStock,
 } from '../../../core/utils/inventario-stock.util';
-import { StockDialogComponent } from '../stock-dialog/stock-dialog.component';
+import { MovimientosArticuloDialogComponent, StockDialogComponent } from '../stock-dialog/stock-dialog.component';
+import { AuthService } from '../../../core/services/auth.service';
+import { moneda } from '../../../core/utils/formato.util';
 import { FechaRoomixPipe } from '../../../shared/pipes/fecha-roomix.pipe';
 
 type OrdenInventario = 'nombre' | 'stock-asc' | 'stock-desc' | 'categoria';
@@ -61,6 +63,10 @@ export class InventarioListComponent implements OnInit {
   private readonly snackBar = inject(MatSnackBar);
   private readonly dialog = inject(MatDialog);
   private readonly errorDialog = inject(ErrorDialogService);
+  private readonly auth = inject(AuthService);
+  readonly moneda = moneda;
+  /** Altas, movimientos y bajas: administración y almacén (igual que el backend). */
+  readonly puedeGestionar = computed(() => this.auth.tieneRol('ADMIN', 'ALMACEN'));
 
   readonly loading = signal(true);
   readonly articulos = signal<ArticuloInventario[]>([]);
@@ -153,12 +159,20 @@ export class InventarioListComponent implements OnInit {
 
   abrirStock(articulo: ArticuloInventario): void {
     const ref = this.dialog.open(StockDialogComponent, {
-      ...roomixDialogConfig({ width: '420px' }),
+      ...roomixDialogConfig({ width: '520px' }),
       data: { articulo },
     });
     ref.afterClosed().subscribe((ok) => {
       if (ok) this.cargar();
     });
+  }
+
+  etiquetaOrden(o: OrdenInventario): string {
+    return { nombre: 'Nombre (A–Z)', 'stock-asc': 'Stock (menor a mayor)', 'stock-desc': 'Stock (mayor a menor)', categoria: 'Categoría' }[o];
+  }
+
+  verMovimientos(a: ArticuloInventario): void {
+    this.dialog.open(MovimientosArticuloDialogComponent, { ...roomixDialogConfig({ width: '760px' }), data: a });
   }
 
   eliminar(a: ArticuloInventario): void {

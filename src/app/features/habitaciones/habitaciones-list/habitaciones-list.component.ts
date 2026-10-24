@@ -16,6 +16,7 @@ import { roomixDialogConfig } from '../../../core/config/dialog.config';
 import { HabitacionService } from '../../../core/services/habitacion.service';
 import { IncidenciaService } from '../../../core/services/incidencia.service';
 import { ErrorDialogService } from '../../../core/services/error-dialog.service';
+import { AuthService } from '../../../core/services/auth.service';
 import {
   ESTADOS_HABITACION,
   EstadoHabitacion,
@@ -93,6 +94,10 @@ export class HabitacionesListComponent implements OnInit {
   private readonly snackBar = inject(MatSnackBar);
   private readonly errorDialog = inject(ErrorDialogService);
   private readonly dialog = inject(MatDialog);
+  private readonly auth = inject(AuthService);
+  readonly esAdmin = computed(() => this.auth.tieneRol('ADMIN'));
+  /** Reservar, cambiar estado y editar: administración y recepción (igual que el backend). */
+  readonly puedeOperar = computed(() => this.auth.tieneRol('ADMIN', 'RECEPCION'));
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);

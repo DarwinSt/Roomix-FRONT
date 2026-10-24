@@ -2,5 +2,5 @@
 // Valor por defecto '/api': mismo dominio (útil detrás de un proxy/nginx).
 export const environment = {
   production: true,
-  apiUrl: 'https://roomix-0-0-1.onrender.com/api',
+  apiUrl: "https://roomix-0-0-1.onrender.com/api",
 };

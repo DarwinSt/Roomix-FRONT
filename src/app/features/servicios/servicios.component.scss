@@ -1,0 +1,113 @@
+.solicitudes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(420px, 100%), 1fr));
+  gap: 0.85rem;
+}
+
+.solicitud {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.25rem 0.85rem;
+  padding: 0.9rem 1rem;
+  background: #ffffff;
+  border: 1px solid var(--bg-300);
+  border-radius: var(--roomix-radius-lg);
+  box-shadow: var(--roomix-shadow);
+
+  &.cerrada {
+    opacity: 0.75;
+  }
+
+  .icono {
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: rgba(168, 224, 183, 0.35);
+    color: var(--primary-300);
+  }
+
+  .cuerpo {
+    min-width: 0;
+  }
+
+  .fila-titulo {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .detalle {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.2rem;
+    margin: 0.2rem 0 0;
+    font-size: 0.83rem;
+    color: var(--text-200);
+
+    mat-icon {
+      font-size: 0.95rem;
+      width: 0.95rem;
+      height: 0.95rem;
+    }
+
+    a {
+      color: var(--primary-300);
+    }
+  }
+
+  .notas {
+    margin: 0.35rem 0 0;
+    padding: 0.4rem 0.55rem;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.04);
+    font-size: 0.8rem;
+  }
+
+  .acciones {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.35rem;
+  }
+}
+
+.catalogo {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
+  gap: 0.65rem 1.25rem;
+}
+
+.servicio {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px dashed var(--bg-300);
+
+  &.inactivo {
+    opacity: 0.6;
+  }
+
+  p {
+    margin: 0.15rem 0;
+    font-size: 0.82rem;
+    color: var(--text-200);
+  }
+
+  .precio {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.15rem;
+    font-weight: 700;
+    color: var(--text-strong);
+    white-space: nowrap;
+  }
+}

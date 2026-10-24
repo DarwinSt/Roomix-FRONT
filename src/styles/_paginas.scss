@@ -1,0 +1,608 @@
+// Utilidades globales de las pantallas de gestión (finanzas, servicios, eventos, usuarios, reportes...).
+// Son globales a propósito: las tablas y tarjetas responsive funcionan sin ::ng-deep.
+
+// ---------------------------------------------------------------- KPIs
+.rx-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(185px, 100%), 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+
+  @media (max-width: 600px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+
+    .rx-kpi {
+      padding: 0.7rem 0.75rem;
+    }
+  }
+}
+
+.rx-kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.9rem 1rem;
+  background: #ffffff;
+  border: 1px solid var(--bg-300);
+  border-radius: var(--roomix-radius-lg);
+  box-shadow: var(--roomix-shadow);
+  min-width: 0;
+
+  .rx-kpi-etiqueta {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-200);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+
+    mat-icon {
+      font-size: 1.1rem;
+      width: 1.1rem;
+      height: 1.1rem;
+      color: var(--primary-300);
+    }
+  }
+
+  .rx-kpi-valor {
+    font-size: clamp(1.1rem, 0.95rem + 0.55vw, 1.45rem);
+    font-weight: 700;
+    color: var(--text-strong);
+    line-height: 1.15;
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: break-word;
+  }
+
+  .rx-kpi-sub {
+    font-size: 0.78rem;
+    color: var(--text-200);
+  }
+
+  &.rx-kpi--alerta {
+    border-color: rgba(239, 108, 0, 0.35);
+  }
+
+  &.rx-kpi--alerta .rx-kpi-etiqueta mat-icon {
+    color: #ef6c00;
+  }
+}
+
+.rx-variacion {
+  font-weight: 600;
+
+  &.sube {
+    color: #2e7d32;
+  }
+
+  &.baja {
+    color: #c62828;
+  }
+}
+
+// ---------------------------------------------------------------- Barra de filtros
+.rx-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 0.75rem;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+
+  mat-form-field {
+    flex: 1 1 190px;
+    min-width: 0;
+    max-width: 340px;
+  }
+
+  .rx-toolbar-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    padding-top: 0.35rem;
+  }
+}
+
+.rx-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+// ---------------------------------------------------------------- Secciones
+.rx-card {
+  background: #ffffff;
+  border: 1px solid var(--bg-300);
+  border-radius: var(--roomix-radius-lg);
+  box-shadow: var(--roomix-shadow);
+  padding: 1rem 1.15rem;
+  margin-bottom: 1.25rem;
+  min-width: 0;
+
+  > h2,
+  .rx-card-titulo {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0 0 0.75rem;
+    font-size: 1.05rem;
+    color: var(--primary-300);
+
+    mat-icon {
+      color: var(--primary-300);
+    }
+  }
+}
+
+.rx-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.25rem;
+
+  > .rx-card {
+    margin-bottom: 0;
+  }
+
+  @media (max-width: 900px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.rx-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 1rem;
+
+  .rx-full {
+    grid-column: 1 / -1;
+  }
+
+  mat-form-field {
+    width: 100%;
+  }
+
+  @media (max-width: 600px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.rx-dato {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+
+  span:first-child {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-200);
+  }
+
+  strong,
+  span:last-child {
+    overflow-wrap: anywhere;
+  }
+}
+
+.rx-datos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(170px, 100%), 1fr));
+  gap: 0.75rem 1rem;
+}
+
+.rx-vacio {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: var(--text-200);
+
+  mat-icon {
+    font-size: 2.5rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    color: var(--primary-200);
+  }
+
+  p {
+    margin: 0.35rem 0 0;
+  }
+}
+
+.rx-cargando {
+  display: grid;
+  place-items: center;
+  padding: 2.5rem;
+}
+
+.rx-muted {
+  color: var(--text-200);
+  font-size: 0.85rem;
+}
+
+.rx-num {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+// ---------------------------------------------------------------- Chips de estado
+.rx-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.12rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--text-100);
+
+  mat-icon {
+    font-size: 0.95rem;
+    width: 0.95rem;
+    height: 0.95rem;
+  }
+
+  &.ok {
+    background: rgba(168, 224, 183, 0.5);
+    color: #1f5a35;
+  }
+
+  &.info {
+    background: rgba(42, 120, 214, 0.14);
+    color: #1d4f8c;
+  }
+
+  &.alerta {
+    background: rgba(245, 196, 85, 0.4);
+    color: #6b4f00;
+  }
+
+  &.critico {
+    background: rgba(196, 92, 92, 0.18);
+    color: #8b2e2e;
+  }
+
+  &.neutro {
+    background: rgba(0, 0, 0, 0.06);
+    color: var(--text-200);
+  }
+}
+
+// ---------------------------------------------------------------- Tablas responsive
+// <table class="rx-tabla"> con <td data-label="..."> → tarjetas en pantallas pequeñas.
+.rx-tabla-wrap {
+  background: #ffffff;
+  border: 1px solid var(--bg-300);
+  border-radius: var(--roomix-radius-lg);
+  box-shadow: var(--roomix-shadow);
+  overflow: hidden;
+}
+
+.rx-tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+
+  th {
+    text-align: left;
+    padding: 0.65rem 0.85rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-200);
+    background: #f4f7f5;
+    border-bottom: 1px solid var(--bg-300);
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 0.6rem 0.85rem;
+    border-bottom: 1px solid var(--bg-300);
+    vertical-align: top;
+  }
+
+  tr:last-child td {
+    border-bottom: 0;
+  }
+
+  tr.anulado td {
+    opacity: 0.55;
+    text-decoration: line-through;
+  }
+
+  tr.clicable {
+    cursor: pointer;
+
+    &:hover td {
+      background: rgba(168, 224, 183, 0.12);
+    }
+  }
+
+  .derecha {
+    text-align: right;
+  }
+
+  .sub {
+    display: block;
+    font-size: 0.76rem;
+    color: var(--text-200);
+  }
+
+  @media (max-width: 720px) {
+    thead {
+      display: none;
+    }
+
+    tbody,
+    tr {
+      display: block;
+    }
+
+    tr {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.5rem 0.85rem;
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid var(--bg-300);
+    }
+
+    td {
+      display: block;
+      padding: 0;
+      border: 0;
+      min-width: 0;
+      overflow-wrap: anywhere;
+
+      &[data-label]::before {
+        content: attr(data-label);
+        display: block;
+        font-size: 0.66rem;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--text-200);
+      }
+
+      &.ancho,
+      &.acciones {
+        grid-column: 1 / -1;
+      }
+
+      &.derecha {
+        text-align: left;
+      }
+    }
+  }
+}
+
+.rx-paginacion {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.85rem;
+  color: var(--text-200);
+}
+
+// ---------------------------------------------------------------- Impresión (facturas, comprobantes)
+.solo-imprimir {
+  display: none;
+}
+
+@media print {
+  @page {
+    margin: 14mm;
+  }
+
+  body {
+    background: #ffffff !important;
+  }
+
+  mat-sidenav,
+  .mat-drawer,
+  mat-toolbar,
+  .shell-toolbar,
+  .no-imprimir,
+  .mat-mdc-dialog-container {
+    display: none !important;
+  }
+
+  .mat-drawer-content,
+  .mat-sidenav-content {
+    margin-left: 0 !important;
+  }
+
+  .shell-content {
+    padding: 0 !important;
+    max-width: none !important;
+  }
+
+  .solo-imprimir {
+    display: block;
+  }
+
+  .rx-card,
+  .rx-tabla-wrap {
+    box-shadow: none !important;
+    border-color: #cccccc !important;
+  }
+
+  .rx-tabla thead {
+    display: table-header-group !important;
+  }
+
+  .rx-tabla tr {
+    display: table-row !important;
+  }
+
+  .rx-tabla td {
+    display: table-cell !important;
+    padding: 0.35rem 0.6rem !important;
+    border-bottom: 1px solid #dddddd !important;
+
+    &::before {
+      content: none !important;
+    }
+  }
+}
+
+// ---------------------------------------------------------------- Pantallas de acceso (login, recuperación)
+.rx-auth {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: calc(1.5rem + env(safe-area-inset-top)) 1rem calc(1.5rem + env(safe-area-inset-bottom));
+  background: linear-gradient(160deg, #003d4d 0%, #00785f 55%, #00c996 100%);
+  box-sizing: border-box;
+
+  .rx-auth-card {
+    width: 100%;
+    max-width: 400px;
+    padding: 2rem 1.75rem 1.5rem;
+    background: #ffffff;
+    border-radius: 18px;
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.25);
+    box-sizing: border-box;
+
+    @media (max-width: 400px) {
+      padding: 1.5rem 1.15rem 1.25rem;
+    }
+  }
+
+  .rx-auth-logo {
+    display: block;
+    height: 72px;
+    margin: 0 auto 0.75rem;
+  }
+
+  h1 {
+    margin: 0;
+    text-align: center;
+    font-size: 1.35rem;
+    color: var(--primary-300);
+  }
+
+  .rx-auth-sub {
+    margin: 0.25rem 0 1.25rem;
+    text-align: center;
+    color: var(--text-200);
+    font-size: 0.9rem;
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+  }
+
+  mat-form-field {
+    width: 100%;
+  }
+
+  .rx-auth-boton {
+    width: 100%;
+    height: 46px;
+    margin-top: 0.25rem;
+  }
+
+  .rx-auth-enlaces {
+    display: flex;
+    justify-content: center;
+    margin-top: 1rem;
+    font-size: 0.88rem;
+
+    a {
+      color: var(--primary-300);
+    }
+  }
+
+  .rx-auth-aviso {
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+    padding: 0.65rem 0.75rem;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    background: rgba(42, 120, 214, 0.1);
+    color: #1d4f8c;
+
+    &.error {
+      background: rgba(198, 40, 40, 0.1);
+      color: #8b2e2e;
+    }
+
+    &.ok {
+      background: rgba(168, 224, 183, 0.45);
+      color: #1f5a35;
+    }
+
+    mat-icon {
+      flex-shrink: 0;
+      font-size: 1.2rem;
+      width: 1.2rem;
+      height: 1.2rem;
+    }
+  }
+
+  .rx-auth-pie {
+    margin: 1.25rem 0 0;
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--text-200);
+  }
+}
+
+/* Autorización de tratamiento de datos (Ley 1581 de 2012) */
+.autorizacion-datos {
+  grid-column: 1 / -1;
+  padding: 0.6rem 0.75rem;
+  margin: 0.25rem 0 0.5rem;
+  border: 1px dashed var(--bg-300);
+  border-radius: 10px;
+  background: rgba(168, 224, 183, 0.12);
+
+  .mdc-label {
+    font-size: 0.83rem;
+    line-height: 1.35;
+  }
+
+  .error-autorizacion {
+    display: block;
+    color: #c62828;
+    font-size: 0.78rem;
+    margin: 0.2rem 0 0 2.6rem;
+  }
+
+  .rx-muted {
+    display: block;
+    margin-left: 2.6rem;
+    font-size: 0.75rem;
+  }
+}
+
+/* Filas y textos que llevan al detalle */
+.fila-enlace {
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(168, 224, 183, 0.14);
+  }
+}
+
+a.enlace {
+  color: inherit;
+  text-decoration: none;
+
+  &:hover {
+    color: var(--primary-300);
+    text-decoration: underline;
+  }
+}

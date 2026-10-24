@@ -3,12 +3,20 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
+  ActualizarReservaRequest,
   CrearReservaRequest,
   HabitacionDisponibilidadCheck,
   HabitacionDisponible,
   Reserva,
 } from '../models/reserva.model';
-import type { EstadoReserva, TipoHabitacion } from '../models/habitacion.model';
+import type { EstadoReserva, Habitacion, TipoHabitacion } from '../models/habitacion.model';
+import type { Factura } from '../models/finanzas.model';
+
+export interface CheckOutResponse {
+  habitacion: Habitacion;
+  reserva: Reserva;
+  factura: Factura | null;
+}
 
 @Injectable({ providedIn: 'root' })
 export class ReservaService {
@@ -63,6 +71,22 @@ export class ReservaService {
 
   crear(body: CrearReservaRequest) {
     return this.http.post<Reserva>(this.baseUrl, body);
+  }
+
+  actualizar(id: number, body: ActualizarReservaRequest) {
+    return this.http.put<Reserva>(`${this.baseUrl}/${id}`, body);
+  }
+
+  cancelar(id: number, motivo: string) {
+    return this.http.patch<Reserva>(`${this.baseUrl}/${id}/cancelar`, { motivo });
+  }
+
+  checkIn(id: number) {
+    return this.http.patch<Habitacion>(`${this.baseUrl}/${id}/check-in`, {});
+  }
+
+  checkOut(id: number) {
+    return this.http.patch<CheckOutResponse>(`${this.baseUrl}/${id}/check-out`, {});
   }
 
   historialHuesped(huespedId: number) {

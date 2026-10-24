@@ -1,0 +1,88 @@
+@if (cargando()) {
+  <div class="rx-cargando"><mat-spinner diameter="44" /></div>
+} @else if (factura(); as f) {
+  <div class="page-header row no-imprimir">
+    <div>
+      <a mat-button routerLink="/facturas"><mat-icon>arrow_back</mat-icon>Facturas</a>
+      <h1>Factura {{ f.numero }}</h1>
+      <p><span class="rx-chip {{ clase(f.estado) }}">{{ etiqueta(f.estado) }}</span> · Emitida por {{ f.emitidaPor }}</p>
+    </div>
+    <div class="rx-acciones">
+      <button mat-stroked-button (click)="imprimir()"><mat-icon>print</mat-icon>Imprimir / PDF</button>
+      @if (f.estado !== 'ANULADA' && f.estado !== 'PAGADA') {
+        <button mat-flat-button color="primary" (click)="pagar()"><mat-icon>payments</mat-icon>Registrar pago</button>
+      }
+      @if (f.estado !== 'ANULADA' && puedeAnular()) {
+        <button mat-button color="warn" (click)="anular()"><mat-icon>block</mat-icon>Anular</button>
+      }
+    </div>
+  </div>
+
+  <article class="documento rx-card">
+    <header class="encabezado">
+      <div>
+        <h2>{{ hotel()?.nombre }}</h2>
+        <p>NIT {{ hotel()?.nit }}<br />{{ hotel()?.direccion }} · {{ hotel()?.ciudad }}<br />{{ hotel()?.telefono }} · {{ hotel()?.email }}</p>
+      </div>
+      <div class="numero">
+        <span>Factura de venta</span>
+        <strong>{{ f.numero }}</strong>
+        <span>{{ fecha(f.fechaEmision, true) }}</span>
+        @if (f.estado === 'ANULADA') { <span class="sello">ANULADA</span> }
+      </div>
+    </header>
+
+    <section class="rx-datos cliente">
+      <div class="rx-dato"><span>Cliente</span><strong>{{ f.clienteNombre }}</strong></div>
+      <div class="rx-dato"><span>Documento</span><strong>{{ f.clienteDocumento ?? '—' }}</strong></div>
+      @if (f.reservaId) {
+        <div class="rx-dato"><span>Estadía</span><strong>Hab. {{ f.habitacionNumero }} · {{ fecha(f.fechaEntrada) }} – {{ fecha(f.fechaSalida) }}</strong></div>
+      }
+      @if (f.clienteEmail) { <div class="rx-dato"><span>Correo</span><strong>{{ f.clienteEmail }}</strong></div> }
+    </section>
+
+    <table class="rx-tabla detalle">
+      <thead><tr><th>Descripción</th><th class="derecha">Cant.</th><th class="derecha">Valor unitario</th><th class="derecha">Total</th></tr></thead>
+      <tbody>
+        @for (i of f.items; track i.id) {
+          <tr>
+            <td data-label="Descripción" class="ancho">{{ i.descripcion }}</td>
+            <td data-label="Cantidad" class="derecha rx-num">{{ i.cantidad }}</td>
+            <td data-label="Valor unitario" class="derecha rx-num">{{ moneda(i.valorUnitario) }}</td>
+            <td data-label="Total" class="derecha rx-num">{{ moneda(i.total) }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+
+    <div class="totales">
+      <div><span>Subtotal</span><span class="rx-num">{{ moneda(f.subtotal) }}</span></div>
+      <div><span>IVA ({{ f.porcentajeImpuesto }} %)</span><span class="rx-num">{{ moneda(f.impuesto) }}</span></div>
+      <div class="total"><span>Total</span><span class="rx-num">{{ moneda(f.total) }}</span></div>
+      <div><span>Pagado</span><span class="rx-num">{{ moneda(f.totalPagado) }}</span></div>
+      <div class="saldo"><span>Saldo</span><span class="rx-num">{{ moneda(f.saldo) }}</span></div>
+    </div>
+
+    @if (f.observaciones) { <p class="observacion">{{ f.observaciones }}</p> }
+    @if (f.motivoAnulacion) { <p class="observacion anulacion">Motivo de anulación: {{ f.motivoAnulacion }}</p> }
+
+    @if (f.pagos.length > 0) {
+      <h3>Pagos recibidos</h3>
+      <table class="rx-tabla">
+        <thead><tr><th>Fecha</th><th>Método</th><th>Referencia</th><th>Registró</th><th class="derecha">Valor</th></tr></thead>
+        <tbody>
+          @for (p of f.pagos; track p.id) {
+            <tr>
+              <td data-label="Fecha" class="rx-num">{{ fecha(p.fechaHora, true) }}</td>
+              <td data-label="Método">{{ p.metodoNombre }}</td>
+              <td data-label="Referencia">{{ p.referencia ?? '—' }}</td>
+              <td data-label="Registró">{{ p.registradoPor }}</td>
+              <td data-label="Valor" class="derecha rx-num">{{ moneda(p.valor) }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+    <p class="pie">Documento generado por Roomix. Gracias por su visita.</p>
+  </article>
+}

@@ -56,6 +56,14 @@
           <textarea matInput rows="2" formControlName="notas"></textarea>
         </mat-form-field>
 
+        <div class="autorizacion-datos full">
+          <mat-checkbox formControlName="autorizaTratamientoDatos">{{ textoAutorizacion }}</mat-checkbox>
+        @if (fechaAutorizacion()) { <small class="rx-muted">Registrada el {{ fechaAutorizacion()!.slice(0, 16).replace('T', ' ') }}</small> }
+          @if (form.controls.autorizaTratamientoDatos.touched && form.controls.autorizaTratamientoDatos.invalid) {
+            <small class="error-autorizacion">La autorización es obligatoria para registrar al huésped.</small>
+          }
+        </div>
+
         <div class="acciones full">
           <a mat-button routerLink="/huespedes">Cancelar</a>
           <button mat-flat-button color="primary" type="submit" [disabled]="saving()">

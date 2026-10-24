@@ -24,48 +24,39 @@ npm start
 
 Abre http://localhost:4200
 
+## Acceso y roles
+
+La app exige iniciar sesión (`/login`). El token JWT se guarda en `localStorage` y el interceptor `auth.interceptor.ts` lo envía en cada petición; si el backend responde 401 la sesión se cierra. Los guards `authGuard` y `rolGuard` (con `data.roles` en `app.routes.ts`) y el menú (`core/config/navegacion.config.ts`) muestran a cada rol solo sus módulos; los botones de acciones también se ocultan según el rol. El backend aplica las mismas reglas.
+
+Usuarios de demostración (si el backend tiene `APP_DEMO_USERS=true`): `admin`, `recepcion`, `housekeeping`, `finanzas`, `eventos`, `almacen`.
+
 ## Módulos y rutas
 
-| Ruta | Descripción |
-|------|-------------|
-| `/inicio` | Panel de módulos (acceso rápido) |
-| `/habitaciones` | Grid de habitaciones, filtros y cambio de estado |
-| `/habitaciones/nueva` | Alta de habitación |
-| `/habitaciones/:id/editar` | Edición |
-| `/habitaciones/:id/estado` | Cambio de estado dedicado |
-| `/incidencias` | Listado de incidencias activas y cerradas |
-| `/incidencias/:id` | Gestión: asignar, iniciar, checklist, finalizar |
-| `/inventario` | Artículos y movimientos de stock |
-| `/inventario/categorias` | Categorías del inventario |
+| Ruta | Roles | Descripción |
+|------|-------|-------------|
+| `/login`, `/recuperar`, `/restablecer` | público | Ingreso y recuperación de contraseña por correo |
+| `/inicio` | todos | Dashboard del rol: ocupación, llegadas/salidas con check-in/out rápido, alertas, finanzas, inventario crítico, eventos |
+| `/habitaciones` | admin, recepción, housekeeping, eventos | Tarjetas por estado, filtros y acciones rápidas |
+| `/habitaciones/plano` | ídem | Plano del hotel por piso |
+| `/habitaciones/:id` | ídem | Fotos (subida por admin), datos, historial de reservas |
+| `/reservas` · `/reservas/:id` | admin, recepción, finanzas | Listado y calendario · detalle: editar, cancelar con motivo, check-in/out, cuenta, servicios, comprobante imprimible, facturar |
+| `/huespedes` · `/huespedes/:id` | admin, recepción, finanzas | Registro con autorización Ley 1581 · historial de reservas, servicios y facturas |
+| `/incidencias` | admin, recepción, housekeeping | Limpieza y mantenimiento |
+| `/servicios` | operación | Solicitudes (asignar, programar, completar, cancelar) y catálogo |
+| `/eventos` · `/eventos/:id` | admin, eventos (+ lectura recepción y finanzas) | Eventos y salones · participantes, asistencia, recursos, estados, factura |
+| `/inventario` · `/inventario/reporte` | admin, almacén (+ lectura housekeeping y finanzas) | Artículos, movimientos (entrada/salida/ajuste) · valorización, más usados, críticos |
+| `/finanzas` · `/facturas` | admin, finanzas (+ facturas recepción) | Ingresos, egresos, gráficos, facturas, pagos |
+| `/reportes` | admin, finanzas | Ocupación, ADR, RevPAR, canales, procedencia, servicios, eventos; CSV e impresión |
+| `/usuarios` · `/auditoria` | admin | Gestión de usuarios y roles · bitácora de acciones |
+| `/ayuda` | todos | Manual de usuario por rol |
 
-## Flujos principales (UI)
+## Pruebas
 
-### Habitaciones
+```bash
+npm test
+```
 
-1. Reservar → check-in → ocupada.
-2. Desde **ocupada**, marcar **check-out** → habitación **inhabilitada** (`POST_CHECKOUT`).
-3. Desde **libre** o **reservada**, marcar **adecuación programada** → **inhabilitada** (`ADECUACION_PROGRAMADA`).
-4. En **inhabilitada**, crear servicios (limpieza, mantenimiento, servicio al cuarto, etc.) y ver barras de progreso en la tarjeta.
-
-### Incidencias (servicios)
-
-1. Se crean **manualmente** desde una habitación en estado `INHABILITADO` (botón «Nuevo servicio»).
-2. Tipos: limpieza, mantenimiento, servicio al cuarto, otro.
-3. **Asignar personal** → 25 %.
-4. **Iniciar servicio en habitación** → 50 %.
-5. Marcar **checks** del checklist → avance hasta 99 %.
-6. **Finalizar** (o cancelar) todas las incidencias activas → la habitación se **habilita** automáticamente (`LIBRE` o `RESERVADO` según el motivo de inhabilitación).
-
-### Inventario
-
-- CRUD de artículos y categorías.
-- Ajuste de stock (entrada/salida).
-- Iconos **estáticos** (`mat-icon`) dentro del módulo; los **GIF** animados solo en inicio y menú lateral.
-
-## Menú lateral
-
-- Habitaciones, Incidencias, Inventario, Categorías.
-- Habitaciones / Inventario / Categorías usan iconos GIF en el nav; Incidencias usa icono Material.
+Vitest: sesión, guards de ruta, interceptor JWT (token y cierre por 401), menú por rol y política de contraseñas.
 
 ## Configuración API
 

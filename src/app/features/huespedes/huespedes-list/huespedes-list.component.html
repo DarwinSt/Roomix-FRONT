@@ -9,10 +9,12 @@
       </p>
     }
   </div>
-  <a mat-flat-button color="primary" routerLink="/huespedes/nuevo">
-    <mat-icon>person_add</mat-icon>
-    Nuevo huésped
-  </a>
+  @if (puedeEditar()) {
+    <a mat-flat-button color="primary" routerLink="/huespedes/nuevo">
+      <mat-icon>person_add</mat-icon>
+      Nuevo huésped
+    </a>
+  }
 </div>
 
 @if (!loading()) {
@@ -65,7 +67,9 @@
     <mat-icon>person</mat-icon>
     <h2>Sin huéspedes registrados</h2>
     <p>Registre al huésped antes de crear una reserva en habitaciones.</p>
-    <a mat-flat-button color="primary" routerLink="/huespedes/nuevo">Registrar huésped</a>
+    @if (puedeEditar()) {
+      <a mat-flat-button color="primary" routerLink="/huespedes/nuevo">Registrar huésped</a>
+    }
   </div>
 } @else if (huespedesVisibles().length === 0) {
   <div class="empty-state">
@@ -106,10 +110,16 @@
           </mat-chip-set>
         </mat-card-content>
         <mat-card-actions>
-          <a mat-button [routerLink]="['/huespedes', h.id, 'editar']">
-            <mat-icon>edit</mat-icon>
-            Editar
+          <a mat-button [routerLink]="['/huespedes', h.id]">
+            <mat-icon>visibility</mat-icon>
+            Ver historial
           </a>
+          @if (puedeEditar()) {
+            <a mat-button [routerLink]="['/huespedes', h.id, 'editar']">
+              <mat-icon>edit</mat-icon>
+              Editar
+            </a>
+          }
         </mat-card-actions>
       </mat-card>
     }

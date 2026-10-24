@@ -20,10 +20,12 @@
         Calendario
       </mat-button-toggle>
     </mat-button-toggle-group>
-    <a mat-flat-button color="primary" routerLink="/habitaciones">
-      <mat-icon>bed</mat-icon>
-      Nueva reserva
-    </a>
+    @if (puedeReservar()) {
+      <a mat-flat-button color="primary" routerLink="/habitaciones">
+        <mat-icon>bed</mat-icon>
+        Nueva reserva
+      </a>
+    }
     <button mat-stroked-button type="button" (click)="cargar(true)">
       <mat-icon>refresh</mat-icon>
       Actualizar
@@ -94,7 +96,7 @@
         <ng-container matColumnDef="habitacion">
           <th mat-header-cell *matHeaderCellDef>Habitación</th>
           <td mat-cell data-label="Habitación" *matCellDef="let r">
-            <strong>{{ r.habitacionNumero }}</strong>
+            <a class="enlace" [routerLink]="['/reservas', r.id]"><strong>{{ r.habitacionNumero }}</strong> · #{{ r.id }}</a>
             <span class="sub">{{ etiquetaTipo(r.tipoHabitacion) }}</span>
           </td>
         </ng-container>
@@ -135,7 +137,7 @@
         </ng-container>
 
         <tr mat-header-row *matHeaderRowDef="columnas"></tr>
-        <tr mat-row *matRowDef="let row; columns: columnas"></tr>
+        <tr mat-row *matRowDef="let row; columns: columnas" class="fila-enlace" (click)="abrir(row)"></tr>
       </table>
     </mat-card>
   }
@@ -189,7 +191,7 @@
     <div class="dia-detalle">
       <h3>{{ etiquetaDiaSeleccionado() }} · {{ reservasDiaSeleccionado().length }} reserva(s)</h3>
       @for (r of reservasDiaSeleccionado(); track r.id) {
-        <div class="dia-detalle-item">
+        <div class="dia-detalle-item fila-enlace" (click)="abrir(r)">
           <strong>{{ r.habitacionNumero }}</strong>
           <span class="nombre">{{ r.huesped.nombreCompleto }}</span>
           <span class="estado-chip {{ claseEstado(r.estadoReserva) }}">{{ etiquetaEstado(r.estadoReserva) }}</span>

@@ -21,7 +21,7 @@ const META: Record<
   { label: string; icon: string; cssClass: string; fondoClass: string; hint: string }
 > = {
   LIBRE: {
-    label: 'Libre',
+    label: 'Disponible',
     icon: 'check_circle',
     cssClass: 'estado-libre',
     fondoClass: 'fondo-estado-libre',
@@ -42,7 +42,7 @@ const META: Record<
     hint: 'Huésped en la habitación',
   },
   INHABILITADO: {
-    label: 'Inhabilitado',
+    label: 'Limpieza / mantenimiento',
     icon: 'block',
     cssClass: 'estado-inhabilitado',
     fondoClass: 'fondo-estado-inhabilitado',

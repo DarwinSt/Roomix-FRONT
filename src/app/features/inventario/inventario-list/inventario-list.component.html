@@ -3,10 +3,18 @@
     <h1>Inventario</h1>
     <p>Vista interactiva de artículos, stock y alertas del hotel.</p>
   </div>
-  <a mat-flat-button color="primary" routerLink="/inventario/nuevo">
-    <mat-icon>add</mat-icon>
-    Nuevo artículo
-  </a>
+  <div class="rx-acciones">
+    <a mat-stroked-button routerLink="/inventario/reporte">
+      <mat-icon>insights</mat-icon>
+      Reporte y valorización
+    </a>
+    @if (puedeGestionar()) {
+      <a mat-flat-button color="primary" routerLink="/inventario/nuevo">
+        <mat-icon>add</mat-icon>
+        Nuevo artículo
+      </a>
+    }
+  </div>
 </div>
 
 @if (!loading()) {
@@ -55,6 +63,7 @@
   <mat-form-field appearance="outline" class="orden">
     <mat-label>Ordenar por</mat-label>
     <mat-select panelClass="roomix-select-panel" [(value)]="orden">
+      <mat-select-trigger>{{ etiquetaOrden(orden) }}</mat-select-trigger>
       <mat-option value="nombre">
         <span class="roomix-option">
           <mat-icon>sort_by_alpha</mat-icon>
@@ -141,6 +150,13 @@
             }
           </div>
 
+          @if (a.proveedor || a.precioUnitario) {
+            <p class="detalle">
+              <mat-icon>local_shipping</mat-icon>
+              {{ a.proveedor ?? 'Sin proveedor' }}
+              @if (a.precioUnitario) { · {{ moneda(a.precioUnitario) }} c/u · valor {{ moneda(a.valorTotal) }} }
+            </p>
+          }
           @if (a.ubicacion) {
             <p class="detalle">
               <mat-icon>place</mat-icon>
@@ -155,16 +171,21 @@
         </mat-card-content>
 
         <mat-card-actions align="end">
-          <button mat-button (click)="abrirStock(a)">
-            <mat-icon>swap_vert</mat-icon>
-            Movimiento
+          <button mat-icon-button (click)="verMovimientos(a)" matTooltip="Historial de movimientos">
+            <mat-icon>history</mat-icon>
           </button>
-          <a mat-icon-button [routerLink]="['/inventario', a.id, 'editar']" matTooltip="Editar">
-            <mat-icon>edit</mat-icon>
-          </a>
-          <button mat-icon-button color="warn" (click)="eliminar(a)" matTooltip="Dar de baja">
-            <mat-icon>delete</mat-icon>
-          </button>
+          @if (puedeGestionar()) {
+            <button mat-button (click)="abrirStock(a)">
+              <mat-icon>swap_vert</mat-icon>
+              Movimiento
+            </button>
+            <a mat-icon-button [routerLink]="['/inventario', a.id, 'editar']" matTooltip="Editar">
+              <mat-icon>edit</mat-icon>
+            </a>
+            <button mat-icon-button color="warn" (click)="eliminar(a)" matTooltip="Dar de baja">
+              <mat-icon>delete</mat-icon>
+            </button>
+          }
         </mat-card-actions>
       </mat-card>
     }

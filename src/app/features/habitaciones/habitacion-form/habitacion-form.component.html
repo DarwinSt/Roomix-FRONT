@@ -29,17 +29,31 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>Precio por noche (€)</mat-label>
-          <mat-icon matPrefix>euro</mat-icon>
+          <mat-label>Precio por noche (COP)</mat-label>
+          <mat-icon matPrefix>payments</mat-icon>
           <input
             matInput
             type="number"
-            min="0.01"
-            step="0.01"
+            min="1"
+            step="1000"
             formControlName="precioNoche"
-            placeholder="120.00"
+            placeholder="280000"
           />
           <mat-hint>Tarifa específica de esta habitación</mat-hint>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Piso</mat-label>
+          <mat-icon matPrefix>stairs</mat-icon>
+          <input matInput type="number" min="0" max="99" formControlName="piso" placeholder="Ej. 3" />
+          <mat-hint>Vacío: se toma del número (304 → piso 3)</mat-hint>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Capacidad (personas)</mat-label>
+          <mat-icon matPrefix>group</mat-icon>
+          <input matInput type="number" min="1" max="20" formControlName="capacidad" />
+          <mat-hint>Vacío: según el tipo de habitación</mat-hint>
         </mat-form-field>
 
         <mat-form-field appearance="outline">

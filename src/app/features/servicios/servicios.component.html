@@ -1,0 +1,117 @@
+<div class="page-header row">
+  <div>
+    <h1>Servicios</h1>
+    <p>Pedidos de los huéspedes (room service, lavandería, spa, transporte, tours). Su valor se carga a la cuenta de la reserva.</p>
+  </div>
+  <div class="rx-acciones">
+    @if (vista() === 'catalogo' && puedeEditarCatalogo()) {
+      <button mat-flat-button color="primary" (click)="editarServicio(null)"><mat-icon>add</mat-icon>Nuevo servicio</button>
+    }
+    @if (vista() === 'solicitudes' && puedeSolicitar()) {
+      <button mat-flat-button color="primary" (click)="nueva()"><mat-icon>add</mat-icon>Nueva solicitud</button>
+    }
+  </div>
+</div>
+
+<div class="rx-toolbar">
+  <mat-button-toggle-group [value]="vista()" (change)="vista.set($event.value)">
+    <mat-button-toggle value="solicitudes"><mat-icon>assignment</mat-icon> Solicitudes</mat-button-toggle>
+    <mat-button-toggle value="catalogo"><mat-icon>menu_book</mat-icon> Catálogo</mat-button-toggle>
+  </mat-button-toggle-group>
+  @if (vista() === 'solicitudes') {
+    <mat-button-toggle-group [value]="filtro()" (change)="cambiarFiltro($event.value)">
+      <mat-button-toggle value="activas">Activas</mat-button-toggle>
+      <mat-button-toggle value="hoy">Agenda de hoy</mat-button-toggle>
+      <mat-button-toggle value="todas">Todas</mat-button-toggle>
+    </mat-button-toggle-group>
+  }
+</div>
+
+@if (vista() === 'solicitudes') {
+  <div class="rx-kpis">
+    <div class="rx-kpi" [class.rx-kpi--alerta]="resumen().pendientes > 0">
+      <span class="rx-kpi-etiqueta"><mat-icon>pending</mat-icon>Pendientes</span>
+      <span class="rx-kpi-valor">{{ resumen().pendientes }}</span>
+    </div>
+    <div class="rx-kpi">
+      <span class="rx-kpi-etiqueta"><mat-icon>autorenew</mat-icon>En proceso</span>
+      <span class="rx-kpi-valor">{{ resumen().enProceso }}</span>
+    </div>
+    <div class="rx-kpi" [class.rx-kpi--alerta]="resumen().sinResponsable > 0">
+      <span class="rx-kpi-etiqueta"><mat-icon>person_off</mat-icon>Sin responsable</span>
+      <span class="rx-kpi-valor">{{ resumen().sinResponsable }}</span>
+    </div>
+    <div class="rx-kpi">
+      <span class="rx-kpi-etiqueta"><mat-icon>payments</mat-icon>Valor</span>
+      <span class="rx-kpi-valor">{{ moneda(resumen().valor) }}</span>
+    </div>
+  </div>
+
+  @if (cargando()) {
+    <div class="rx-cargando"><mat-spinner diameter="44" /></div>
+  } @else if (solicitudes().length === 0) {
+    <div class="rx-vacio"><mat-icon>room_service</mat-icon><p>No hay solicitudes {{ filtro() === 'activas' ? 'activas' : 'en este filtro' }}.</p></div>
+  } @else {
+    <div class="solicitudes">
+      @for (s of solicitudes(); track s.id) {
+        <article class="solicitud" [class.cerrada]="s.estado === 'COMPLETADA' || s.estado === 'CANCELADA'">
+          <div class="icono"><mat-icon>{{ icono(s.categoria) }}</mat-icon></div>
+          <div class="cuerpo">
+            <div class="fila-titulo">
+              <strong>{{ s.servicioNombre }}</strong>
+              <span class="rx-chip {{ claseEstado(s.estado) }}">{{ etiquetaEstado(s.estado) }}</span>
+            </div>
+            <p class="detalle">
+              Hab. {{ s.habitacionNumero }} · <a [routerLink]="['/huespedes', s.huespedId]">{{ s.huespedNombre }}</a>
+              · {{ s.cantidad }} {{ s.unidad }} · <span class="rx-num">{{ moneda(s.total) }}</span>
+            </p>
+            <p class="detalle">
+              <mat-icon>schedule</mat-icon>{{ s.fechaHoraProgramada ? 'Programado ' + fecha(s.fechaHoraProgramada, true) : 'Solicitado ' + fecha(s.fechaHoraSolicitud, true) }}
+              · <mat-icon>person</mat-icon>{{ s.responsableNombre ?? 'Sin responsable' }}
+            </p>
+            @if (s.notas) { <p class="notas">{{ s.notas }}</p> }
+            @if (s.motivoCancelacion) { <p class="notas">Cancelada: {{ s.motivoCancelacion }}</p> }
+          </div>
+          @if (puedeGestionar() && (s.estado === 'SOLICITADA' || s.estado === 'EN_PROCESO')) {
+            <div class="acciones">
+              @if (s.estado === 'SOLICITADA') {
+                <button mat-stroked-button (click)="cambiarEstado(s, 'EN_PROCESO')"><mat-icon>play_arrow</mat-icon>Iniciar</button>
+              }
+              <button mat-flat-button color="primary" (click)="cambiarEstado(s, 'COMPLETADA')"><mat-icon>check</mat-icon>Completar</button>
+              <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="Más acciones"><mat-icon>more_vert</mat-icon></button>
+              <mat-menu #menu="matMenu">
+                <button mat-menu-item (click)="asignar(s)"><mat-icon>assignment_ind</mat-icon>Asignar / programar</button>
+                <a mat-menu-item [routerLink]="['/reservas', s.reservaId]"><mat-icon>event_note</mat-icon>Ver reserva y cuenta</a>
+                <button mat-menu-item (click)="cambiarEstado(s, 'CANCELADA')"><mat-icon>block</mat-icon>Cancelar</button>
+              </mat-menu>
+            </div>
+          }
+        </article>
+      }
+    </div>
+  }
+} @else {
+  @for (grupo of catalogoPorCategoria(); track grupo.value) {
+    <section class="rx-card">
+      <div class="rx-card-titulo"><mat-icon>{{ grupo.icon }}</mat-icon>{{ grupo.label }}</div>
+      <div class="catalogo">
+        @for (s of grupo.servicios; track s.id) {
+          <div class="servicio" [class.inactivo]="!s.activo">
+            <div>
+              <strong>{{ s.nombre }}</strong>
+              @if (!s.activo) { <span class="rx-chip neutro">No disponible</span> }
+              @if (s.descripcion) { <p>{{ s.descripcion }}</p> }
+              <span class="rx-muted">{{ s.unidad }}@if (s.duracionMinutos) { · {{ s.duracionMinutos }} min }</span>
+            </div>
+            <div class="precio">
+              <span class="rx-num">{{ moneda(s.precio) }}</span>
+              @if (puedeEditarCatalogo()) {
+                <button mat-icon-button (click)="editarServicio(s)" aria-label="Editar servicio"><mat-icon>edit</mat-icon></button>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </section>
+  }
+}

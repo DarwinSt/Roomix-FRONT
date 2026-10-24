@@ -1,5 +1,5 @@
 import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
@@ -14,6 +14,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ReservaService } from '../../../core/services/reserva.service';
 import { ErrorDialogService } from '../../../core/services/error-dialog.service';
+import { AuthService } from '../../../core/services/auth.service';
 import {
   ESTADOS_RESERVA_FILTRO,
   Reserva,
@@ -54,6 +55,14 @@ interface DiaCalendario {
   styleUrl: './reservas-list.component.scss',
 })
 export class ReservasListComponent implements OnInit {
+  private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
+  readonly puedeReservar = computed(() => this.auth.tieneRol('ADMIN', 'RECEPCION'));
+
+  abrir(r: Reserva): void {
+    void this.router.navigate(['/reservas', r.id]);
+  }
+
   private readonly reservaService = inject(ReservaService);
   private readonly errorDialog = inject(ErrorDialogService);
   private readonly destroyRef = inject(DestroyRef);

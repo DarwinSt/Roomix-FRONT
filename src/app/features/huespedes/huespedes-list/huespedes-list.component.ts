@@ -10,6 +10,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { HuespedService } from '../../../core/services/huesped.service';
 import { ErrorDialogService } from '../../../core/services/error-dialog.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { Huesped, documentoCompleto } from '../../../core/models/huesped.model';
 import { etiquetaUltimaActualizacion, programarAutoRefresh } from '../../../core/utils/auto-refresh.util';
 
@@ -30,6 +31,9 @@ import { etiquetaUltimaActualizacion, programarAutoRefresh } from '../../../core
   styleUrl: './huespedes-list.component.scss',
 })
 export class HuespedesListComponent implements OnInit {
+  private readonly auth = inject(AuthService);
+  readonly puedeEditar = computed(() => this.auth.tieneRol('ADMIN', 'RECEPCION'));
+
   private readonly huespedService = inject(HuespedService);
   private readonly errorDialog = inject(ErrorDialogService);
   private readonly destroyRef = inject(DestroyRef);

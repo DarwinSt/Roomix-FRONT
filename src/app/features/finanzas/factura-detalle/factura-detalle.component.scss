@@ -1,0 +1,118 @@
+.documento {
+  max-width: 860px;
+  margin: 0 auto 1.5rem;
+  padding: 1.5rem;
+
+  h3 {
+    margin: 1.5rem 0 0.5rem;
+    font-size: 0.95rem;
+    color: var(--primary-300);
+  }
+}
+
+.encabezado {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+  border-bottom: 2px solid var(--primary-300);
+
+  h2 {
+    margin: 0 0 0.25rem;
+    color: var(--primary-300);
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.82rem;
+    color: var(--text-200);
+    line-height: 1.5;
+  }
+}
+
+.numero {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.15rem;
+  font-size: 0.82rem;
+  color: var(--text-200);
+
+  strong {
+    font-size: 1.35rem;
+    color: var(--text-strong);
+  }
+
+  @media (max-width: 520px) {
+    align-items: flex-start;
+  }
+}
+
+.sello {
+  margin-top: 0.25rem;
+  padding: 0.15rem 0.6rem;
+  border: 2px solid #c62828;
+  border-radius: 6px;
+  color: #c62828;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.cliente {
+  margin-bottom: 1rem;
+}
+
+.detalle {
+  border: 1px solid var(--bg-300);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.totales {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  width: min(320px, 100%);
+  margin: 1rem 0 0 auto;
+  font-size: 0.9rem;
+
+  div {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .total {
+    padding-top: 0.35rem;
+    border-top: 1px solid var(--bg-300);
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: var(--text-strong);
+  }
+
+  .saldo {
+    font-weight: 600;
+  }
+}
+
+.observacion {
+  margin: 1rem 0 0;
+  padding: 0.6rem 0.75rem;
+  border-radius: 8px;
+  background: rgba(42, 120, 214, 0.08);
+  font-size: 0.82rem;
+
+  &.anulacion {
+    background: rgba(198, 40, 40, 0.08);
+    color: #8b2e2e;
+  }
+}
+
+.pie {
+  margin: 1.5rem 0 0;
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--text-200);
+}

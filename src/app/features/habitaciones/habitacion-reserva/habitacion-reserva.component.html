@@ -117,6 +117,24 @@
               <mat-datepicker-toggle matIconSuffix [for]="pickerSalida" />
               <mat-datepicker #pickerSalida />
             </mat-form-field>
+
+            <p class="section-label full">Canal y observaciones</p>
+            <mat-form-field appearance="outline" class="full">
+              <mat-label>Canal de la reserva</mat-label>
+              <mat-select formControlName="canal" panelClass="roomix-select-panel">
+                @for (c of canales; track c.value) { <mat-option [value]="c.value">{{ c.label }}</mat-option> }
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="full">
+              <mat-label>Observaciones (opcional)</mat-label>
+              <textarea matInput rows="2" formControlName="observaciones" maxlength="500"></textarea>
+            </mat-form-field>
+            <div class="autorizacion-datos full">
+              <mat-checkbox formControlName="autorizaTratamientoDatos">{{ textoAutorizacion }}</mat-checkbox>
+              @if (form.controls.autorizaTratamientoDatos.touched && form.controls.autorizaTratamientoDatos.invalid) {
+                <small class="error-autorizacion">La autorización es obligatoria para registrar al huésped.</small>
+              }
+            </div>
           </div>
         </form>
 

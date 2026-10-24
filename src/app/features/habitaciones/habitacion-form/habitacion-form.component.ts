@@ -88,6 +88,8 @@ export class HabitacionFormComponent implements OnInit {
     descripcion: ['', [Validators.required, Validators.maxLength(500)]],
     tipoHabitacion: ['DOBLE' as TipoHabitacion, Validators.required],
     precioNoche: [null as number | null, [Validators.required, Validators.min(0.01)]],
+    piso: [null as number | null, [Validators.min(0), Validators.max(99)]],
+    capacidad: [null as number | null, [Validators.min(1), Validators.max(20)]],
     estado: ['LIBRE' as EstadoHabitacion, Validators.required],
     caracteristicasTexto: [''],
     fechaEntrada: [null as Date | null],
@@ -132,6 +134,8 @@ export class HabitacionFormComponent implements OnInit {
           descripcion: h.descripcion,
           tipoHabitacion: h.tipoHabitacion,
           precioNoche: h.precioNoche,
+          piso: h.piso,
+          capacidad: h.capacidad,
           estado: h.estado,
           caracteristicasTexto: h.caracteristicas.join(', '),
           fechaEntrada: parsearFechaApi(h.fechaEntrada),
@@ -169,6 +173,9 @@ export class HabitacionFormComponent implements OnInit {
       descripcion: v.descripcion!,
       tipoHabitacion: v.tipoHabitacion!,
       precioNoche: Number(v.precioNoche),
+      // Vacíos: el backend los deduce del número (piso) y del tipo (capacidad)
+      piso: v.piso === null || (v.piso as unknown) === '' ? null : Number(v.piso),
+      capacidad: v.capacidad === null || (v.capacidad as unknown) === '' ? null : Number(v.capacidad),
       estado: v.estado!,
       caracteristicas,
       fechaEntrada:

@@ -90,16 +90,16 @@ export function etiquetaContextoLimpieza(ctx: ContextoLimpieza | null | undefine
 
 export function etiquetaEstadoHabitacion(h: Habitacion): string {
   if (h.estado === 'INHABILITADO' && h.motivoInhabilitacion === 'POST_CHECKOUT') {
-    return 'Pendiente limpieza';
+    return 'En limpieza';
   }
   if (h.estado === 'INHABILITADO') {
-    return 'Inhabilitada';
+    return 'En mantenimiento';
   }
   const map: Record<EstadoHabitacion, string> = {
-    LIBRE: 'Libre',
+    LIBRE: 'Disponible',
     RESERVADO: 'Reservado',
     OCUPADO: 'Ocupado',
-    INHABILITADO: 'Inhabilitada',
+    INHABILITADO: 'En mantenimiento',
   };
   return map[h.estado];
 }

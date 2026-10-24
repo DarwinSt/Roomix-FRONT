@@ -1,4 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
+import type { MovimientoInventario, ResumenInventario, TipoMovimientoStock } from '../models/inventario.model';
+import type { Pagina } from '../models/finanzas.model';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
@@ -42,6 +44,22 @@ export class InventarioService {
 
   ajustarStock(id: number, request: AjustarStockRequest): Observable<ArticuloInventario> {
     return this.http.patch<ArticuloInventario>(`${this.articulosUrl}/${id}/stock`, request);
+  }
+
+  movimientosArticulo(id: number): Observable<MovimientoInventario[]> {
+    return this.http.get<MovimientoInventario[]>(`${this.articulosUrl}/${id}/movimientos`);
+  }
+
+  movimientos(f: { desde?: string; hasta?: string; tipo?: TipoMovimientoStock | ''; pagina?: number; tamano?: number }): Observable<Pagina<MovimientoInventario>> {
+    let params = new HttpParams();
+    Object.entries(f).forEach(([k, v]) => {
+      if (v !== undefined && v !== null && v !== '') params = params.set(k, String(v));
+    });
+    return this.http.get<Pagina<MovimientoInventario>>(`${this.articulosUrl}/movimientos`, { params });
+  }
+
+  resumen(dias = 30): Observable<ResumenInventario> {
+    return this.http.get<ResumenInventario>(`${this.articulosUrl}/reportes/resumen`, { params: { dias } });
   }
 
   eliminarArticulo(id: number): Observable<void> {

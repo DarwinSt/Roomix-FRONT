@@ -46,6 +46,12 @@
       <mat-icon matPrefix>phone</mat-icon>
       <input matInput formControlName="telefono" autocomplete="tel" />
     </mat-form-field>
+    <div class="autorizacion-datos full">
+      <mat-checkbox formControlName="autorizaTratamientoDatos">{{ textoAutorizacion }}</mat-checkbox>
+      @if (form.controls.autorizaTratamientoDatos.touched && form.controls.autorizaTratamientoDatos.invalid) {
+        <small class="error-autorizacion">La autorización es obligatoria para registrar al huésped.</small>
+      }
+    </div>
   </form>
 </mat-dialog-content>
 

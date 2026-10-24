@@ -7,19 +7,21 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatCardModule } from '@angular/material/card';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
+import { debounceTime, distinctUntilChanged, map, switchMap } from 'rxjs';
+import { of } from 'rxjs';
 import {
   calcularNoches,
   Habitacion,
   TIPOS_HABITACION,
   TipoHabitacion,
 } from '../../../core/models/habitacion.model';
-import { TIPOS_DOCUMENTO, TipoDocumento } from '../../../core/models/huesped.model';
-import { formatearMoneda } from '../../../core/models/reserva.model';
+import { TIPOS_DOCUMENTO, TipoDocumento, TEXTO_AUTORIZACION_DATOS } from '../../../core/models/huesped.model';
+import { CANALES_RESERVA, CanalReserva, formatearMoneda } from '../../../core/models/reserva.model';
 import { HabitacionService } from '../../../core/services/habitacion.service';
 import { HuespedService } from '../../../core/services/huesped.service';
 import { ReservaService } from '../../../core/services/reserva.service';
@@ -38,6 +40,7 @@ import { etiquetaEstado, metaEstado } from '../../../core/utils/habitacion-estad
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
+    MatCheckboxModule,
     MatSelectModule,
     MatDatepickerModule,
     MatProgressSpinnerModule,
@@ -66,9 +69,11 @@ export class HabitacionReservaComponent implements OnInit {
   readonly disponibleEnFechas = signal<boolean | null>(null);
   readonly errorDisponibilidad = signal<string | null>(null);
   readonly tiposDocumento = TIPOS_DOCUMENTO;
+  readonly textoAutorizacion = TEXTO_AUTORIZACION_DATOS;
   readonly etiqueta = etiquetaEstado;
   readonly meta = metaEstado;
   readonly formatearMoneda = formatearMoneda;
+  readonly canales = CANALES_RESERVA;
 
   readonly form = this.fb.group({
     nombre: ['', [Validators.required, Validators.maxLength(80)]],
@@ -77,8 +82,11 @@ export class HabitacionReservaComponent implements OnInit {
     numeroDocumento: ['', [Validators.required, Validators.maxLength(40)]],
     email: ['', [Validators.required, Validators.email]],
     telefono: ['', [Validators.required, Validators.maxLength(30)]],
+    autorizaTratamientoDatos: [false, Validators.requiredTrue],
     fechaEntrada: [new Date(), Validators.required],
     fechaSalida: [this.sumaDias(new Date(), 1), Validators.required],
+    canal: ['PRESENCIAL' as CanalReserva],
+    observaciones: ['', Validators.maxLength(500)],
   });
 
   ngOnInit(): void {
@@ -168,6 +176,7 @@ export class HabitacionReservaComponent implements OnInit {
     }
     if (f.email.invalid) return 'Indique un email válido del huésped.';
     if (f.telefono.invalid) return 'Indique el teléfono de contacto del huésped.';
+    if (f.autorizaTratamientoDatos.invalid) return 'Registre la autorización de tratamiento de datos (Ley 1581 de 2012).';
     if (!f.fechaEntrada.value || !f.fechaSalida.value) {
       return 'Indique la fecha de entrada y la de salida.';
     }
@@ -192,23 +201,34 @@ export class HabitacionReservaComponent implements OnInit {
     const fechaSalida = formatearFechaIso(v.fechaSalida!);
     this.guardando.set(true);
 
+    const documento = v.numeroDocumento!.trim();
+    // Un huésped que regresa se reutiliza (mismo documento); si no existe se registra.
     this.huespedService
-      .crear({
-        nombre: v.nombre!.trim(),
-        apellidos: v.apellidos!.trim(),
-        tipoDocumento: v.tipoDocumento!,
-        numeroDocumento: v.numeroDocumento!.trim(),
-        email: v.email!.trim(),
-        telefono: v.telefono!.trim(),
-        activo: true,
-      })
+      .listar({ busqueda: documento })
       .pipe(
+        map((lista) => lista.find((h) => h.numeroDocumento.toLowerCase() === documento.toLowerCase()) ?? null),
+        switchMap((existente) =>
+          existente
+            ? of(existente)
+            : this.huespedService.crear({
+                nombre: v.nombre!.trim(),
+                apellidos: v.apellidos!.trim(),
+                tipoDocumento: v.tipoDocumento!,
+                numeroDocumento: documento,
+                email: v.email!.trim(),
+                telefono: v.telefono!.trim(),
+                activo: true,
+                autorizaTratamientoDatos: !!v.autorizaTratamientoDatos,
+              }),
+        ),
         switchMap((huesped) =>
           this.reservaService.crear({
             habitacionId: habitacion.id,
             huespedId: huesped.id,
             fechaEntrada,
             fechaSalida,
+            canal: v.canal ?? 'PRESENCIAL',
+            observaciones: v.observaciones?.trim() || null,
           }),
         ),
       )

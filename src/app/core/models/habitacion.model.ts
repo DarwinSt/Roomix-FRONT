@@ -21,6 +21,11 @@ export interface Habitacion {
   tipoHabitacion: TipoHabitacion;
   descripcion: string;
   precioNoche: number | null;
+  /** Piso o planta (plano del hotel) */
+  piso: number | null;
+  capacidad: number | null;
+  /** Ids de fotos: la imagen se obtiene con HabitacionService.urlFoto */
+  fotoIds: number[];
   estado: EstadoHabitacion;
   /** Reserva planificada */
   fechaEntrada: string | null;
@@ -41,6 +46,8 @@ export interface HabitacionRequest {
   tipoHabitacion: TipoHabitacion;
   descripcion: string;
   precioNoche: number;
+  piso?: number | null;
+  capacidad?: number | null;
   estado?: EstadoHabitacion;
   fechaEntrada?: string | null;
   fechaSalida?: string | null;
@@ -56,10 +63,10 @@ export interface ActualizarEstadoRequest {
 }
 
 export const ESTADOS_HABITACION: { value: EstadoHabitacion; label: string }[] = [
-  { value: 'LIBRE', label: 'Libre' },
+  { value: 'LIBRE', label: 'Disponible' },
   { value: 'RESERVADO', label: 'Reservado' },
   { value: 'OCUPADO', label: 'Ocupado' },
-  { value: 'INHABILITADO', label: 'Inhabilitado' },
+  { value: 'INHABILITADO', label: 'Limpieza / mantenimiento' },
 ];
 
 export const ESTADOS_RESERVA: { value: EstadoReserva; label: string }[] = [

@@ -1,4 +1,5 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { AuthService } from '../../../core/services/auth.service';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -30,6 +31,8 @@ export class CategoriasListComponent implements OnInit {
   private readonly inventarioService = inject(InventarioService);
   private readonly snackBar = inject(MatSnackBar);
   private readonly errorDialog = inject(ErrorDialogService);
+  private readonly auth = inject(AuthService);
+  readonly puedeGestionar = computed(() => this.auth.tieneRol('ADMIN', 'ALMACEN'));
 
   readonly columns = ['nombre', 'descripcion', 'ejemplos', 'tipo', 'creado', 'acciones'];
   readonly loading = signal(true);

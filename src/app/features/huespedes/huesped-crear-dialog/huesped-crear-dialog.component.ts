@@ -5,11 +5,12 @@ import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { HuespedService } from '../../../core/services/huesped.service';
 import { ErrorDialogService } from '../../../core/services/error-dialog.service';
-import { Huesped, TIPOS_DOCUMENTO, TipoDocumento } from '../../../core/models/huesped.model';
+import { Huesped, TIPOS_DOCUMENTO, TipoDocumento, TEXTO_AUTORIZACION_DATOS } from '../../../core/models/huesped.model';
 
 @Component({
   selector: 'app-huesped-crear-dialog',
@@ -21,6 +22,7 @@ import { Huesped, TIPOS_DOCUMENTO, TipoDocumento } from '../../../core/models/hu
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
+    MatCheckboxModule,
     MatSelectModule,
     MatProgressSpinnerModule,
   ],
@@ -33,6 +35,7 @@ export class HuespedCrearDialogComponent {
   private readonly errorDialog = inject(ErrorDialogService);
 
   readonly tiposDocumento = TIPOS_DOCUMENTO;
+  readonly textoAutorizacion = TEXTO_AUTORIZACION_DATOS;
   readonly guardando = signal(false);
 
   readonly form = this.fb.group({
@@ -42,6 +45,7 @@ export class HuespedCrearDialogComponent {
     numeroDocumento: ['', [Validators.required, Validators.maxLength(40)]],
     email: ['', [Validators.required, Validators.email]],
     telefono: ['', [Validators.required, Validators.maxLength(30)]],
+    autorizaTratamientoDatos: [false, Validators.requiredTrue],
   });
 
   guardar(): void {
@@ -60,6 +64,7 @@ export class HuespedCrearDialogComponent {
         email: v.email!.trim(),
         telefono: v.telefono!.trim(),
         activo: true,
+        autorizaTratamientoDatos: !!v.autorizaTratamientoDatos,
       })
       .subscribe({
         next: (h) => this.dialogRef.close(h),

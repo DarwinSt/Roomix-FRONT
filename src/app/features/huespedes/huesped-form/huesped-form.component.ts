@@ -4,6 +4,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatCardModule } from '@angular/material/card';
@@ -12,7 +13,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { HuespedService } from '../../../core/services/huesped.service';
 import { ErrorDialogService } from '../../../core/services/error-dialog.service';
-import { TIPOS_DOCUMENTO, TipoDocumento } from '../../../core/models/huesped.model';
+import { TIPOS_DOCUMENTO, TipoDocumento, TEXTO_AUTORIZACION_DATOS } from '../../../core/models/huesped.model';
 import { formatearFechaIso } from '../../../core/utils/date.util';
 
 @Component({
@@ -23,6 +24,7 @@ import { formatearFechaIso } from '../../../core/utils/date.util';
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,
+    MatCheckboxModule,
     MatSelectModule,
     MatButtonModule,
     MatSnackBarModule,
@@ -42,6 +44,7 @@ export class HuespedFormComponent implements OnInit {
   private readonly errorDialog = inject(ErrorDialogService);
 
   readonly tiposDocumento = TIPOS_DOCUMENTO;
+  readonly textoAutorizacion = TEXTO_AUTORIZACION_DATOS;
   readonly loading = signal(false);
   readonly saving = signal(false);
   id: number | null = null;
@@ -53,10 +56,13 @@ export class HuespedFormComponent implements OnInit {
     numeroDocumento: ['', [Validators.required, Validators.maxLength(40)]],
     email: ['', [Validators.required, Validators.email, Validators.maxLength(120)]],
     telefono: ['', [Validators.required, Validators.maxLength(30)]],
+    autorizaTratamientoDatos: [false, Validators.requiredTrue],
     nacionalidad: ['', Validators.maxLength(80)],
     fechaNacimiento: [null as Date | null],
     notas: ['', Validators.maxLength(500)],
   });
+  /** Fecha de la autorización ya registrada (edición) */
+  readonly fechaAutorizacion = signal<string | null>(null);
 
   ngOnInit(): void {
     const idParam = this.route.snapshot.paramMap.get('id');
@@ -80,7 +86,9 @@ export class HuespedFormComponent implements OnInit {
           nacionalidad: h.nacionalidad ?? '',
           fechaNacimiento: h.fechaNacimiento ? new Date(h.fechaNacimiento + 'T12:00:00') : null,
           notas: h.notas ?? '',
+          autorizaTratamientoDatos: h.autorizaTratamientoDatos,
         });
+        this.fechaAutorizacion.set(h.fechaHoraAutorizacion);
         this.loading.set(false);
       },
       error: (err) => {
@@ -108,6 +116,7 @@ export class HuespedFormComponent implements OnInit {
       fechaNacimiento: v.fechaNacimiento ? formatearFechaIso(v.fechaNacimiento) : null,
       notas: v.notas?.trim() || null,
       activo: true,
+      autorizaTratamientoDatos: !!v.autorizaTratamientoDatos,
     };
     this.saving.set(true);
     const req$ = this.id

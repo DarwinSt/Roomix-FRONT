@@ -1,6 +1,6 @@
 export type UnidadMedida = 'UNIDAD' | 'PAR' | 'JUEGO' | 'CAJA' | 'LITRO' | 'KILOGRAMO';
 
-export type TipoMovimientoStock = 'ENTRADA' | 'SALIDA';
+export type TipoMovimientoStock = 'ENTRADA' | 'SALIDA' | 'AJUSTE';
 
 export interface CategoriaInventario {
   id: number;
@@ -31,6 +31,10 @@ export interface ArticuloInventario {
   ubicacion: string | null;
   activo: boolean;
   stockBajo: boolean;
+  proveedor: string | null;
+  precioUnitario: number | null;
+  /** cantidad × precio unitario */
+  valorTotal: number | null;
   fechaHoraCreacion: string;
   fechaHoraUltimaActualizacion: string;
 }
@@ -44,12 +48,44 @@ export interface ArticuloInventarioRequest {
   unidadMedida: UnidadMedida;
   ubicacion?: string | null;
   activo?: boolean;
+  proveedor?: string | null;
+  precioUnitario?: number | null;
 }
 
 export interface AjustarStockRequest {
   tipo: TipoMovimientoStock;
+  /** En AJUSTE es el conteo físico (nuevo stock real) */
   cantidad: number;
   motivo?: string;
+  costoUnitario?: number | null;
+  registrarCompra?: boolean;
+  proveedor?: string | null;
+}
+
+export interface MovimientoInventario {
+  id: number;
+  articuloId: number;
+  articuloNombre: string;
+  tipo: TipoMovimientoStock;
+  cantidad: number;
+  stockAnterior: number;
+  stockResultante: number;
+  costoUnitario: number | null;
+  motivo: string | null;
+  proveedor: string | null;
+  registradoPor: string;
+  fechaHora: string;
+}
+
+export interface ResumenInventario {
+  articulosActivos: number;
+  valorTotal: number;
+  articulosSinPrecio: number;
+  totalCriticos: number;
+  criticos: ArticuloInventario[];
+  valorPorCategoria: { categoria: string; articulos: number; unidades: number; valor: number }[];
+  diasAnalizados: number;
+  masUsados: { articuloId: number; nombre: string; unidadMedida: string; unidadesSalida: number; valorConsumido: number | null }[];
 }
 
 export const UNIDADES_MEDIDA: { value: UnidadMedida; label: string }[] = [

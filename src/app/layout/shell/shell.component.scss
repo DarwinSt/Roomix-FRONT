@@ -219,3 +219,71 @@ a[mat-list-item].active {
     padding-inline: 0.75rem;
   }
 }
+
+.nav-grupo {
+  padding: 0.85rem 1rem 0.25rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-200);
+}
+
+.usuario-btn {
+  color: #ffffff !important;
+  height: 44px;
+  padding: 0 0.4rem !important;
+  border-radius: 999px !important;
+
+  .avatar {
+    display: inline-grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    font-size: 0.8rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .usuario-texto {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-left: 0.5rem;
+    line-height: 1.15;
+    text-align: left;
+  }
+
+  .usuario-nombre {
+    font-size: 0.82rem;
+    font-weight: 600;
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .usuario-rol {
+    font-size: 0.7rem;
+    opacity: 0.85;
+  }
+
+  @media (max-width: 760px) {
+    .usuario-texto {
+      display: none;
+    }
+  }
+}
+
+.menu-cabecera {
+  display: flex;
+  flex-direction: column;
+  padding: 0.6rem 1rem 0.65rem;
+
+  small {
+    color: var(--text-200);
+  }
+}

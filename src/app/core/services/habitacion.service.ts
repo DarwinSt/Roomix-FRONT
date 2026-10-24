@@ -1,4 +1,5 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
+import type { Reserva } from '../models/reserva.model';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
@@ -36,6 +37,25 @@ export class HabitacionService {
 
   actualizarEstado(id: number, request: ActualizarEstadoRequest): Observable<Habitacion> {
     return this.http.patch<Habitacion>(`${this.baseUrl}/${id}/estado`, request);
+  }
+
+  /** URL pública de una foto (se usa directamente en <img>). */
+  urlFoto(habitacionId: number, fotoId: number): string {
+    return `${this.baseUrl}/${habitacionId}/fotos/${fotoId}`;
+  }
+
+  subirFoto(habitacionId: number, archivo: File): Observable<number[]> {
+    const form = new FormData();
+    form.append('archivo', archivo);
+    return this.http.post<number[]>(`${this.baseUrl}/${habitacionId}/fotos`, form);
+  }
+
+  eliminarFoto(habitacionId: number, fotoId: number): Observable<number[]> {
+    return this.http.delete<number[]>(`${this.baseUrl}/${habitacionId}/fotos/${fotoId}`);
+  }
+
+  historial(habitacionId: number): Observable<Reserva[]> {
+    return this.http.get<Reserva[]>(`${this.baseUrl}/${habitacionId}/historial`);
   }
 
   eliminar(id: number): Observable<void> {

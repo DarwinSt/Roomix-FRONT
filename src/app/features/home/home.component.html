@@ -1,13 +1,10 @@
 <div class="page-header home-header">
   <img [src]="logoUrl" alt="Roomix" class="home-logo" />
   <div>
-    <h1>Panel del día</h1>
-    <p>Resumen operativo: habitaciones, servicios pendientes e inventario.</p>
+    <h1>{{ saludo() }}, {{ primerNombre() }}</h1>
+    <p>Panel del día · {{ rolNombre() }}@if (dashboard(); as d) { · {{ fecha(d.fecha) }} }</p>
     @if (etiquetaSync()) {
-      <p class="sync-hint">
-        <mat-icon>sync</mat-icon>
-        {{ etiquetaSync() }}
-      </p>
+      <p class="sync-hint"><mat-icon>sync</mat-icon>{{ etiquetaSync() }}</p>
     }
   </div>
   <button mat-stroked-button type="button" (click)="cargar(true)">
@@ -18,101 +15,162 @@
 
 @if (loading()) {
   <div class="loading"><mat-spinner diameter="48" /></div>
-} @else {
-  <section class="kpi-grid">
-    @for (e of resumenHabitaciones(); track e.value) {
-      <button
-        type="button"
-        class="kpi-card"
-        [class]="e.cssClass"
-        (click)="irAHabitaciones(e.value)"
-      >
-        <mat-icon>{{ e.icon }}</mat-icon>
-        <span class="kpi-valor">{{ e.count }}</span>
-        <span class="kpi-etiqueta">{{ e.label }}</span>
-      </button>
-    }
-  </section>
+} @else if (dashboard(); as d) {
+  <!-- Alertas -->
+  @if (d.alertas.length) {
+    <section class="alertas" aria-label="Alertas">
+      @for (a of d.alertas; track $index) {
+        <button type="button" class="alerta nivel-{{ a.nivel.toLowerCase() }}" (click)="irAlerta(a)" [disabled]="!a.ruta">
+          <mat-icon>{{ iconoAlerta(a) }}</mat-icon>
+          <span class="texto"><small>{{ a.modulo }}</small>{{ a.mensaje }}</span>
+          @if (a.ruta) { <mat-icon class="ir">chevron_right</mat-icon> }
+        </button>
+      }
+    </section>
+  }
 
-  <div class="metricas-secundarias">
-    <mat-card class="metrica-card" (click)="irAIncidencias('sin-asignar')">
-      <mat-icon>assignment_late</mat-icon>
-      <div>
-        <span class="metrica-valor">{{ incidenciasSinAsignar() }}</span>
-        <span class="metrica-etiqueta">Incidencias sin asignar</span>
+  <!-- Habitaciones -->
+  @if (d.habitaciones; as h) {
+    <section class="ocupacion">
+      <div class="ocupacion-principal">
+        <span class="etiqueta">Ocupación hoy</span>
+        <span class="valor">{{ pct(h.ocupacionPct) }}</span>
+        <span class="detalle">{{ h.ocupadas }} de {{ h.total }} habitaciones</span>
+        <div class="barra" role="img" [attr.aria-label]="'Ocupación ' + pct(h.ocupacionPct)">
+          <div [style.width.%]="h.ocupacionPct"></div>
+        </div>
       </div>
-    </mat-card>
-    <mat-card class="metrica-card" routerLink="/incidencias">
-      <mat-icon>engineering</mat-icon>
-      <div>
-        <span class="metrica-valor">{{ incidenciasActivas().length }}</span>
-        <span class="metrica-etiqueta">Servicios activos</span>
-      </div>
-    </mat-card>
-    <mat-card class="metrica-card" routerLink="/inventario">
-      <mat-icon>warning_amber</mat-icon>
-      <div>
-        <span class="metrica-valor">{{ stockBajo().length }}</span>
-        <span class="metrica-etiqueta">Artículos con stock bajo</span>
-      </div>
-    </mat-card>
-    <mat-card class="metrica-card" routerLink="/personal">
-      <mat-icon>groups</mat-icon>
-      <div>
-        <span class="metrica-valor">{{ personalOcupado() }}</span>
-        <span class="metrica-etiqueta">Personal ocupado</span>
-      </div>
-    </mat-card>
-  </div>
-
-  <section class="cola-section">
-    <div class="cola-header">
-      <h2>Cola de trabajo priorizada</h2>
-      <a mat-button routerLink="/incidencias">Ver todas las incidencias</a>
-    </div>
-
-    @if (colaOperativa().length === 0) {
-      <mat-card class="cola-vacia">
-        <mat-icon>check_circle</mat-icon>
-        <p>No hay tareas urgentes pendientes. Todo al día.</p>
-      </mat-card>
-    } @else {
-      <div class="cola-lista">
-        @for (item of colaOperativa(); track item.id) {
-          <mat-card class="cola-item">
-            <div class="cola-item-body">
-              <mat-icon class="cola-icon">{{ item.icon }}</mat-icon>
-              <div>
-                <strong>{{ item.titulo }}</strong>
-                <p>{{ item.subtitulo }}</p>
-              </div>
-            </div>
-            <a mat-flat-button color="primary" [routerLink]="item.ruta">{{ item.accionLabel }}</a>
-          </mat-card>
+      <div class="kpi-grid">
+        @for (k of kpisHabitaciones(); track k.etiqueta) {
+          <button type="button" class="kpi-card {{ k.cssClass }}" (click)="irAHabitaciones(k.estado)">
+            <mat-icon>{{ k.icon }}</mat-icon>
+            <span class="kpi-valor">{{ k.valor }}</span>
+            <span class="kpi-etiqueta">{{ k.etiqueta }}</span>
+          </button>
         }
       </div>
-    }
-  </section>
+    </section>
+  }
 
-  <section class="accesos-rapidos">
-    <h2>Accesos rápidos</h2>
-    <div class="accesos-grid">
-      <a mat-stroked-button routerLink="/habitaciones">
-        <mat-icon>hotel</mat-icon>
-        Habitaciones
-      </a>
-      <a mat-stroked-button routerLink="/incidencias">
-        <mat-icon>report_problem</mat-icon>
-        Incidencias
-      </a>
-      <a mat-stroked-button routerLink="/personal">
-        <mat-icon>groups</mat-icon>
-        Personal
-      </a>
-      <a mat-stroked-button routerLink="/inventario">
-        <mat-icon>inventory_2</mat-icon>
-        Inventario
-      </a>
+  <!-- Llegadas y salidas -->
+  @if (d.llegadasHoy || d.salidasHoy) {
+    <div class="rx-grid-2">
+      @if (d.llegadasHoy; as llegadas) {
+        <section class="rx-card">
+          <div class="rx-card-titulo"><mat-icon>login</mat-icon>Llegadas de hoy ({{ llegadas.length }})</div>
+          @for (m of llegadas; track m.reservaId) {
+            <div class="movimiento">
+              <div class="hab">{{ m.habitacionNumero }}</div>
+              <div class="info">
+                <a [routerLink]="['/reservas', m.reservaId]">{{ m.huespedNombre }}</a>
+                <small>{{ m.noches }} noche(s) · sale {{ fecha(m.fechaSalida) }}</small>
+              </div>
+              @if (puedeOperar()) {
+                <button mat-flat-button color="primary" (click)="checkIn(m)" [disabled]="procesando() === m.reservaId">Check-in</button>
+              }
+            </div>
+          } @empty {
+            <p class="rx-muted">No hay llegadas pendientes hoy.</p>
+          }
+        </section>
+      }
+      @if (d.salidasHoy; as salidas) {
+        <section class="rx-card">
+          <div class="rx-card-titulo"><mat-icon>logout</mat-icon>Salidas de hoy ({{ salidas.length }})</div>
+          @for (m of salidas; track m.reservaId) {
+            <div class="movimiento">
+              <div class="hab" [class.atrasada]="m.atrasada">{{ m.habitacionNumero }}</div>
+              <div class="info">
+                <a [routerLink]="['/reservas', m.reservaId]">{{ m.huespedNombre }}</a>
+                <small>
+                  {{ m.noches }} noche(s) · entró {{ fecha(m.fechaEntrada) }}
+                  @if (m.atrasada) { · <span class="rx-chip critico">Salida vencida</span> }
+                </small>
+              </div>
+              @if (puedeOperar()) {
+                <button mat-stroked-button (click)="checkOut(m)" [disabled]="procesando() === m.reservaId">Check-out</button>
+              }
+            </div>
+          } @empty {
+            <p class="rx-muted">No hay salidas pendientes hoy.</p>
+          }
+        </section>
+      }
     </div>
-  </section>
+  }
+
+  <!-- Finanzas -->
+  @if (d.finanzas; as f) {
+    <section class="rx-card">
+      <div class="rx-card-titulo">
+        <mat-icon>account_balance</mat-icon>Resumen financiero
+        <span class="spacer"></span>
+        <a mat-button routerLink="/finanzas">Ver finanzas</a>
+      </div>
+      <div class="rx-kpis compactos">
+        <div class="rx-kpi"><span class="rx-kpi-etiqueta">Ingresos hoy</span><span class="rx-kpi-valor">{{ moneda(f.ingresosHoy) }}</span></div>
+        <div class="rx-kpi"><span class="rx-kpi-etiqueta">Últimos 7 días</span><span class="rx-kpi-valor">{{ moneda(f.ingresosSemana) }}</span></div>
+        <div class="rx-kpi"><span class="rx-kpi-etiqueta">Ingresos del mes</span><span class="rx-kpi-valor">{{ moneda(f.ingresosMes) }}</span></div>
+        <div class="rx-kpi"><span class="rx-kpi-etiqueta">Egresos del mes</span><span class="rx-kpi-valor">{{ moneda(f.egresosMes) }}</span></div>
+        <div class="rx-kpi" [class.rx-kpi--alerta]="f.saldoPorCobrar > 0">
+          <span class="rx-kpi-etiqueta">Por cobrar</span><span class="rx-kpi-valor">{{ moneda(f.saldoPorCobrar) }}</span>
+        </div>
+      </div>
+    </section>
+  }
+
+  <div class="rx-grid-2">
+    <!-- Operación -->
+    @if (d.operacion; as o) {
+      <section class="rx-card">
+        <div class="rx-card-titulo"><mat-icon>engineering</mat-icon>Operación</div>
+        <div class="operacion">
+          <a routerLink="/incidencias" class="op" [class.alerta]="o.incidenciasSinAsignar > 0">
+            <span class="num">{{ o.incidenciasSinAsignar }}</span><span>Tareas sin asignar</span>
+          </a>
+          <a routerLink="/incidencias" class="op"><span class="num">{{ o.incidenciasActivas }}</span><span>Limpieza / mantenimiento activos</span></a>
+          <a routerLink="/servicios" class="op"><span class="num">{{ o.serviciosActivos }}</span><span>Servicios en curso</span></a>
+          <a routerLink="/personal" class="op"><span class="num">{{ o.personalOcupado }}</span><span>Personal ocupado</span></a>
+        </div>
+      </section>
+    }
+
+    <!-- Inventario crítico -->
+    @if (d.inventario; as inv) {
+      <section class="rx-card">
+        <div class="rx-card-titulo">
+          <mat-icon>inventory_2</mat-icon>Inventario bajo el mínimo ({{ inv.articulosStockBajo }})
+          <span class="spacer"></span>
+          <a mat-button routerLink="/inventario/reporte">Reporte</a>
+        </div>
+        @for (a of inv.criticos; track a.id) {
+          <div class="linea">
+            <span>{{ a.nombre }} <small class="rx-muted">{{ a.categoria.nombre }}</small></span>
+            <span class="rx-chip critico">{{ a.cantidad }} / mín. {{ a.cantidadMinima }}</span>
+          </div>
+        } @empty {
+          <p class="rx-muted">Todo el inventario está sobre el mínimo.</p>
+        }
+      </section>
+    }
+
+    <!-- Eventos -->
+    @if (d.eventosProximos; as eventos) {
+      <section class="rx-card">
+        <div class="rx-card-titulo">
+          <mat-icon>celebration</mat-icon>Próximos eventos
+          <span class="spacer"></span>
+          <a mat-button routerLink="/eventos">Ver todos</a>
+        </div>
+        @for (e of eventos; track e.id) {
+          <a class="linea enlace" [routerLink]="['/eventos', e.id]">
+            <span>{{ e.nombre }} <small class="rx-muted">{{ fecha(e.fechaHoraInicio) }} {{ hora(e.fechaHoraInicio) }} · {{ e.salonNombre }}</small></span>
+            <span class="rx-muted">{{ e.inscritos }}/{{ e.capacidad }}</span>
+          </a>
+        } @empty {
+          <p class="rx-muted">No hay eventos programados.</p>
+        }
+      </section>
+    }
+  </div>
 }
