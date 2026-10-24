@@ -60,7 +60,7 @@
             @for (p of personal(); track p.id) {
               <mat-option [value]="p.id" [disabled]="p.ocupado">
                 <span class="roomix-option">
-                  <mat-icon>badge</mat-icon>
+                  <mat-icon fontIcon="badge"></mat-icon>
                   <span class="roomix-option-body">
                     <span class="roomix-option-label">{{ p.nombre }}</span>
                     <span class="roomix-option-hint">

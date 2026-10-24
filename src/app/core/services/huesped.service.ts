@@ -15,6 +15,11 @@ export class HuespedService {
     return this.http.get<Huesped[]>(this.baseUrl, { params });
   }
 
+  /** Autocompletar: por palabras, sin tildes, máximo `limite` resultados (lo resuelve el backend). */
+  buscar(q: string, limite = 8) {
+    return this.http.get<Huesped[]>(`${this.baseUrl}/buscar`, { params: { q, limite } });
+  }
+
   obtener(id: number) {
     return this.http.get<Huesped>(`${this.baseUrl}/${id}`);
   }

@@ -1,204 +1,180 @@
 <div class="page-header row">
   <div>
     <h1>Reservas</h1>
-    <p>Listado e historial de estadías. Consulte disponibilidad al crear una nueva reserva desde Habitaciones.</p>
+    <p>Listado, historial y calendario de estadías. Las reservas nuevas se crean desde Habitaciones.</p>
     @if (etiquetaSync()) {
-      <p class="sync-hint">
-        <mat-icon>sync</mat-icon>
-        {{ etiquetaSync() }}
-      </p>
+      <p class="sync-hint"><mat-icon>sync</mat-icon>{{ etiquetaSync() }}</p>
     }
   </div>
-  <div class="header-actions">
-    <mat-button-toggle-group [value]="vista()" (change)="cambiarVista($event.value)">
-      <mat-button-toggle value="listado">
-        <mat-icon>view_list</mat-icon>
-        Listado
-      </mat-button-toggle>
-      <mat-button-toggle value="calendario">
-        <mat-icon>calendar_month</mat-icon>
-        Calendario
-      </mat-button-toggle>
+  <div class="rx-acciones">
+    <mat-button-toggle-group [value]="vista()" (change)="vista.set($event.value)" aria-label="Vista">
+      <mat-button-toggle value="listado"><mat-icon>view_list</mat-icon> Listado</mat-button-toggle>
+      <mat-button-toggle value="calendario"><mat-icon>calendar_month</mat-icon> Calendario</mat-button-toggle>
     </mat-button-toggle-group>
-    @if (puedeReservar()) {
-      <a mat-flat-button color="primary" routerLink="/habitaciones">
-        <mat-icon>bed</mat-icon>
-        Nueva reserva
-      </a>
+    @if (puedeOperar()) {
+      <a mat-flat-button color="primary" routerLink="/habitaciones"><mat-icon>bed</mat-icon>Nueva reserva</a>
     }
-    <button mat-stroked-button type="button" (click)="cargar(true)">
-      <mat-icon>refresh</mat-icon>
-      Actualizar
-    </button>
   </div>
 </div>
 
-<div class="resumen-grid">
-  <mat-card class="resumen-card">
-    <mat-icon>event_note</mat-icon>
-    <div>
-      <span class="valor">{{ resumen().total }}</span>
-      <span class="etiqueta">En el periodo</span>
-    </div>
-  </mat-card>
-  <mat-card class="resumen-card activas">
-    <mat-icon>pending_actions</mat-icon>
-    <div>
-      <span class="valor">{{ resumen().activas }}</span>
-      <span class="etiqueta">Activas</span>
-    </div>
-  </mat-card>
-  <mat-card class="resumen-card finalizadas">
-    <mat-icon>history</mat-icon>
-    <div>
-      <span class="valor">{{ resumen().finalizadas }}</span>
-      <span class="etiqueta">Finalizadas</span>
-    </div>
-  </mat-card>
-</div>
-
-<div class="panel-filtros">
-  <mat-form-field appearance="outline" class="filtro-estado">
-    <mat-label>Estado</mat-label>
-    <mat-select
-      panelClass="roomix-select-panel"
-      [ngModel]="filtroEstado()"
-      (ngModelChange)="filtroEstado.set($event); onFiltroEstadoChange()"
-    >
-      @for (e of estadosFiltro; track e.value) {
-        <mat-option [value]="e.value">{{ e.label }}</mat-option>
-      }
-    </mat-select>
-  </mat-form-field>
-
-  @if (vista() === 'listado') {
-    <mat-form-field appearance="outline" class="busqueda">
-      <mat-label>Buscar huésped o habitación</mat-label>
-      <mat-icon matPrefix>search</mat-icon>
-      <input matInput [ngModel]="busqueda()" (ngModelChange)="busqueda.set($event)" />
-    </mat-form-field>
-  }
+<div class="rx-kpis">
+  <div class="rx-kpi"><span class="rx-kpi-etiqueta"><mat-icon>event_note</mat-icon>Reservas</span><span class="rx-kpi-valor">{{ resumen().total }}</span></div>
+  <div class="rx-kpi"><span class="rx-kpi-etiqueta"><mat-icon>pending_actions</mat-icon>Activas</span><span class="rx-kpi-valor">{{ resumen().activas }}</span></div>
+  <div class="rx-kpi"><span class="rx-kpi-etiqueta"><mat-icon>login</mat-icon>Llegadas hoy</span><span class="rx-kpi-valor">{{ resumen().llegadasHoy }}</span></div>
+  <div class="rx-kpi" [class.rx-kpi--alerta]="resumen().salidasHoy > 0"><span class="rx-kpi-etiqueta"><mat-icon>logout</mat-icon>Salidas pendientes</span><span class="rx-kpi-valor">{{ resumen().salidasHoy }}</span></div>
 </div>
 
 @if (loading()) {
-  <div class="loading"><mat-spinner diameter="48" /></div>
+  <div class="rx-cargando"><mat-spinner diameter="44" /></div>
 } @else if (vista() === 'listado') {
-  @if (reservasVisibles().length === 0) {
-    <mat-card class="empty-state">
-      <mat-icon>event_busy</mat-icon>
-      <h2>Sin reservas</h2>
-      <p>No hay reservas que coincidan con los filtros del mes actual.</p>
-      <a mat-stroked-button routerLink="/habitaciones">Ir a habitaciones</a>
-    </mat-card>
+  <!-- ================================================================ LISTADO -->
+  <div class="rx-toolbar filtros">
+    <mat-form-field appearance="outline" class="busqueda">
+      <mat-label>Buscar por huésped, documento, habitación o #reserva</mat-label>
+      <mat-icon matPrefix>search</mat-icon>
+      <input matInput [ngModel]="busqueda()" (ngModelChange)="buscar($event)" />
+      @if (busqueda()) {
+        <button mat-icon-button matSuffix type="button" (click)="buscar('')" aria-label="Limpiar"><mat-icon>close</mat-icon></button>
+      }
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Estado</mat-label>
+      <mat-select [value]="filtroEstado()" (selectionChange)="cambiarFiltro($event.value)" panelClass="roomix-select-panel">
+        @for (e of estadosFiltro; track e.value) { <mat-option [value]="e.value">{{ e.label }}</mat-option> }
+      </mat-select>
+    </mat-form-field>
+    <button mat-stroked-button type="button" (click)="cargar(true)"><mat-icon>refresh</mat-icon>Actualizar</button>
+  </div>
+
+  @if (filtradas().length === 0) {
+    <div class="rx-vacio"><mat-icon>search_off</mat-icon><p>No hay reservas que coincidan con los filtros.</p></div>
   } @else {
-    <mat-card class="tabla-card">
-      <table mat-table [dataSource]="reservasVisibles()" class="reservas-table">
-        <ng-container matColumnDef="habitacion">
-          <th mat-header-cell *matHeaderCellDef>Habitación</th>
-          <td mat-cell data-label="Habitación" *matCellDef="let r">
-            <a class="enlace" [routerLink]="['/reservas', r.id]"><strong>{{ r.habitacionNumero }}</strong> · #{{ r.id }}</a>
-            <span class="sub">{{ etiquetaTipo(r.tipoHabitacion) }}</span>
-          </td>
-        </ng-container>
-
-        <ng-container matColumnDef="huesped">
-          <th mat-header-cell *matHeaderCellDef>Huésped</th>
-          <td mat-cell data-label="Huésped" *matCellDef="let r">
-            {{ r.huesped.nombreCompleto }}
-            <span class="sub">{{ r.huesped.numeroDocumento }}</span>
-          </td>
-        </ng-container>
-
-        <ng-container matColumnDef="fechas">
-          <th mat-header-cell *matHeaderCellDef>Fechas</th>
-          <td mat-cell data-label="Fechas" *matCellDef="let r">{{ r.fechaEntrada }} → {{ r.fechaSalida }}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="noches">
-          <th mat-header-cell *matHeaderCellDef>Noches</th>
-          <td mat-cell data-label="Noches" *matCellDef="let r">{{ r.cantidadNoches }}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="total">
-          <th mat-header-cell *matHeaderCellDef>Total</th>
-          <td mat-cell data-label="Total" *matCellDef="let r">
-            {{ formatearMoneda(r.totalEstimado) }}
-            <span class="sub">{{ formatearMoneda(r.tarifaNoche) }}/noche</span>
-          </td>
-        </ng-container>
-
-        <ng-container matColumnDef="estado">
-          <th mat-header-cell *matHeaderCellDef>Estado</th>
-          <td mat-cell data-label="Estado" *matCellDef="let r">
-            <span class="estado-chip {{ claseEstado(r.estadoReserva) }}">
-              {{ etiquetaEstado(r.estadoReserva) }}
-            </span>
-          </td>
-        </ng-container>
-
-        <tr mat-header-row *matHeaderRowDef="columnas"></tr>
-        <tr mat-row *matRowDef="let row; columns: columnas" class="fila-enlace" (click)="abrir(row)"></tr>
+    <div class="rx-tabla-wrap">
+      <table class="rx-tabla">
+        <thead>
+          <tr><th>Reserva</th><th>Huésped</th><th>Estancia</th><th>Canal</th><th class="derecha">Total</th><th>Estado</th><th></th></tr>
+        </thead>
+        <tbody>
+          @for (r of paginaActual(); track r.id) {
+            <tr class="fila-enlace" (click)="abrir(r)">
+              <td data-label="Reserva"><strong>Hab. {{ r.habitacionNumero }}</strong><span class="sub">#{{ r.id }} · {{ etiquetaTipo(r.tipoHabitacion) }}</span></td>
+              <td data-label="Huésped" class="ancho">{{ r.huesped.nombreCompleto }}<span class="sub">{{ r.huesped.tipoDocumento }} {{ r.huesped.numeroDocumento }}</span></td>
+              <td data-label="Estancia">{{ fecha(r.fechaEntrada) }} → {{ fecha(r.fechaSalida) }}<span class="sub">{{ r.cantidadNoches }} noche(s)</span></td>
+              <td data-label="Canal">{{ r.canalNombre ?? '—' }}</td>
+              <td data-label="Total" class="derecha rx-num">{{ moneda(r.totalEstimado) }}</td>
+              <td data-label="Estado"><span class="rx-chip {{ claseEstado(r.estadoReserva) }}">{{ etiquetaEstado(r.estadoReserva) }}</span></td>
+              <td class="acciones derecha" (click)="$event.stopPropagation()">
+                <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="Acciones de la reserva"><mat-icon>more_vert</mat-icon></button>
+                <mat-menu #menu="matMenu">
+                  <button mat-menu-item (click)="abrir(r)"><mat-icon>visibility</mat-icon>Ver detalle y cuenta</button>
+                  @if (puedeOperar() && (r.estadoReserva === 'CONFIRMADA' || r.estadoReserva === 'EN_CURSO')) {
+                    <button mat-menu-item (click)="editar(r)"><mat-icon>edit_calendar</mat-icon>Editar</button>
+                    @if (r.estadoReserva === 'CONFIRMADA') {
+                      <button mat-menu-item (click)="checkIn(r)" [disabled]="r.fechaEntrada > hoy"><mat-icon>login</mat-icon>Check-in</button>
+                      <button mat-menu-item (click)="cancelar(r)"><mat-icon>event_busy</mat-icon>Cancelar</button>
+                    } @else {
+                      <button mat-menu-item (click)="checkOut(r)"><mat-icon>logout</mat-icon>Check-out</button>
+                    }
+                  }
+                </mat-menu>
+              </td>
+            </tr>
+          }
+        </tbody>
       </table>
-    </mat-card>
+    </div>
+    <rx-paginador [total]="filtradas().length" [pagina]="pagina()" [tamano]="tamano()"
+                  (paginaChange)="pagina.set($event)" (tamanoChange)="cambiarTamano($event)" />
   }
 } @else {
-  <mat-card class="calendario-card">
-    <div class="calendario-toolbar">
-      <button mat-icon-button type="button" (click)="mesAnterior()" aria-label="Mes anterior">
-        <mat-icon>chevron_left</mat-icon>
-      </button>
-      <h2>{{ etiquetaMes() }}</h2>
-      <button mat-icon-button type="button" (click)="mesSiguiente()" aria-label="Mes siguiente">
-        <mat-icon>chevron_right</mat-icon>
-      </button>
+  <!-- ================================================================ CALENDARIO -->
+  <div class="cal-barra">
+    <div class="cal-nav">
+      <button mat-stroked-button type="button" (click)="irHoy()">Hoy</button>
+      <button mat-icon-button type="button" (click)="moverCal(-1)" aria-label="Anterior"><mat-icon>chevron_left</mat-icon></button>
+      <button mat-icon-button type="button" (click)="moverCal(1)" aria-label="Siguiente"><mat-icon>chevron_right</mat-icon></button>
+      <h2 class="cal-titulo">{{ tituloCal() }}</h2>
     </div>
+    <mat-button-toggle-group [value]="vistaCal()" (change)="cambiarVistaCal($event.value)" aria-label="Tipo de vista">
+      <mat-button-toggle value="dia">Día</mat-button-toggle>
+      <mat-button-toggle value="semana">Semana</mat-button-toggle>
+      <mat-button-toggle value="mes">Mes</mat-button-toggle>
+    </mat-button-toggle-group>
+  </div>
 
-    <div class="calendario-grid">
-      <div class="dia-semana">Lun</div>
-      <div class="dia-semana">Mar</div>
-      <div class="dia-semana">Mié</div>
-      <div class="dia-semana">Jue</div>
-      <div class="dia-semana">Vie</div>
-      <div class="dia-semana">Sáb</div>
-      <div class="dia-semana">Dom</div>
-
-      @for (dia of diasCalendario(); track dia.fecha.toISOString()) {
-        <button
-          type="button"
-          class="dia-celda"
-          [class.fuera-mes]="!dia.enMes"
-          [class.con-reservas]="dia.reservas.length > 0"
-          [class.seleccionado]="esDiaSeleccionado(dia)"
-          [attr.aria-label]="dia.fecha.getDate() + ': ' + dia.reservas.length + ' reserva(s)'"
-          (click)="seleccionarDia(dia)"
-        >
-          <span class="numero">{{ dia.fecha.getDate() }}</span>
-          @if (dia.reservas.length > 0) {
-            <span class="contador">{{ dia.reservas.length }}</span>
-          }
-          @for (r of dia.reservas; track r.id) {
-            <span
-              class="reserva-chip {{ claseEstado(r.estadoReserva) }}"
-              [matTooltip]="r.habitacionNumero + ' · ' + r.huesped.nombreCompleto"
-            >
-              {{ r.habitacionNumero }}
+  @switch (vistaCal()) {
+    @case ('mes') {
+      <div class="mes">
+        @for (d of diasSemana; track d) { <div class="mes-cab">{{ d }}</div> }
+        @for (d of diasMes(); track d.iso) {
+          <button type="button" class="mes-dia ocup-{{ nivelOcupacion(d) }}" [class.fuera]="!d.enMes" [class.hoy]="d.esHoy" (click)="verDia(d.iso)"
+                  [attr.aria-label]="d.iso + ': ' + d.llegadas + ' llegadas, ' + d.salidas + ' salidas, ' + d.ocupadas + ' ocupadas'">
+            <span class="num">{{ d.numero }}</span>
+            <span class="ocupacion" [matTooltip]="d.ocupadas + ' de ' + totalHabitaciones() + ' habitaciones ocupadas'">
+              <span class="barra"><span [style.width.%]="(d.ocupadas / (totalHabitaciones() || 1)) * 100"></span></span>
+              {{ d.ocupadas }}/{{ totalHabitaciones() }}
             </span>
+            <span class="movs">
+              @if (d.llegadas) { <span class="mov llega"><mat-icon>login</mat-icon>{{ d.llegadas }}</span> }
+              @if (d.salidas) { <span class="mov sale"><mat-icon>logout</mat-icon>{{ d.salidas }}</span> }
+            </span>
+          </button>
+        }
+      </div>
+      <p class="leyenda">
+        <span><mat-icon>login</mat-icon> Llegadas</span><span><mat-icon>logout</mat-icon> Salidas</span>
+        <span><i class="cuadro alta"></i> Ocupación ≥ 80 %</span><span><i class="cuadro media"></i> 50–79 %</span><span><i class="cuadro baja"></i> &lt; 50 %</span>
+        · Toque un día para ver su agenda.
+      </p>
+    }
+    @case ('semana') {
+      <div class="semana-wrap">
+        <div class="semana">
+          <div class="sem-cab hab">Habitación</div>
+          @for (d of diasDeSemana(); track d.iso) {
+            <button type="button" class="sem-cab dia" [class.hoy]="d.esHoy" (click)="verDia(d.iso)">{{ d.etiqueta }} <strong>{{ d.numero }}</strong></button>
           }
-        </button>
-      }
-    </div>
-
-    <div class="dia-detalle">
-      <h3>{{ etiquetaDiaSeleccionado() }} · {{ reservasDiaSeleccionado().length }} reserva(s)</h3>
-      @for (r of reservasDiaSeleccionado(); track r.id) {
-        <div class="dia-detalle-item fila-enlace" (click)="abrir(r)">
-          <strong>{{ r.habitacionNumero }}</strong>
-          <span class="nombre">{{ r.huesped.nombreCompleto }}</span>
-          <span class="estado-chip {{ claseEstado(r.estadoReserva) }}">{{ etiquetaEstado(r.estadoReserva) }}</span>
+          @for (f of filasSemana(); track f.habitacion; let i = $index) {
+            <div class="sem-hab" [style.grid-row]="i + 2"><strong>{{ f.habitacion }}</strong><span>{{ f.tipo }}</span></div>
+            @for (d of diasDeSemana(); track d.iso; let c = $index) {
+              <div class="sem-celda" [class.hoy]="d.esHoy" [style.grid-row]="i + 2" [style.grid-column]="c + 2"></div>
+            }
+            @for (b of f.barras; track b.reserva.id) {
+              <a class="sem-barra {{ claseEstado(b.reserva.estadoReserva) }}" [class.corta-ini]="b.continuaAntes" [class.corta-fin]="b.continuaDespues"
+                 [routerLink]="['/reservas', b.reserva.id]" [style.grid-row]="i + 2" [style.grid-column]="(b.inicio + 2) + ' / ' + (b.fin + 2)"
+                 [matTooltip]="b.reserva.huesped.nombreCompleto + ' · ' + fecha(b.reserva.fechaEntrada) + ' → ' + fecha(b.reserva.fechaSalida) + ' · ' + etiquetaEstado(b.reserva.estadoReserva)">
+                {{ b.reserva.huesped.nombreCompleto }}
+              </a>
+            }
+          }
         </div>
-      } @empty {
-        <p class="sin-reservas">Sin reservas este día.</p>
-      }
-    </div>
-  </mat-card>
+      </div>
+      <p class="leyenda">
+        <span class="rx-chip info">Confirmada</span><span class="rx-chip alerta">En curso</span><span class="rx-chip ok">Finalizada</span>
+        · Cada barra cubre las noches de la estancia; toque una barra para abrir la reserva.
+      </p>
+    }
+    @case ('dia') {
+      <div class="agenda">
+        @for (bloque of [
+          { titulo: 'Llegadas', icono: 'login', lista: agendaDia().llegadas },
+          { titulo: 'Salidas', icono: 'logout', lista: agendaDia().salidas },
+          { titulo: 'Hospedados', icono: 'hotel', lista: agendaDia().hospedados }
+        ]; track bloque.titulo) {
+          <section class="rx-card">
+            <div class="rx-card-titulo"><mat-icon>{{ bloque.icono }}</mat-icon>{{ bloque.titulo }} ({{ bloque.lista.length }})</div>
+            @for (r of bloque.lista; track r.id) {
+              <a class="agenda-item" [routerLink]="['/reservas', r.id]">
+                <span class="hab">{{ r.habitacionNumero }}</span>
+                <span class="info"><strong>{{ r.huesped.nombreCompleto }}</strong><small>{{ fecha(r.fechaEntrada) }} → {{ fecha(r.fechaSalida) }} · {{ r.cantidadNoches }} noche(s)</small></span>
+                <span class="rx-chip {{ claseEstado(r.estadoReserva) }}">{{ etiquetaEstado(r.estadoReserva) }}</span>
+              </a>
+            } @empty {
+              <p class="rx-muted">Sin movimientos.</p>
+            }
+          </section>
+        }
+      </div>
+    }
+  }
 }

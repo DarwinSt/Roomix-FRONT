@@ -63,6 +63,8 @@ export class IncidenciasListComponent implements OnInit {
   readonly ultimaActualizacion = signal<Date | null>(null);
 
   filtroEstado: EstadoIncidencia | '' = '';
+  /** Cola de un trabajador (desde Personal → «Ver cola de incidencias») */
+  readonly filtroPersonal = signal<{ id: number; nombre: string } | null>(null);
   filtroRapido: FiltroRapido = '';
   soloActivas = true;
 
@@ -103,6 +105,8 @@ export class IncidenciasListComponent implements OnInit {
       if (vista === 'sin-asignar' || vista === 'habitacion' || vista === 'zona-comun') {
         this.filtroRapido = vista;
       }
+      const personal = Number(params.get('personal'));
+      this.filtroPersonal.set(personal ? { id: personal, nombre: params.get('nombre') ?? 'el trabajador' } : null);
       this.cargar(true);
     });
     programarAutoRefresh(this.destroyRef, () => this.cargar(false));
@@ -114,6 +118,7 @@ export class IncidenciasListComponent implements OnInit {
     this.incidenciaService
       .listar({
         activas: this.soloActivas ? true : undefined,
+        personalId: this.filtroPersonal()?.id,
       })
       .subscribe({
         next: (data) => {
@@ -133,6 +138,14 @@ export class IncidenciasListComponent implements OnInit {
     void this.router.navigate([], {
       relativeTo: this.route,
       queryParams: { vista: this.filtroRapido || null },
+      queryParamsHandling: 'merge',
+    });
+  }
+
+  quitarFiltroPersonal(): void {
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { personal: null, nombre: null },
       queryParamsHandling: 'merge',
     });
   }

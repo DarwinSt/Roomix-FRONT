@@ -8,6 +8,7 @@ import {
   EstadoIncidencia,
   Incidencia,
   Personal,
+  PersonalRequest,
 } from '../models/incidencia.model';
 
 @Injectable({ providedIn: 'root' })
@@ -62,8 +63,21 @@ export class IncidenciaService {
     return this.http.patch<Incidencia>(`${this.baseUrl}/${id}/cancelar`, {});
   }
 
-  listarPersonal(activo = true) {
-    const params = new HttpParams().set('activo', activo);
+  /** activo: true (por defecto) solo activos; null/undefined trae todos */
+  listarPersonal(activo: boolean | null = true) {
+    const params = activo == null ? new HttpParams() : new HttpParams().set('activo', activo);
     return this.http.get<Personal[]>(this.personalUrl, { params });
+  }
+
+  crearPersonal(body: PersonalRequest) {
+    return this.http.post<Personal>(this.personalUrl, body);
+  }
+
+  actualizarPersonal(id: number, body: PersonalRequest) {
+    return this.http.put<Personal>(`${this.personalUrl}/${id}`, body);
+  }
+
+  cambiarActivoPersonal(id: number, valor: boolean) {
+    return this.http.patch<Personal>(`${this.personalUrl}/${id}/activo`, null, { params: { valor } });
   }
 }

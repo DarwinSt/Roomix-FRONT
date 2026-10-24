@@ -11,9 +11,11 @@
 
 .resumen-card {
   display: flex;
+  flex-direction: row !important; // mat-card es columna por defecto: icono a la izquierda del dato
   align-items: center;
+  justify-content: flex-start;
   gap: 1rem;
-  padding: 0.25rem 0.5rem;
+  padding: 0.85rem 1rem;
   border-radius: var(--roomix-radius-lg) !important;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 
@@ -68,7 +70,8 @@
   flex-wrap: wrap;
   margin-bottom: 1rem;
   padding: 1rem;
-  background: var(--bg-200);
+  background: #ffffff;
+  box-shadow: var(--roomix-shadow);
   border: 1px solid var(--bg-300);
   border-radius: var(--roomix-radius-lg);
 
@@ -259,4 +262,20 @@
     color: var(--text-200);
     font-size: 0.8rem;
   }
+}
+
+.dado-de-baja {
+  opacity: 0.7;
+  filter: grayscale(0.6);
+}
+
+.badge-baja {
+  display: inline-block;
+  margin-left: 0.35rem;
+  padding: 0.05rem 0.5rem;
+  border-radius: 999px;
+  background: #eceff1;
+  color: #455a64;
+  font-size: 0.72rem;
+  font-weight: 600;
 }

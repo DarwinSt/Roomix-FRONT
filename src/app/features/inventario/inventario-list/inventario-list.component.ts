@@ -33,6 +33,7 @@ import { MovimientosArticuloDialogComponent, StockDialogComponent } from '../sto
 import { AuthService } from '../../../core/services/auth.service';
 import { moneda } from '../../../core/utils/formato.util';
 import { FechaRoomixPipe } from '../../../shared/pipes/fecha-roomix.pipe';
+import { ConfirmDialogComponent } from '../../../shared/dialogs/confirm-dialog/confirm-dialog.component';
 
 type OrdenInventario = 'nombre' | 'stock-asc' | 'stock-desc' | 'categoria';
 
@@ -75,6 +76,8 @@ export class InventarioListComponent implements OnInit {
 
   filtroCategoriaId: number | null = null;
   soloStockBajo = false;
+  /** Los artículos dados de baja se conservan (historial de movimientos) pero no se listan por defecto */
+  verDadosDeBaja = false;
   orden: OrdenInventario = 'nombre';
 
   readonly articulosVisibles = computed(() => {
@@ -129,7 +132,7 @@ export class InventarioListComponent implements OnInit {
     this.inventarioService
       .listarArticulos(
         this.filtroCategoriaId ?? undefined,
-        undefined,
+        this.verDadosDeBaja ? undefined : true,
         this.soloStockBajo || undefined,
       )
       .subscribe({
@@ -152,6 +155,7 @@ export class InventarioListComponent implements OnInit {
   limpiarFiltros(): void {
     this.filtroCategoriaId = null;
     this.soloStockBajo = false;
+    this.verDadosDeBaja = false;
     this.busqueda.set('');
     this.orden = 'nombre';
     this.cargar();
@@ -176,14 +180,51 @@ export class InventarioListComponent implements OnInit {
   }
 
   eliminar(a: ArticuloInventario): void {
-    if (!confirm(`¿Dar de baja "${a.nombre}"?`)) return;
-    this.inventarioService.eliminarArticulo(a.id).subscribe({
-      next: () => {
-        this.snackBar.open('Artículo dado de baja', 'OK', { duration: 3000 });
-        this.cargar();
-      },
-      error: (err) => this.errorDialog.mostrarDesdeApi(err),
-    });
+    this.dialog
+      .open(ConfirmDialogComponent, {
+        ...roomixDialogConfig({ width: '440px' }),
+        data: {
+          title: 'Dar de baja artículo',
+          message: `«${a.nombre}» dejará de aparecer en el inventario y no admitirá movimientos. Su historial se conserva y puede reactivarse desde «Mostrar dados de baja».`,
+          confirmLabel: 'Dar de baja',
+          icon: 'delete',
+          warn: true,
+        },
+      })
+      .afterClosed()
+      .subscribe((ok) => {
+        if (!ok) return;
+        this.inventarioService.eliminarArticulo(a.id).subscribe({
+          next: () => {
+            this.snackBar.open('Artículo dado de baja', 'OK', { duration: 3000 });
+            this.cargar();
+          },
+          error: (err) => this.errorDialog.mostrarDesdeApi(err),
+        });
+      });
+  }
+
+  reactivar(a: ArticuloInventario): void {
+    this.inventarioService
+      .actualizarArticulo(a.id, {
+        nombre: a.nombre,
+        descripcion: a.descripcion,
+        categoriaId: a.categoria.id,
+        cantidad: a.cantidad,
+        cantidadMinima: a.cantidadMinima,
+        unidadMedida: a.unidadMedida,
+        ubicacion: a.ubicacion,
+        proveedor: a.proveedor,
+        precioUnitario: a.precioUnitario,
+        activo: true,
+      })
+      .subscribe({
+        next: () => {
+          this.snackBar.open('Artículo reactivado', 'OK', { duration: 3000 });
+          this.cargar();
+        },
+        error: (err) => this.errorDialog.mostrarDesdeApi(err),
+      });
   }
 
   nivel(a: ArticuloInventario): NivelStock {

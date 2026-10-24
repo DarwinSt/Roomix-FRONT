@@ -20,7 +20,7 @@
             @for (t of tipos; track t.value) {
               <mat-option [value]="t.value">
                 <span class="roomix-option">
-                  <mat-icon>king_bed</mat-icon>
+                  <mat-icon fontIcon="king_bed"></mat-icon>
                   <span class="roomix-option-label">{{ t.label }}</span>
                 </span>
               </mat-option>
@@ -63,7 +63,7 @@
             @for (e of opcionesEstado(); track e.estadoDestino + (e.motivoInhabilitacion ?? '')) {
               <mat-option [value]="e.estadoDestino">
                 <span class="roomix-option">
-                  <mat-icon>{{ e.icon }}</mat-icon>
+                  <mat-icon [fontIcon]="e.icon"></mat-icon>
                   <span class="roomix-option-label">{{ e.label }}</span>
                 </span>
               </mat-option>
@@ -77,11 +77,23 @@
           <textarea matInput rows="3" formControlName="descripcion"></textarea>
         </mat-form-field>
 
-        <mat-form-field appearance="outline" class="full">
-          <mat-label>Características</mat-label>
-          <input matInput formControlName="caracteristicasTexto" placeholder="WiFi, TV, Minibar" />
-          <mat-hint>Separadas por coma</mat-hint>
-        </mat-form-field>
+        <div class="caracteristicas full">
+          <span class="caract-titulo">Características <small>({{ seleccionadas().length }} seleccionadas)</small></span>
+          <div class="chips" role="group" aria-label="Características de la habitación">
+            @for (c of sugerencias(); track c) {
+              <button type="button" class="chip" [class.sel]="estaSeleccionada(c)" (click)="alternar(c)"
+                      [attr.aria-pressed]="estaSeleccionada(c)">
+                @if (estaSeleccionada(c)) { <mat-icon>check</mat-icon> }
+                {{ c }}
+              </button>
+            }
+          </div>
+          <div class="agregar">
+            <input #nueva type="text" placeholder="Agregar otra característica y presionar Enter" maxlength="60"
+                   (keydown.enter)="$event.preventDefault(); agregarCaracteristica(nueva)" />
+            <button mat-stroked-button type="button" (click)="agregarCaracteristica(nueva)"><mat-icon>add</mat-icon>Agregar</button>
+          </div>
+        </div>
 
         @if (mostrarFechasReserva()) {
           <div class="fecha-block full">

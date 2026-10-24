@@ -606,3 +606,9 @@ a.enlace {
     text-decoration: underline;
   }
 }
+
+/* Tarjetas de resumen hechas con mat-card (columna por defecto): icono a la izquierda del dato */
+mat-card.resumen-card {
+  flex-direction: row !important;
+  align-items: center;
+}

@@ -22,7 +22,7 @@
             @for (c of categorias(); track c.id) {
               <mat-option [value]="c.id">
                 <span class="roomix-option">
-                  <mat-icon>category</mat-icon>
+                  <mat-icon fontIcon="category"></mat-icon>
                   <span class="roomix-option-label">{{ c.nombre }}</span>
                 </span>
               </mat-option>
@@ -35,7 +35,7 @@
             @for (u of unidades; track u.value) {
               <mat-option [value]="u.value">
                 <span class="roomix-option">
-                  <mat-icon>straighten</mat-icon>
+                  <mat-icon fontIcon="straighten"></mat-icon>
                   <span class="roomix-option-label">{{ u.label }}</span>
                 </span>
               </mat-option>

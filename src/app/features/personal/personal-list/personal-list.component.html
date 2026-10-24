@@ -9,11 +9,23 @@
       </p>
     }
   </div>
-  <button mat-stroked-button type="button" (click)="cargar(true)">
-    <mat-icon>refresh</mat-icon>
-    Actualizar
-  </button>
+  <div class="rx-acciones">
+    <button mat-stroked-button type="button" (click)="cargar(true)">
+      <mat-icon>refresh</mat-icon>
+      Actualizar
+    </button>
+    @if (esAdmin()) {
+      <button mat-flat-button color="primary" type="button" (click)="editar(null)">
+        <mat-icon>person_add</mat-icon>
+        Nuevo personal
+      </button>
+    }
+  </div>
 </div>
+
+@if (esAdmin()) {
+  <mat-checkbox class="ver-inactivos" [(ngModel)]="verInactivos" (change)="cargar(true)">Mostrar personal inactivo</mat-checkbox>
+}
 
 @if (!loading()) {
   <div class="resumen-grid">
@@ -47,12 +59,15 @@
   <div class="empty-state">
     <mat-icon>groups</mat-icon>
     <h2>Sin personal registrado</h2>
-    <p>El backend carga personal de ejemplo al primer arranque.</p>
+    <p>Registre a las personas del equipo para asignarles tareas.</p>
+    @if (esAdmin()) {
+      <button mat-flat-button color="primary" (click)="editar(null)"><mat-icon>person_add</mat-icon>Nuevo personal</button>
+    }
   </div>
 } @else {
   <div class="personal-grid">
     @for (p of personal(); track p.id) {
-      <mat-card class="personal-card" [class.ocupado]="p.ocupado">
+      <mat-card class="personal-card" [class.ocupado]="p.ocupado" [class.inactivo]="!p.activo">
         <mat-card-header>
           <mat-icon mat-card-avatar class="avatar">{{ p.ocupado ? 'engineering' : 'person' }}</mat-icon>
           <mat-card-title>{{ p.nombre }}</mat-card-title>
@@ -60,7 +75,9 @@
         </mat-card-header>
         <mat-card-content>
           <mat-chip-set>
-            @if (p.ocupado) {
+            @if (!p.activo) {
+              <mat-chip class="chip-inactivo">Inactivo</mat-chip>
+            } @else if (p.ocupado) {
               <mat-chip class="chip-ocupado">Ocupado en servicio</mat-chip>
             } @else {
               <mat-chip class="chip-libre">Disponible</mat-chip>
@@ -68,9 +85,17 @@
           </mat-chip-set>
         </mat-card-content>
         <mat-card-actions>
-          <a mat-button routerLink="/incidencias" [queryParams]="{ vista: 'sin-asignar' }">
+          <a mat-button routerLink="/incidencias" [queryParams]="{ personal: p.id, nombre: p.nombre }">
             Ver cola de incidencias
           </a>
+          @if (esAdmin()) {
+            <span class="spacer"></span>
+            <button mat-icon-button (click)="editar(p)" matTooltip="Editar" aria-label="Editar"><mat-icon>edit</mat-icon></button>
+            <button mat-icon-button (click)="cambiarActivo(p)" [matTooltip]="p.activo ? 'Desactivar' : 'Reactivar'"
+                    [attr.aria-label]="p.activo ? 'Desactivar' : 'Reactivar'">
+              <mat-icon>{{ p.activo ? 'person_off' : 'restore' }}</mat-icon>
+            </button>
+          }
         </mat-card-actions>
       </mat-card>
     }

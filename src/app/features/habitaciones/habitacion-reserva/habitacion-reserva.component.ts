@@ -1,6 +1,6 @@
 import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDatepickerModule } from '@angular/material/datepicker';
@@ -8,11 +8,12 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatCardModule } from '@angular/material/card';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { debounceTime, distinctUntilChanged, map, switchMap } from 'rxjs';
+import { Subject, catchError, debounceTime, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs';
 import { of } from 'rxjs';
 import {
   calcularNoches,
@@ -20,7 +21,8 @@ import {
   TIPOS_HABITACION,
   TipoHabitacion,
 } from '../../../core/models/habitacion.model';
-import { TIPOS_DOCUMENTO, TipoDocumento, TEXTO_AUTORIZACION_DATOS } from '../../../core/models/huesped.model';
+import { Huesped, TIPOS_DOCUMENTO, TipoDocumento, TEXTO_AUTORIZACION_DATOS } from '../../../core/models/huesped.model';
+import type { HabitacionDisponible, Reserva } from '../../../core/models/reserva.model';
 import { CANALES_RESERVA, CanalReserva, formatearMoneda } from '../../../core/models/reserva.model';
 import { HabitacionService } from '../../../core/services/habitacion.service';
 import { HuespedService } from '../../../core/services/huesped.service';
@@ -29,6 +31,8 @@ import { TarifaService } from '../../../core/services/tarifa.service';
 import { ErrorDialogService } from '../../../core/services/error-dialog.service';
 import { formatearFechaIso } from '../../../core/utils/date.util';
 import { etiquetaEstado, metaEstado } from '../../../core/utils/habitacion-estado.util';
+
+const DATOS_HUESPED = ['nombre', 'apellidos', 'tipoDocumento', 'numeroDocumento', 'email', 'telefono'] as const;
 
 @Component({
   selector: 'app-habitacion-reserva',
@@ -41,6 +45,8 @@ import { etiquetaEstado, metaEstado } from '../../../core/utils/habitacion-estad
     MatIconModule,
     MatInputModule,
     MatCheckboxModule,
+    MatAutocompleteModule,
+    FormsModule,
     MatSelectModule,
     MatDatepickerModule,
     MatProgressSpinnerModule,
@@ -75,6 +81,19 @@ export class HabitacionReservaComponent implements OnInit {
   readonly formatearMoneda = formatearMoneda;
   readonly canales = CANALES_RESERVA;
 
+  // ---------------------------------------------------------------- Huésped existente (autocompletar)
+  readonly textoBusqueda = signal('');
+  readonly resultadosHuesped = signal<Huesped[]>([]);
+  readonly buscandoHuesped = signal(false);
+  readonly huespedSeleccionado = signal<Huesped | null>(null);
+  private readonly busqueda$ = new Subject<string>();
+
+  // ---------------------------------------------------------------- Conflictos y sugerencias de fechas
+  readonly conflictos = signal<Reserva[]>([]);
+  readonly sugerencias = signal<{ entrada: string; salida: string; noches: number; etiqueta: string }[]>([]);
+  readonly alternativas = signal<HabitacionDisponible[]>([]);
+  private reservasHabitacion: Reserva[] | null = null;
+
   readonly form = this.fb.group({
     nombre: ['', [Validators.required, Validators.maxLength(80)]],
     apellidos: ['', [Validators.required, Validators.maxLength(120)]],
@@ -106,6 +125,15 @@ export class HabitacionReservaComponent implements OnInit {
         }
         this.loading.set(false);
         this.verificarDisponibilidad();
+        if (h.estado !== 'LIBRE') {
+          // No reservable hoy: se ofrecen habitaciones del mismo tipo libres para esta noche
+          const hoy = formatearFechaIso(new Date());
+          const manana = formatearFechaIso(this.sumaDias(new Date(), 1));
+          this.reservaService.disponibilidad(hoy, manana, h.tipoHabitacion).subscribe({
+            next: (lista) => this.alternativas.set(lista.filter((x) => x.habitacionId !== h.id).slice(0, 6)),
+            error: () => this.alternativas.set([]),
+          });
+        }
       },
       error: (err) => {
         this.errorDialog.mostrarDesdeApi(err);
@@ -116,6 +144,57 @@ export class HabitacionReservaComponent implements OnInit {
     this.form.valueChanges
       .pipe(debounceTime(350), distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.verificarDisponibilidad());
+
+    this.busqueda$
+      .pipe(
+        map((t) => t.trim()),
+        debounceTime(300),
+        distinctUntilChanged(),
+        tap((t) => {
+          if (t.length < 2) this.resultadosHuesped.set([]);
+        }),
+        filter((t) => t.length >= 2),
+        tap(() => this.buscandoHuesped.set(true)),
+        switchMap((t) => this.huespedService.buscar(t, 8).pipe(catchError(() => of([] as Huesped[])))),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((lista) => {
+        this.resultadosHuesped.set(lista);
+        this.buscandoHuesped.set(false);
+      });
+  }
+
+  onBuscarHuesped(texto: string): void {
+    this.textoBusqueda.set(texto);
+    this.busqueda$.next(texto);
+  }
+
+  seleccionarHuesped(h: Huesped): void {
+    this.huespedSeleccionado.set(h);
+    this.textoBusqueda.set('');
+    this.resultadosHuesped.set([]);
+    this.form.patchValue({
+      nombre: h.nombre,
+      apellidos: h.apellidos,
+      tipoDocumento: h.tipoDocumento,
+      numeroDocumento: h.numeroDocumento,
+      email: h.email,
+      telefono: h.telefono,
+      autorizaTratamientoDatos: h.autorizaTratamientoDatos || !!this.form.controls.autorizaTratamientoDatos.value,
+    });
+    for (const c of DATOS_HUESPED) this.form.controls[c].disable({ emitEvent: false });
+    if (h.autorizaTratamientoDatos) this.form.controls.autorizaTratamientoDatos.disable({ emitEvent: false });
+  }
+
+  quitarHuesped(): void {
+    this.huespedSeleccionado.set(null);
+    for (const c of DATOS_HUESPED) this.form.controls[c].enable({ emitEvent: false });
+    this.form.controls.autorizaTratamientoDatos.enable({ emitEvent: false });
+    this.form.patchValue({ nombre: '', apellidos: '', numeroDocumento: '', email: '', telefono: '', autorizaTratamientoDatos: false });
+  }
+
+  usarSugerencia(sug: { entrada: string; salida: string }): void {
+    this.form.patchValue({ fechaEntrada: this.aFecha(sug.entrada), fechaSalida: this.aFecha(sug.salida) });
   }
 
   puedeReservar(): boolean {
@@ -143,13 +222,19 @@ export class HabitacionReservaComponent implements OnInit {
   get puedeConfirmar(): boolean {
     return (
       this.puedeReservar() &&
-      this.form.valid &&
+      (this.form.valid || (this.huespedSeleccionado() !== null && this.fechasYConsentimientoValidos())) &&
       (this.noches ?? 0) >= 1 &&
       this.disponibleEnFechas() === true &&
       this.tarifaNoche() != null &&
       !this.guardando() &&
       !this.verificandoDisponibilidad()
     );
+  }
+
+  private fechasYConsentimientoValidos(): boolean {
+    const c = this.form.controls;
+    const consentimiento = c.autorizaTratamientoDatos.disabled || c.autorizaTratamientoDatos.valid;
+    return c.fechaEntrada.valid && c.fechaSalida.valid && c.canal.valid && c.observaciones.valid && consentimiento;
   }
 
   get mensajeValidacion(): string | null {
@@ -201,10 +286,10 @@ export class HabitacionReservaComponent implements OnInit {
     const fechaSalida = formatearFechaIso(v.fechaSalida!);
     this.guardando.set(true);
 
-    const documento = v.numeroDocumento!.trim();
+    const seleccionado = this.huespedSeleccionado();
+    const documento = (seleccionado?.numeroDocumento ?? v.numeroDocumento ?? '').trim();
     // Un huésped que regresa se reutiliza (mismo documento); si no existe se registra.
-    this.huespedService
-      .listar({ busqueda: documento })
+    (seleccionado ? of([seleccionado]) : this.huespedService.listar({ busqueda: documento }))
       .pipe(
         map((lista) => lista.find((h) => h.numeroDocumento.toLowerCase() === documento.toLowerCase()) ?? null),
         switchMap((existente) =>
@@ -277,6 +362,13 @@ export class HabitacionReservaComponent implements OnInit {
         this.tarifaNoche.set(Number(resultado.tarifaNoche));
         this.errorDisponibilidad.set(null);
         this.verificandoDisponibilidad.set(false);
+        if (resultado.disponible) {
+          this.conflictos.set([]);
+          this.sugerencias.set([]);
+          this.alternativas.set([]);
+        } else {
+          this.analizarConflicto(habitacion, fechaEntrada, fechaSalida);
+        }
       },
       error: (err) => {
         this.disponibleEnFechas.set(null);
@@ -286,6 +378,70 @@ export class HabitacionReservaComponent implements OnInit {
         this.verificandoDisponibilidad.set(false);
       },
     });
+  }
+
+  /**
+   * Explica por qué no se puede reservar y propone opciones: tramos libres dentro de las fechas pedidas,
+   * la siguiente fecha con las mismas noches libres y otras habitaciones del mismo tipo disponibles.
+   */
+  private analizarConflicto(habitacion: Habitacion, entrada: string, salida: string): void {
+    const noches = calcularNoches(entrada, salida);
+    const calcular = (reservas: Reserva[]) => {
+      const activas = reservas
+        .filter((x) => x.estadoReserva === 'CONFIRMADA' || x.estadoReserva === 'EN_CURSO')
+        .sort((a, b) => a.fechaEntrada.localeCompare(b.fechaEntrada));
+      const choques = activas.filter((x) => x.fechaEntrada < salida && x.fechaSalida > entrada);
+      this.conflictos.set(choques);
+
+      const sug: { entrada: string; salida: string; noches: number; etiqueta: string }[] = [];
+      let cursor = entrada;
+      for (const x of choques) {
+        if (x.fechaEntrada > cursor) {
+          const n = calcularNoches(cursor, x.fechaEntrada);
+          if (n >= 1) sug.push({ entrada: cursor, salida: x.fechaEntrada, noches: n, etiqueta: 'Parte de las fechas pedidas' });
+        }
+        if (x.fechaSalida > cursor) cursor = x.fechaSalida;
+      }
+      if (choques.length && cursor < salida) {
+        const n = calcularNoches(cursor, salida);
+        if (n >= 1) sug.push({ entrada: cursor, salida, noches: n, etiqueta: 'Parte de las fechas pedidas' });
+      }
+      let inicio = entrada;
+      for (let i = 0; i < 200; i++) {
+        const fin = formatearFechaIso(this.sumaDias(this.aFecha(inicio), noches));
+        const bloquea = activas.find((x) => x.fechaEntrada < fin && x.fechaSalida > inicio);
+        if (!bloquea) {
+          if (inicio !== entrada) sug.push({ entrada: inicio, salida: fin, noches, etiqueta: 'Mismas noches, fecha libre más cercana' });
+          break;
+        }
+        inicio = bloquea.fechaSalida > inicio ? bloquea.fechaSalida : formatearFechaIso(this.sumaDias(this.aFecha(inicio), 1));
+      }
+      this.sugerencias.set(sug);
+    };
+    if (this.reservasHabitacion) {
+      calcular(this.reservasHabitacion);
+    } else {
+      this.habitacionService.historial(habitacion.id).subscribe({
+        next: (rs) => {
+          this.reservasHabitacion = rs;
+          calcular(rs);
+        },
+        error: () => this.conflictos.set([]),
+      });
+    }
+    this.reservaService.disponibilidad(entrada, salida, habitacion.tipoHabitacion).subscribe({
+      next: (lista) => this.alternativas.set(lista.filter((x) => x.habitacionId !== habitacion.id).slice(0, 4)),
+      error: () => this.alternativas.set([]),
+    });
+  }
+
+  aFecha(iso: string): Date {
+    const [y, m, d] = iso.split('-').map(Number);
+    return new Date(y, m - 1, d);
+  }
+
+  fechaTexto(iso: string): string {
+    return this.aFecha(iso).toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: 'numeric' });
   }
 
   private sumaDias(fecha: Date, dias: number): Date {

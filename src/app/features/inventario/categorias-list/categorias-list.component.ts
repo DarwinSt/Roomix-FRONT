@@ -1,5 +1,8 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { AuthService } from '../../../core/services/auth.service';
+import { MatDialog } from '@angular/material/dialog';
+import { roomixDialogConfig } from '../../../core/config/dialog.config';
+import { ConfirmDialogComponent } from '../../../shared/dialogs/confirm-dialog/confirm-dialog.component';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -32,6 +35,7 @@ export class CategoriasListComponent implements OnInit {
   private readonly snackBar = inject(MatSnackBar);
   private readonly errorDialog = inject(ErrorDialogService);
   private readonly auth = inject(AuthService);
+  private readonly dialog = inject(MatDialog);
   readonly puedeGestionar = computed(() => this.auth.tieneRol('ADMIN', 'ALMACEN'));
 
   readonly columns = ['nombre', 'descripcion', 'ejemplos', 'tipo', 'creado', 'acciones'];
@@ -57,13 +61,27 @@ export class CategoriasListComponent implements OnInit {
   }
 
   eliminar(c: CategoriaInventario): void {
-    if (!confirm(`¿Eliminar categoría "${c.nombre}"?`)) return;
-    this.inventarioService.eliminarCategoria(c.id).subscribe({
-      next: () => {
-        this.snackBar.open('Categoría eliminada', 'OK', { duration: 3000 });
-        this.cargar();
-      },
-      error: (err) => this.errorDialog.mostrarDesdeApi(err),
-    });
+    this.dialog
+      .open(ConfirmDialogComponent, {
+        ...roomixDialogConfig({ width: '420px' }),
+        data: {
+          title: 'Eliminar categoría',
+          message: `¿Eliminar la categoría «${c.nombre}»? Solo es posible si no tiene artículos asociados.`,
+          confirmLabel: 'Eliminar',
+          icon: 'delete',
+          warn: true,
+        },
+      })
+      .afterClosed()
+      .subscribe((ok) => {
+        if (!ok) return;
+        this.inventarioService.eliminarCategoria(c.id).subscribe({
+          next: () => {
+            this.snackBar.open('Categoría eliminada', 'OK', { duration: 3000 });
+            this.cargar();
+          },
+          error: (err) => this.errorDialog.mostrarDesdeApi(err),
+        });
+      });
   }
 }

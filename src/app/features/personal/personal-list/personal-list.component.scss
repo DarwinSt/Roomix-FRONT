@@ -102,3 +102,21 @@
     opacity: 0.5;
   }
 }
+
+.ver-inactivos {
+  display: block;
+  margin: -0.25rem 0 0.75rem;
+}
+
+.personal-card.inactivo {
+  opacity: 0.65;
+  filter: grayscale(0.6);
+}
+
+.chip-inactivo {
+  --mdc-chip-elevated-container-color: #eceff1;
+}
+
+mat-card-actions .spacer {
+  flex: 1;
+}

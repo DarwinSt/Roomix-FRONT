@@ -1,5 +1,3 @@
-@use '../../../../styles/responsive' as rx;
-
 .sync-hint {
   display: flex;
   align-items: center;
@@ -15,336 +13,321 @@
   }
 }
 
-.header-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.65rem;
-  align-items: center;
-}
-
-.resumen-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
-  gap: 0.85rem;
-  margin-bottom: 1rem;
-
-  @include rx.resumen-compacto;
-}
-
-.resumen-card {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.85rem 1rem !important;
-
-  mat-icon {
-    font-size: 1.75rem;
-    width: 1.75rem;
-    height: 1.75rem;
-    color: var(--primary-300);
-  }
-
-  .valor {
-    display: block;
-    font-size: 1.35rem;
-    font-weight: 700;
-    color: var(--text-strong);
-    line-height: 1.1;
-  }
-
-  .etiqueta {
-    font-size: 0.8rem;
-    color: var(--text-200);
-  }
-
-  &.activas mat-icon {
-    color: var(--accent-200);
-  }
-
-  &.finalizadas mat-icon {
-    color: var(--primary-400);
-  }
-}
-
-.panel-filtros {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  align-items: flex-start;
-  margin-bottom: 1rem;
-
-  .filtro-estado {
-    min-width: 180px;
-  }
+/* ------------------------------------------------------------------ Listado */
+.filtros {
+  padding: 0.85rem 1rem 0.2rem;
+  background: #ffffff;
+  border: 1px solid var(--bg-300);
+  border-radius: var(--roomix-radius-lg);
+  box-shadow: var(--roomix-shadow);
 
   .busqueda {
-    flex: 1 1 280px;
-    min-width: 0;
+    flex: 3 1 320px;
+    max-width: none;
   }
 
-  @include rx.filtros-apilados;
-}
-
-.tabla-card {
-  overflow-x: auto;
-}
-
-.reservas-table {
-  width: 100%;
-
-  .sub {
-    display: block;
-    font-size: 0.78rem;
-    color: var(--text-200);
-  }
-
-  @include rx.tabla-a-tarjetas;
-
-  // Tarjeta: habitación | estado · huésped · fechas · total | noches
-  @media (max-width: 720px) {
-    .mat-column-habitacion { order: 1; }
-    .mat-column-estado { order: 2; justify-self: end; }
-    .mat-column-estado::before { text-align: right; }
-    .mat-column-huesped { order: 3; grid-column: 1 / -1; }
-    .mat-column-fechas { order: 4; grid-column: 1 / -1; }
-    .mat-column-total { order: 5; }
-    .mat-column-noches { order: 6; }
+  > button {
+    margin-top: 0.4rem;
   }
 }
 
-.estado-chip {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.15rem 0.55rem;
-  border-radius: 999px;
+.sub {
+  display: block;
   font-size: 0.78rem;
-  font-weight: 600;
-
-  &.estado-confirmada {
-    background: rgba(245, 196, 85, 0.35);
-    color: #6b4f00;
-  }
-
-  &.estado-en-curso {
-    background: rgba(212, 160, 23, 0.35);
-    color: #5c4200;
-  }
-
-  &.estado-finalizada {
-    background: rgba(168, 224, 183, 0.45);
-    color: #235d3a;
-  }
-
-  &.estado-cancelada {
-    background: rgba(196, 92, 92, 0.2);
-    color: #8b2e2e;
-  }
+  color: var(--text-200);
 }
 
-.calendario-card {
-  padding: 1rem !important;
+/* ------------------------------------------------------------------ Calendario: barra */
+.cal-barra {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 0.9rem;
 }
 
-.calendario-toolbar {
+.cal-nav {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-
-  h2 {
-    margin: 0;
-    min-width: 180px;
-    text-align: center;
-    text-transform: capitalize;
-    font-size: 1.1rem;
-    color: var(--primary-300);
-  }
+  gap: 0.25rem;
 }
 
-.calendario-grid {
-  display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 0.35rem;
-}
-
-.dia-semana {
-  text-align: center;
-  font-size: 0.75rem;
+.cal-titulo {
+  margin: 0 0 0 0.5rem;
+  font-size: 1.2rem;
   font-weight: 600;
-  color: var(--text-200);
-  padding: 0.25rem 0;
+  text-transform: capitalize;
 }
 
-.dia-celda {
-  display: block;
-  width: 100%;
-  min-width: 0;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-  min-height: 88px;
-  border: 1px solid var(--border-soft, rgba(0, 0, 0, 0.08));
-  border-radius: 8px;
-  padding: 0.35rem;
-  background: var(--surface-100, #fff);
-
-  &.fuera-mes {
-    opacity: 0.45;
-  }
-
-  &.con-reservas {
-    border-color: rgba(57, 125, 84, 0.25);
-    background: rgba(168, 224, 183, 0.08);
-  }
-
-  &.seleccionado {
-    outline: 2px solid var(--primary-300);
-    outline-offset: -1px;
-  }
-
-  .numero {
-    display: block;
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: var(--text-strong);
-    margin-bottom: 0.25rem;
-  }
-
-  // Solo en teléfonos: número de reservas en lugar de las etiquetas por habitación
-  .contador {
-    display: none;
-  }
-}
-
-.dia-detalle {
-  margin-top: 1rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid var(--bg-300);
-
-  h3 {
-    margin: 0 0 0.5rem;
-    font-size: 0.95rem;
-    color: var(--primary-300);
-    text-transform: capitalize;
-  }
-}
-
-.dia-detalle-item {
-  display: grid;
-  grid-template-columns: 3rem minmax(0, 1fr) auto;
+.leyenda {
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.45rem 0;
-  border-bottom: 1px solid var(--bg-300);
-  font-size: 0.88rem;
-
-  .nombre {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-}
-
-.sin-reservas {
-  margin: 0;
+  gap: 0.4rem 0.9rem;
+  margin: 0.75rem 0 0;
+  font-size: 0.8rem;
   color: var(--text-200);
-  font-size: 0.85rem;
-}
 
-@media (max-width: 720px) {
-  .calendario-card {
-    padding: 0.75rem !important;
-  }
-
-  .calendario-grid {
+  span {
+    display: inline-flex;
+    align-items: center;
     gap: 0.2rem;
   }
 
-  .dia-celda {
-    min-height: 0;
-    aspect-ratio: 1;
-    padding: 0.2rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-between;
-
-    .numero {
-      margin: 0;
-    }
-
-    .reserva-chip {
-      display: none;
-    }
-
-    .contador {
-      display: grid;
-      place-items: center;
-      min-width: 1.3rem;
-      height: 1.3rem;
-      padding: 0 0.2rem;
-      border-radius: 999px;
-      background: var(--primary-300);
-      color: #fff;
-      font-size: 0.68rem;
-      font-weight: 700;
-    }
-  }
-
-  .calendario-toolbar h2 {
-    min-width: 0;
+  mat-icon {
+    font-size: 1rem;
+    width: 1rem;
+    height: 1rem;
   }
 }
 
-.reserva-chip {
-  display: block;
-  font-size: 0.68rem;
-  padding: 0.1rem 0.3rem;
-  border-radius: 4px;
-  margin-bottom: 0.15rem;
+.cuadro {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+
+  &.alta { background: #c9e8d2; }
+  &.media { background: #e3f3e8; }
+  &.baja { background: #f3faf5; border: 1px solid var(--bg-300); }
+}
+
+/* ------------------------------------------------------------------ Vista Mes */
+.mes {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--bg-300);
+  border: 1px solid var(--bg-300);
+  border-radius: var(--roomix-radius-lg);
+  overflow: hidden;
+}
+
+.mes-cab {
+  padding: 0.45rem;
+  background: #f7f9f8;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-align: center;
+  color: var(--text-200);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.mes-dia {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-height: 96px;
+  padding: 0.45rem 0.5rem;
+  border: none;
+  background: #ffffff;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &:hover { background: #f1f8f3; }
+  &.ocup-alta { background: #eaf6ee; }
+  &.ocup-media { background: #f4faf6; }
+  &.fuera {
+    background: #fafbfa;
+    color: #a3aca7;
+
+    .ocupacion,
+    .movs {
+      opacity: 0.5;
+    }
+  }
+
+  .num {
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+
+  &.hoy .num {
+    display: inline-grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--primary-300, #397d54);
+    color: #fff;
+  }
+}
+
+.ocupacion {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  color: var(--text-200);
+  font-variant-numeric: tabular-nums;
+
+  .barra {
+    flex: 1;
+    height: 6px;
+    border-radius: 3px;
+    background: rgba(0, 0, 0, 0.06);
+    overflow: hidden;
+
+    span {
+      display: block;
+      height: 100%;
+      background: #397d54;
+      border-radius: 3px;
+    }
+  }
+}
+
+.movs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.mov {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.1rem;
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+
+  mat-icon {
+    font-size: 0.85rem;
+    width: 0.85rem;
+    height: 0.85rem;
+  }
+
+  &.llega { background: #e3eefb; color: #0d3c6e; }
+  &.sale { background: #fdeee6; color: #7a3410; }
+}
+
+/* ------------------------------------------------------------------ Vista Semana (habitaciones × días) */
+.semana-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--bg-300);
+  border-radius: var(--roomix-radius-lg);
+  background: #ffffff;
+}
+
+.semana {
+  display: grid;
+  grid-template-columns: 120px repeat(7, minmax(92px, 1fr));
+  grid-auto-rows: 44px;
+  min-width: 780px;
+}
+
+.sem-cab {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding: 0.55rem 0.4rem;
+  border: none;
+  border-bottom: 1px solid var(--bg-300);
+  background: #f7f9f8;
+  font: inherit;
+  font-size: 0.8rem;
+  color: var(--text-200);
+  text-align: center;
+
+  &.hab { text-align: left; padding-left: 0.75rem; }
+  &.dia { cursor: pointer; }
+  &.hoy { color: var(--primary-300, #397d54); font-weight: 700; }
+
+  strong { color: var(--text-strong); }
+}
+
+.sem-hab {
+  grid-column: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 0.75rem;
+  border-bottom: 1px solid #eef1ef;
+  font-size: 0.8rem;
+  line-height: 1.15;
+
+  span { font-size: 0.7rem; color: var(--text-200); }
+}
+
+.sem-celda {
+  border-left: 1px solid #eef1ef;
+  border-bottom: 1px solid #eef1ef;
+
+  &.hoy { background: rgba(57, 125, 84, 0.05); }
+}
+
+.sem-barra {
+  z-index: 1;
+  align-self: center;
+  margin: 0 3px;
+  padding: 0.3rem 0.5rem;
+  border-radius: 8px;
+  font-size: 0.74rem;
+  font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: inherit;
+  text-decoration: none;
+  border: 1px solid rgba(0, 0, 0, 0.06);
 
-  &.estado-confirmada {
-    background: rgba(245, 196, 85, 0.5);
-  }
-
-  &.estado-en-curso {
-    background: rgba(212, 160, 23, 0.45);
-  }
-
-  &.estado-finalizada {
-    background: rgba(168, 224, 183, 0.55);
-  }
+  &.corta-ini { border-top-left-radius: 0; border-bottom-left-radius: 0; margin-left: 0; }
+  &.corta-fin { border-top-right-radius: 0; border-bottom-right-radius: 0; margin-right: 0; }
+  &:hover { filter: brightness(0.96); }
 }
 
-.empty-state {
-  text-align: center;
-  padding: 2.5rem 1rem;
-
-  mat-icon {
-    font-size: 3rem;
-    width: 3rem;
-    height: 3rem;
-    color: var(--primary-200);
-    margin-bottom: 0.5rem;
-  }
-
-  h2 {
-    margin: 0 0 0.35rem;
-    color: var(--primary-300);
-  }
-
-  p {
-    margin: 0 0 1rem;
-    color: var(--text-200);
-  }
-}
-
-.loading {
+/* ------------------------------------------------------------------ Vista Día */
+.agenda {
   display: grid;
-  place-items: center;
-  padding: 3rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+  gap: 0.9rem;
 }
+
+.agenda-item {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px dashed var(--bg-300);
+  color: inherit;
+  text-decoration: none;
+
+  &:hover strong { color: var(--primary-300); }
+
+  .hab {
+    display: grid;
+    place-items: center;
+    min-width: 44px;
+    height: 38px;
+    border-radius: 10px;
+    background: rgba(0, 61, 77, 0.08);
+    color: #003d4d;
+    font-weight: 700;
+  }
+
+  .info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+
+    small { color: var(--text-200); font-size: 0.76rem; }
+  }
+}
+
+@media (max-width: 600px) {
+  .mes-dia { min-height: 70px; padding: 0.3rem; }
+  .ocupacion { display: none; }
+  .mov { padding: 0 0.25rem; }
+  .cal-titulo { font-size: 1rem; }
+}
+
+/* Colores de estado de las barras (mismos tonos que rx-chip) */
+.sem-barra.info { background: #dce9f9; color: #1d4f8c; }
+.sem-barra.alerta { background: #fbedc6; color: #6b4f00; }
+.sem-barra.ok { background: #d9efe0; color: #1f5a35; }

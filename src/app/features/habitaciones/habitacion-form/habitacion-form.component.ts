@@ -27,6 +27,13 @@ import {
   opcionesEstadoEdicion,
 } from '../../../core/utils/habitacion-estado.util';
 
+/** Catálogo base de características (se pueden agregar otras). */
+const CARACTERISTICAS_BASE = [
+  'WiFi', 'Aire acondicionado', 'TV Smart 43"', 'Baño privado', 'Agua caliente', 'Minibar', 'Caja fuerte',
+  'Escritorio de trabajo', 'Cafetera', 'Secador de cabello', 'Balcón', 'Vista al mar', 'Jacuzzi',
+  'Sofá cama', 'Cuna disponible', 'Accesible para silla de ruedas',
+];
+
 @Component({
   selector: 'app-habitacion-form',
   imports: [
@@ -83,6 +90,34 @@ export class HabitacionFormComponent implements OnInit {
     return opcion?.label ?? etiquetaEstado(estado);
   }
 
+  /** Características seleccionadas (chips) */
+  readonly seleccionadas = signal<string[]>([]);
+  /** Usadas en otras habitaciones del hotel: se suman al catálogo base */
+  private readonly usadasEnHotel = signal<string[]>([]);
+  readonly sugerencias = computed(() => {
+    const base = CARACTERISTICAS_BASE;
+    const todas = [...base, ...this.usadasEnHotel(), ...this.seleccionadas()];
+    return [...new Map(todas.map((c) => [c.toLowerCase(), c])).values()];
+  });
+
+  estaSeleccionada(c: string): boolean {
+    return this.seleccionadas().some((x) => x.toLowerCase() === c.toLowerCase());
+  }
+
+  alternar(c: string): void {
+    this.seleccionadas.update((l) =>
+      this.estaSeleccionada(c) ? l.filter((x) => x.toLowerCase() !== c.toLowerCase()) : [...l, c],
+    );
+  }
+
+  agregarCaracteristica(input: HTMLInputElement): void {
+    const texto = input.value.trim().replace(/\s+/g, ' ');
+    input.value = '';
+    if (!texto || texto.length > 60) return;
+    const valor = texto.charAt(0).toUpperCase() + texto.slice(1);
+    if (!this.estaSeleccionada(valor)) this.seleccionadas.update((l) => [...l, valor]);
+  }
+
   readonly form = this.fb.group({
     numero: ['', [Validators.required, Validators.maxLength(20)]],
     descripcion: ['', [Validators.required, Validators.maxLength(500)]],
@@ -91,12 +126,15 @@ export class HabitacionFormComponent implements OnInit {
     piso: [null as number | null, [Validators.min(0), Validators.max(99)]],
     capacidad: [null as number | null, [Validators.min(1), Validators.max(20)]],
     estado: ['LIBRE' as EstadoHabitacion, Validators.required],
-    caracteristicasTexto: [''],
     fechaEntrada: [null as Date | null],
     fechaSalida: [null as Date | null],
   });
 
   ngOnInit(): void {
+    this.habitacionService.listar().subscribe({
+      next: (habs) => this.usadasEnHotel.set([...new Set(habs.flatMap((h) => h.caracteristicas))].sort((a, b) => a.localeCompare(b, 'es'))),
+      error: () => this.usadasEnHotel.set([]),
+    });
     const idParam = this.route.snapshot.paramMap.get('id');
     if (idParam && idParam !== 'nueva') {
       this.id = Number(idParam);
@@ -129,6 +167,7 @@ export class HabitacionFormComponent implements OnInit {
     this.habitacionService.obtener(id).subscribe({
       next: (h) => {
         this.habitacionCargada.set(h);
+        this.seleccionadas.set([...h.caracteristicas]);
         this.form.patchValue({
           numero: h.numero,
           descripcion: h.descripcion,
@@ -137,7 +176,6 @@ export class HabitacionFormComponent implements OnInit {
           piso: h.piso,
           capacidad: h.capacidad,
           estado: h.estado,
-          caracteristicasTexto: h.caracteristicas.join(', '),
           fechaEntrada: parsearFechaApi(h.fechaEntrada),
           fechaSalida: parsearFechaApi(h.fechaSalida),
         });
@@ -163,10 +201,7 @@ export class HabitacionFormComponent implements OnInit {
       return;
     }
 
-    const caracteristicas = (v.caracteristicasTexto ?? '')
-      .split(',')
-      .map((s) => s.trim())
-      .filter(Boolean);
+    const caracteristicas = this.seleccionadas();
 
     const payload = {
       numero: v.numero!,

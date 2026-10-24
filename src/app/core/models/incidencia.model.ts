@@ -85,7 +85,15 @@ export interface Personal {
   nombre: string;
   rol: string;
   departamento: string | null;
+  activo: boolean;
   ocupado: boolean;
+}
+
+export interface PersonalRequest {
+  nombre: string;
+  rol: string;
+  departamento?: string | null;
+  activo?: boolean;
 }
 
 export interface AsignarIncidenciaRequest {

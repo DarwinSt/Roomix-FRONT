@@ -17,7 +17,25 @@
       <mat-card-content>
         <mat-icon>block</mat-icon>
         <p>La habitación {{ h.numero }} no está disponible para reservar (estado: {{ etiqueta(h.estado) }}).</p>
-        <a mat-stroked-button routerLink="/habitaciones">Volver al listado</a>
+        @if (h.fechaEntrada && h.fechaSalida) {
+          <p class="detalle-ocupacion">
+            Tiene una reserva del {{ fechaTexto(h.fechaEntrada) }} al {{ fechaTexto(h.fechaSalida) }}@if (h.huesped) { a nombre de {{ h.huesped.nombreCompleto }} }.
+          </p>
+        }
+        @if (alternativas().length) {
+          <p class="conflicto-titulo"><mat-icon>bed</mat-icon>Habitaciones del mismo tipo disponibles esta noche:</p>
+          <div class="sugerencias">
+            @for (alt of alternativas(); track alt.habitacionId) {
+              <a mat-stroked-button [routerLink]="['/habitaciones', alt.habitacionId, 'reservar']">
+                Habitación {{ alt.numero }} · {{ formatearMoneda(alt.tarifaNoche) }}/noche
+              </a>
+            }
+          </div>
+        }
+        <div class="sugerencias">
+          <a mat-stroked-button routerLink="/reservas"><mat-icon>calendar_month</mat-icon>Ver calendario de reservas</a>
+          <a mat-button routerLink="/habitaciones">Volver al listado</a>
+        </div>
       </mat-card-content>
     </mat-card>
   } @else {
@@ -63,6 +81,38 @@
 
         <form [formGroup]="form" class="form-block">
           <p class="section-label">Datos del huésped</p>
+          @if (huespedSeleccionado(); as hs) {
+            <div class="huesped-elegido">
+              <mat-icon>verified_user</mat-icon>
+              <div>
+                <strong>{{ hs.nombreCompleto }}</strong>
+                <span>{{ hs.tipoDocumento }} {{ hs.numeroDocumento }} · {{ hs.email }}</span>
+                @if (hs.autorizaTratamientoDatos) { <span class="ok">Autorización de datos registrada</span> }
+              </div>
+              <button mat-button type="button" (click)="quitarHuesped()"><mat-icon>swap_horiz</mat-icon>Cambiar</button>
+            </div>
+          } @else {
+            <mat-form-field appearance="outline" class="buscar-huesped">
+              <mat-label>¿Ya se ha hospedado? Buscar por nombre o documento</mat-label>
+              <mat-icon matPrefix>person_search</mat-icon>
+              <input matInput [ngModel]="textoBusqueda()" [ngModelOptions]="{ standalone: true }"
+                     (ngModelChange)="onBuscarHuesped($event)" [matAutocomplete]="acHuesped" autocomplete="off" />
+              <mat-hint>Escriba al menos 2 letras; no importan tildes ni mayúsculas. Si no aparece, registre los datos abajo.</mat-hint>
+              <mat-autocomplete #acHuesped="matAutocomplete" (optionSelected)="seleccionarHuesped($event.option.value)">
+                @if (buscandoHuesped()) {
+                  <mat-option disabled>Buscando…</mat-option>
+                }
+                @for (h of resultadosHuesped(); track h.id) {
+                  <mat-option [value]="h">
+                    <span class="opcion-huesped"><strong>{{ h.nombreCompleto }}</strong><small>{{ h.tipoDocumento }} {{ h.numeroDocumento }} · {{ h.telefono }}</small></span>
+                  </mat-option>
+                }
+                @if (!buscandoHuesped() && textoBusqueda().trim().length >= 2 && resultadosHuesped().length === 0) {
+                  <mat-option disabled>Sin coincidencias: registre al huésped nuevo abajo</mat-option>
+                }
+              </mat-autocomplete>
+            </mat-form-field>
+          }
           <div class="dialog-form-grid">
             <mat-form-field appearance="outline" class="full">
               <mat-label>Nombre</mat-label>
@@ -150,7 +200,41 @@
               <span class="estado-chip estado-reservado">Reservado</span>
             </span>
           </div>
-        } @else if (mensajeValidacion) {
+        }
+        @if (conflictos().length || sugerencias().length || alternativas().length) {
+          <div class="conflicto">
+            @if (conflictos().length) {
+              <p class="conflicto-titulo"><mat-icon>event_busy</mat-icon>Las fechas se cruzan con:</p>
+              <ul>
+                @for (c of conflictos(); track c.id) {
+                  <li>Reserva #{{ c.id }} ({{ c.estadoReserva === 'EN_CURSO' ? 'huésped hospedado' : 'confirmada' }}): {{ fechaTexto(c.fechaEntrada) }} → {{ fechaTexto(c.fechaSalida) }}</li>
+                }
+              </ul>
+            }
+            @if (sugerencias().length) {
+              <p class="conflicto-titulo"><mat-icon>lightbulb</mat-icon>Fechas disponibles para esta habitación:</p>
+              <div class="sugerencias">
+                @for (sg of sugerencias(); track sg.entrada + sg.salida) {
+                  <button mat-stroked-button type="button" (click)="usarSugerencia(sg)">
+                    {{ fechaTexto(sg.entrada) }} → {{ fechaTexto(sg.salida) }} · {{ sg.noches }} noche(s)
+                    <small>{{ sg.etiqueta }}</small>
+                  </button>
+                }
+              </div>
+            }
+            @if (alternativas().length) {
+              <p class="conflicto-titulo"><mat-icon>bed</mat-icon>Otras habitaciones del mismo tipo libres en esas fechas:</p>
+              <div class="sugerencias">
+                @for (alt of alternativas(); track alt.habitacionId) {
+                  <a mat-stroked-button [routerLink]="['/habitaciones', alt.habitacionId, 'reservar']">
+                    Habitación {{ alt.numero }} · {{ formatearMoneda(alt.tarifaNoche) }}/noche
+                  </a>
+                }
+              </div>
+            }
+          </div>
+        }
+        @if (!puedeConfirmar && mensajeValidacion) {
           <div class="dialog-summary-bar validation">
             <mat-icon>info</mat-icon>
             <span>{{ mensajeValidacion }}</span>

@@ -66,25 +66,25 @@
       <mat-select-trigger>{{ etiquetaOrden(orden) }}</mat-select-trigger>
       <mat-option value="nombre">
         <span class="roomix-option">
-          <mat-icon>sort_by_alpha</mat-icon>
+          <mat-icon fontIcon="sort_by_alpha"></mat-icon>
           <span class="roomix-option-label">Nombre (A–Z)</span>
         </span>
       </mat-option>
       <mat-option value="stock-asc">
         <span class="roomix-option">
-          <mat-icon>trending_up</mat-icon>
+          <mat-icon fontIcon="trending_up"></mat-icon>
           <span class="roomix-option-label">Stock (menor a mayor)</span>
         </span>
       </mat-option>
       <mat-option value="stock-desc">
         <span class="roomix-option">
-          <mat-icon>trending_down</mat-icon>
+          <mat-icon fontIcon="trending_down"></mat-icon>
           <span class="roomix-option-label">Stock (mayor a menor)</span>
         </span>
       </mat-option>
       <mat-option value="categoria">
         <span class="roomix-option">
-          <mat-icon>category</mat-icon>
+          <mat-icon fontIcon="category"></mat-icon>
           <span class="roomix-option-label">Categoría</span>
         </span>
       </mat-option>
@@ -92,6 +92,9 @@
   </mat-form-field>
 
   <mat-checkbox [(ngModel)]="soloStockBajo" (change)="cargar()">Solo stock bajo</mat-checkbox>
+  @if (puedeGestionar()) {
+    <mat-checkbox [(ngModel)]="verDadosDeBaja" (change)="cargar()">Mostrar dados de baja</mat-checkbox>
+  }
 
   <button mat-stroked-button (click)="cargar()">
     <mat-icon>refresh</mat-icon>
@@ -125,11 +128,14 @@
 } @else {
   <div class="articulos-grid">
     @for (a of articulosVisibles(); track a.id) {
-      <mat-card [class]="'articulo-card nivel-' + nivel(a)">
+      <mat-card [class]="'articulo-card nivel-' + nivel(a)" [class.dado-de-baja]="!a.activo">
         <mat-card-header>
           <mat-icon mat-card-avatar>{{ iconoCat(a.categoria.nombre) }}</mat-icon>
           <mat-card-title>{{ a.nombre }}</mat-card-title>
-          <mat-card-subtitle>{{ a.categoria.nombre }}</mat-card-subtitle>
+          <mat-card-subtitle>
+            {{ a.categoria.nombre }}
+            @if (!a.activo) { <span class="badge-baja">Dado de baja</span> }
+          </mat-card-subtitle>
         </mat-card-header>
 
         <mat-card-content>
@@ -174,7 +180,13 @@
           <button mat-icon-button (click)="verMovimientos(a)" matTooltip="Historial de movimientos">
             <mat-icon>history</mat-icon>
           </button>
-          @if (puedeGestionar()) {
+          @if (puedeGestionar() && !a.activo) {
+            <button mat-stroked-button (click)="reactivar(a)">
+              <mat-icon>restore</mat-icon>
+              Reactivar
+            </button>
+          }
+          @if (puedeGestionar() && a.activo) {
             <button mat-button (click)="abrirStock(a)">
               <mat-icon>swap_vert</mat-icon>
               Movimiento
