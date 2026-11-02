@@ -181,7 +181,7 @@
             }
 
             @if (cotizacion(); as cz) {
-              <p class="section-label full">Abono inicial</p>
+              <p class="section-label full">Pago de la reserva</p>
               <div class="cotizacion full">
                 <div><span>Alojamiento ({{ cz.noches }} noche(s) × {{ formatearMoneda(cz.tarifaNoche) }})</span><strong>{{ formatearMoneda(cz.subtotal) }}</strong></div>
                 @if (cz.descuento > 0) {
@@ -193,11 +193,29 @@
                   <div class="minimo"><span>Abono mínimo para reservar ({{ cz.abonoMinimoPct }} %)</span><strong>{{ formatearMoneda(cz.abonoMinimo) }}</strong></div>
                 }
               </div>
+              <div class="tipo-pago full" role="radiogroup" aria-label="Tipo de pago">
+                <button type="button" class="opcion-pago" role="radio" [class.activa]="pagoCompleto" [attr.aria-checked]="pagoCompleto"
+                        (click)="escogerTipoPago('COMPLETO')">
+                  <mat-icon>{{ pagoCompleto ? 'radio_button_checked' : 'radio_button_unchecked' }}</mat-icon>
+                  <span><strong>Pago completo</strong><small>{{ formatearMoneda(cz.totalConImpuesto) }}</small></span>
+                </button>
+                <button type="button" class="opcion-pago" role="radio" [class.activa]="!pagoCompleto" [attr.aria-checked]="!pagoCompleto"
+                        (click)="escogerTipoPago('PARCIAL')">
+                  <mat-icon>{{ !pagoCompleto ? 'radio_button_checked' : 'radio_button_unchecked' }}</mat-icon>
+                  <span><strong>Abono parcial</strong><small>{{ cz.abonoMinimo > 0 ? 'Desde ' + formatearMoneda(cz.abonoMinimo) : 'El saldo se paga en el check-out' }}</small></span>
+                </button>
+              </div>
               <mat-form-field appearance="outline">
-                <mat-label>Valor del abono</mat-label>
+                <mat-label>{{ pagoCompleto ? 'Valor pagado' : 'Valor del abono' }}</mat-label>
                 <span matTextPrefix>$&nbsp;</span>
-                <input matInput type="number" min="0" step="1000" formControlName="abonoValor" />
-                @if (cz.abonoMinimo > 0) { <mat-hint>Mínimo {{ formatearMoneda(cz.abonoMinimo) }}</mat-hint> } @else { <mat-hint>Opcional</mat-hint> }
+                <input matInput type="number" min="1" step="1000" formControlName="abonoValor" [readonly]="pagoCompleto" />
+                @if (pagoCompleto) {
+                  <mat-hint>Total de la reserva</mat-hint>
+                } @else if (cz.abonoMinimo > 0) {
+                  <mat-hint>Mínimo {{ formatearMoneda(cz.abonoMinimo) }} · saldo {{ formatearMoneda(cz.totalConImpuesto - +(form.controls.abonoValor.value ?? 0)) }}</mat-hint>
+                } @else {
+                  <mat-hint>Obligatorio · saldo {{ formatearMoneda(cz.totalConImpuesto - +(form.controls.abonoValor.value ?? 0)) }}</mat-hint>
+                }
               </mat-form-field>
               <mat-form-field appearance="outline" class="roomix-dialog-select">
                 <mat-label>Medio de pago</mat-label>
@@ -233,7 +251,7 @@
               · {{ formatearMoneda(tarifaNoche()!) }}/noche
               · total <strong>{{ formatearMoneda(cotizacion()?.totalConImpuesto ?? totalEstimado) }}</strong>
               @if (cotizacion()?.descuento) { (incluye promoción) }
-              @if (form.controls.abonoValor.value) { · abono <strong>{{ formatearMoneda(+form.controls.abonoValor.value!) }}</strong> }
+              @if (form.controls.abonoValor.value) { · {{ pagoCompleto ? 'pago completo' : 'abono' }} <strong>{{ formatearMoneda(+form.controls.abonoValor.value!) }}</strong> }
               · quedará en estado
               <span class="estado-chip estado-reservado">Reservado</span>
             </span>

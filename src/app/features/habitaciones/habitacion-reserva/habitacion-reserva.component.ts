@@ -33,6 +33,9 @@ import { ErrorDialogService } from '../../../core/services/error-dialog.service'
 import { formatearFechaIso } from '../../../core/utils/date.util';
 import { etiquetaEstado, metaEstado } from '../../../core/utils/habitacion-estado.util';
 
+/** Al reservar siempre se registra un pago: el total o un abono parcial (≥ mínimo de la política). */
+type TipoPago = 'COMPLETO' | 'PARCIAL';
+
 const DATOS_HUESPED = ['nombre', 'apellidos', 'tipoDocumento', 'numeroDocumento', 'email', 'telefono'] as const;
 
 @Component({
@@ -115,6 +118,7 @@ export class HabitacionReservaComponent implements OnInit {
     fechaSalida: [this.sumaDias(new Date(), 1), Validators.required],
     canal: ['PRESENCIAL' as CanalReserva],
     observaciones: ['', Validators.maxLength(500)],
+    tipoPago: ['COMPLETO' as TipoPago],
     abonoValor: [null as number | null],
     abonoMetodo: ['EFECTIVO' as MetodoPago],
     abonoReferencia: ['', Validators.maxLength(80)],
@@ -240,22 +244,45 @@ export class HabitacionReservaComponent implements OnInit {
       .subscribe({
         next: (c) => {
           this.cotizacion.set(c);
-          // Se propone el abono mínimo; si el usuario ya escribió un valor mayor, se respeta
-          const actual = this.form.controls.abonoValor.value;
-          if (actual == null || actual === this.ultimoMinimo || actual < c.abonoMinimo) {
-            this.form.controls.abonoValor.setValue(c.abonoMinimo > 0 ? c.abonoMinimo : null, { emitEvent: false });
-          }
+          this.proponerValorPago();
           this.ultimoMinimo = c.abonoMinimo;
         },
         error: () => this.cotizacion.set(null),
       });
   }
 
-  /** Mensaje del abono inicial frente al mínimo exigido; null si está bien. */
+  /** Pago completo o abono parcial; el completo fija el valor en el total de la reserva. */
+  escogerTipoPago(tipo: TipoPago): void {
+    this.form.controls.tipoPago.setValue(tipo);
+    if (tipo === 'PARCIAL') this.form.controls.abonoValor.setValue(null, { emitEvent: false });
+    this.proponerValorPago();
+  }
+
+  get pagoCompleto(): boolean {
+    return this.form.controls.tipoPago.value === 'COMPLETO';
+  }
+
+  /** Completo → el total; parcial → el abono mínimo, respetando un valor mayor que ya se haya escrito. */
+  private proponerValorPago(): void {
+    const c = this.cotizacion();
+    if (!c) return;
+    const control = this.form.controls.abonoValor;
+    if (this.pagoCompleto) {
+      control.setValue(c.totalConImpuesto, { emitEvent: false });
+      return;
+    }
+    const actual = control.value;
+    if (actual == null || actual === this.ultimoMinimo || actual < c.abonoMinimo || actual >= c.totalConImpuesto) {
+      control.setValue(c.abonoMinimo > 0 ? c.abonoMinimo : null, { emitEvent: false });
+    }
+  }
+
+  /** Mensaje del pago al reservar frente al mínimo exigido; null si está bien. */
   get errorAbono(): string | null {
     const c = this.cotizacion();
-    if (!c) return null;
+    if (!c) return 'Calculando el total de la reserva…';
     const valor = Number(this.form.controls.abonoValor.value ?? 0);
+    if (valor <= 0) return 'Para reservar registre el pago completo o un abono parcial.';
     if (c.abonoMinimo > 0 && valor < c.abonoMinimo) {
       return `Para reservar se requiere un abono mínimo de ${formatearMoneda(c.abonoMinimo)} (${c.abonoMinimoPct} % del total).`;
     }
@@ -391,9 +418,11 @@ export class HabitacionReservaComponent implements OnInit {
             canal: v.canal ?? 'PRESENCIAL',
             observaciones: v.observaciones?.trim() || null,
             promocionId: this.promocionId(),
-            abonoInicial: Number(v.abonoValor ?? 0) > 0
-              ? { valor: Number(v.abonoValor), metodo: v.abonoMetodo ?? 'EFECTIVO', referencia: v.abonoReferencia?.trim() || null }
-              : null,
+            abonoInicial: {
+              valor: Number(v.abonoValor),
+              metodo: v.abonoMetodo ?? 'EFECTIVO',
+              referencia: v.abonoReferencia?.trim() || null,
+            },
           }),
         ),
       )
