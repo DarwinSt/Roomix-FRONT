@@ -4,6 +4,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -17,7 +18,7 @@ import { hoyIso } from '../../../core/utils/formato.util';
 @Component({
   selector: 'app-movimiento-dialog',
   host: { class: 'roomix-dialog-shell' },
-  imports: [ReactiveFormsModule, MatDialogModule, MatButtonModule, MatButtonToggleModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSelectModule],
+  imports: [ReactiveFormsModule, MatDialogModule, MatButtonModule, MatButtonToggleModule, MatCheckboxModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSelectModule],
   template: `
     <div class="dialog-accent" aria-hidden="true"></div>
     <div mat-dialog-title class="dialog-header">
@@ -44,9 +45,13 @@ import { hoyIso } from '../../../core/utils/formato.util';
           <mat-label>Concepto</mat-label>
           <input matInput formControlName="concepto" maxlength="200" placeholder="Ej. Energía eléctrica de octubre" />
         </mat-form-field>
+        @if (tipo() === 'EGRESO') {
+          <mat-checkbox formControlName="pendiente" class="rx-full">Queda por pagar (se registra el gasto y se paga después)</mat-checkbox>
+        }
         <mat-form-field appearance="outline">
-          <mat-label>Fecha</mat-label>
+          <mat-label>{{ esPendiente() ? 'Fecha de vencimiento' : 'Fecha' }}</mat-label>
           <input matInput type="date" formControlName="fecha" />
+          @if (esPendiente()) { <mat-hint>No cuenta en los egresos hasta confirmar el pago</mat-hint> }
         </mat-form-field>
         <mat-form-field appearance="outline">
           <mat-label>Método de pago</mat-label>
@@ -93,13 +98,18 @@ export class MovimientoDialogComponent {
     metodoPago: [null as MetodoPago | null],
     tercero: [''],
     referencia: [''],
+    pendiente: [false],
   });
+  readonly esPendiente = toSignal(this.form.controls.pendiente.valueChanges, { initialValue: false });
 
   readonly tipo = toSignal(this.form.controls.tipo.valueChanges, { initialValue: this.tipoInicial });
   readonly categoriasTipo = computed(() => this.categorias().filter((c) => c.tipo === this.tipo()));
 
   constructor() {
-    this.form.controls.tipo.valueChanges.subscribe(() => this.form.controls.categoria.setValue(null));
+    this.form.controls.tipo.valueChanges.subscribe((t) => {
+      this.form.controls.categoria.setValue(null);
+      if (t !== 'EGRESO') this.form.controls.pendiente.setValue(false);
+    });
   }
 
   guardar(): void {
@@ -120,6 +130,8 @@ export class MovimientoDialogComponent {
         metodoPago: v.metodoPago,
         tercero: v.tercero || null,
         referencia: v.referencia || null,
+        pendiente: v.tipo === 'EGRESO' && !!v.pendiente,
+        fechaVencimiento: v.tipo === 'EGRESO' && v.pendiente ? v.fecha : null,
       })
       .subscribe({
         next: () => this.ref.close(true),

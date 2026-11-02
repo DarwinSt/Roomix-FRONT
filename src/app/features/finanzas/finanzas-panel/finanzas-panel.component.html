@@ -4,6 +4,7 @@
     <p>Ingresos, egresos y estado de resultados del hotel. Los pagos de facturas y las compras de inventario se registran solos.</p>
   </div>
   <div class="rx-acciones">
+    <button mat-stroked-button (click)="gastosRecurrentes()"><mat-icon>event_repeat</mat-icon>Gastos recurrentes</button>
     <button mat-stroked-button (click)="registrar('INGRESO')"><mat-icon>trending_up</mat-icon>Ingreso</button>
     <button mat-flat-button color="primary" (click)="registrar('EGRESO')"><mat-icon>trending_down</mat-icon>Egreso</button>
   </div>
@@ -43,6 +44,14 @@
         <span class="rx-kpi-etiqueta"><mat-icon>pending_actions</mat-icon>Por cobrar</span>
         <span class="rx-kpi-valor">{{ moneda(r.saldoPorCobrar) }}</span>
         <span class="rx-kpi-sub"><a routerLink="/facturas" [queryParams]="{ estado: 'PENDIENTE' }">Ver facturas pendientes</a></span>
+      </div>
+      <div class="rx-kpi" [class.rx-kpi--alerta]="r.cantidadVencidos > 0">
+        <span class="rx-kpi-etiqueta"><mat-icon>event_busy</mat-icon>Por pagar</span>
+        <span class="rx-kpi-valor">{{ moneda(r.porPagar) }}</span>
+        <span class="rx-kpi-sub">
+          {{ r.cantidadPorPagar }} gasto(s)@if (r.cantidadVencidos > 0) { · <strong class="negativo">{{ r.cantidadVencidos }} vencido(s): {{ moneda(r.porPagarVencido) }}</strong> }
+          · <a href="" (click)="$event.preventDefault(); verPorPagar()">Ver</a>
+        </span>
       </div>
     </div>
 
@@ -111,6 +120,14 @@
       </mat-select>
     </mat-form-field>
     <mat-form-field appearance="outline">
+      <mat-label>Estado</mat-label>
+      <mat-select [(ngModel)]="filtroPendiente" (selectionChange)="cargarMovimientos(0)" panelClass="roomix-select-panel">
+        <mat-option value="">Todos</mat-option>
+        <mat-option value="pagados">Pagados</mat-option>
+        <mat-option value="pendientes">Por pagar (todas las fechas)</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="outline">
       <mat-label>Buscar concepto, tercero o referencia</mat-label>
       <mat-icon matPrefix>search</mat-icon>
       <input matInput [(ngModel)]="filtroTexto" (keyup.enter)="cargarMovimientos(0)" />
@@ -134,7 +151,10 @@
         <tbody>
           @for (m of movimientos(); track m.id) {
             <tr [class.anulado]="m.anulado">
-              <td data-label="Fecha" class="rx-num">{{ fecha(m.fecha) }}</td>
+              <td data-label="Fecha" class="rx-num">
+                {{ fecha(m.fecha) }}
+                @if (m.pendiente) { <span class="rx-chip" [class.critico]="m.vencido" [class.alerta]="!m.vencido">{{ m.vencido ? 'Vencido' : 'Por pagar' }}</span> }
+              </td>
               <td data-label="Concepto" class="ancho">
                 {{ m.concepto }}
                 <span class="sub">
@@ -151,7 +171,12 @@
                 @if (m.facturaId) {
                   <a mat-icon-button [routerLink]="['/facturas', m.facturaId]" matTooltip="Ver factura" aria-label="Ver factura"><mat-icon>receipt_long</mat-icon></a>
                 } @else if (!m.anulado) {
-                  <button mat-icon-button (click)="anular(m)" matTooltip="Anular" aria-label="Anular movimiento"><mat-icon>block</mat-icon></button>
+                  @if (m.pendiente) {
+                    <button mat-icon-button (click)="pagar(m)" matTooltip="Registrar pago" aria-label="Registrar pago"><mat-icon>task_alt</mat-icon></button>
+                  }
+                  @if (!m.automatico || m.gastoRecurrenteId) {
+                    <button mat-icon-button (click)="anular(m)" matTooltip="Anular" aria-label="Anular movimiento"><mat-icon>block</mat-icon></button>
+                  }
                 }
               </td>
             </tr>

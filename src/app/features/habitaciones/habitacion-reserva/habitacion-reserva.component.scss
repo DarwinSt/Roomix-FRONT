@@ -171,3 +171,23 @@
 .detalle-ocupacion {
   color: var(--text-200) !important;
 }
+
+/* Promociones, cotización y abono inicial */
+.aviso-estado { background: #eef4ff; color: #1f3f7a; }
+.promociones { display: flex; flex-direction: column; gap: 0.5rem; }
+.promo {
+  display: flex; align-items: center; gap: 0.6rem; width: 100%; text-align: left; cursor: pointer;
+  padding: 0.6rem 0.8rem; border-radius: 12px; border: 1px solid var(--bg-300, #d8ddd9); background: #fff; font: inherit;
+  span { display: flex; flex-direction: column; }
+  small { color: #5b6660; }
+  mat-icon { color: #5b6660; }
+  &.activa { border-color: #397d54; background: #f1f8f3; mat-icon { color: #397d54; } }
+}
+.cotizacion {
+  display: flex; flex-direction: column; gap: 0.2rem; padding: 0.75rem 1rem; border-radius: 12px; background: #f7f9f8;
+  div { display: flex; justify-content: space-between; gap: 1rem; font-size: 0.9rem; }
+  .descuento strong { color: #2e7d32; }
+  .total { border-top: 1px solid #d8ddd9; padding-top: 0.25rem; font-size: 1rem; }
+  .minimo strong { color: #1f3f7a; }
+}
+.nota-penalidad { display: flex; align-items: center; gap: 0.4rem; margin: 0; font-size: 0.85rem; color: #5b6660; }

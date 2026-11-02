@@ -31,6 +31,7 @@ export const NAVEGACION: ItemNavegacion[] = [
   { path: '/facturas', icon: 'receipt_long', label: 'Facturas', roles: ['ADMIN', 'FINANZAS', 'RECEPCION'], grupo: 'gestion' },
   { path: '/reportes', icon: 'insights', label: 'Reportes', roles: ['ADMIN', 'FINANZAS'], grupo: 'gestion' },
   { path: '/usuarios', icon: 'manage_accounts', label: 'Usuarios', roles: ['ADMIN'], grupo: 'administracion' },
+  { path: '/promociones', icon: 'sell', label: 'Promociones', roles: ['ADMIN'], grupo: 'administracion' },
   { path: '/auditoria', icon: 'policy', label: 'Auditoría', roles: ['ADMIN'], grupo: 'administracion' },
   { path: '/ayuda', icon: 'help_outline', label: 'Ayuda', roles: [], grupo: 'administracion' },
 ];

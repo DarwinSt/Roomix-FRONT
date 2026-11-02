@@ -13,7 +13,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatCardModule } from '@angular/material/card';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { Subject, catchError, debounceTime, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs';
+import { Subject, catchError, debounceTime, distinctUntilChanged, filter, map, merge, switchMap, tap } from 'rxjs';
 import { of } from 'rxjs';
 import {
   calcularNoches,
@@ -22,11 +22,12 @@ import {
   TipoHabitacion,
 } from '../../../core/models/habitacion.model';
 import { Huesped, TIPOS_DOCUMENTO, TipoDocumento, TEXTO_AUTORIZACION_DATOS } from '../../../core/models/huesped.model';
-import type { HabitacionDisponible, Reserva } from '../../../core/models/reserva.model';
+import type { CotizacionReserva, HabitacionDisponible, PromocionAplicable, Reserva } from '../../../core/models/reserva.model';
 import { CANALES_RESERVA, CanalReserva, formatearMoneda } from '../../../core/models/reserva.model';
+import { METODOS_PAGO, MetodoPago } from '../../../core/models/finanzas.model';
 import { HabitacionService } from '../../../core/services/habitacion.service';
 import { HuespedService } from '../../../core/services/huesped.service';
-import { ReservaService } from '../../../core/services/reserva.service';
+import { PromocionService, ReservaService } from '../../../core/services/reserva.service';
 import { TarifaService } from '../../../core/services/tarifa.service';
 import { ErrorDialogService } from '../../../core/services/error-dialog.service';
 import { formatearFechaIso } from '../../../core/utils/date.util';
@@ -63,6 +64,7 @@ export class HabitacionReservaComponent implements OnInit {
   private readonly huespedService = inject(HuespedService);
   private readonly reservaService = inject(ReservaService);
   private readonly tarifaService = inject(TarifaService);
+  private readonly promocionService = inject(PromocionService);
   private readonly snackBar = inject(MatSnackBar);
   private readonly errorDialog = inject(ErrorDialogService);
   private readonly destroyRef = inject(DestroyRef);
@@ -80,6 +82,13 @@ export class HabitacionReservaComponent implements OnInit {
   readonly meta = metaEstado;
   readonly formatearMoneda = formatearMoneda;
   readonly canales = CANALES_RESERVA;
+  readonly metodos = METODOS_PAGO;
+
+  // ---------------------------------------------------------------- Promociones, cotización y abono inicial
+  readonly promociones = signal<PromocionAplicable[]>([]);
+  readonly promocionId = signal<number | null>(null);
+  readonly cotizacion = signal<CotizacionReserva | null>(null);
+  private ultimoMinimo: number | null = null;
 
   // ---------------------------------------------------------------- Huésped existente (autocompletar)
   readonly textoBusqueda = signal('');
@@ -106,6 +115,9 @@ export class HabitacionReservaComponent implements OnInit {
     fechaSalida: [this.sumaDias(new Date(), 1), Validators.required],
     canal: ['PRESENCIAL' as CanalReserva],
     observaciones: ['', Validators.maxLength(500)],
+    abonoValor: [null as number | null],
+    abonoMetodo: ['EFECTIVO' as MetodoPago],
+    abonoReferencia: ['', Validators.maxLength(80)],
   });
 
   ngOnInit(): void {
@@ -125,15 +137,6 @@ export class HabitacionReservaComponent implements OnInit {
         }
         this.loading.set(false);
         this.verificarDisponibilidad();
-        if (h.estado !== 'LIBRE') {
-          // No reservable hoy: se ofrecen habitaciones del mismo tipo libres para esta noche
-          const hoy = formatearFechaIso(new Date());
-          const manana = formatearFechaIso(this.sumaDias(new Date(), 1));
-          this.reservaService.disponibilidad(hoy, manana, h.tipoHabitacion).subscribe({
-            next: (lista) => this.alternativas.set(lista.filter((x) => x.habitacionId !== h.id).slice(0, 6)),
-            error: () => this.alternativas.set([]),
-          });
-        }
       },
       error: (err) => {
         this.errorDialog.mostrarDesdeApi(err);
@@ -141,8 +144,10 @@ export class HabitacionReservaComponent implements OnInit {
       },
     });
 
-    this.form.valueChanges
-      .pipe(debounceTime(350), distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))
+    // Solo las fechas y el canal cambian la disponibilidad, las promociones y el total
+    const c = this.form.controls;
+    merge(c.fechaEntrada.valueChanges, c.fechaSalida.valueChanges, c.canal.valueChanges)
+      .pipe(debounceTime(350), takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.verificarDisponibilidad());
 
     this.busqueda$
@@ -184,6 +189,7 @@ export class HabitacionReservaComponent implements OnInit {
     });
     for (const c of DATOS_HUESPED) this.form.controls[c].disable({ emitEvent: false });
     if (h.autorizaTratamientoDatos) this.form.controls.autorizaTratamientoDatos.disable({ emitEvent: false });
+    this.cotizar();
   }
 
   quitarHuesped(): void {
@@ -191,14 +197,80 @@ export class HabitacionReservaComponent implements OnInit {
     for (const c of DATOS_HUESPED) this.form.controls[c].enable({ emitEvent: false });
     this.form.controls.autorizaTratamientoDatos.enable({ emitEvent: false });
     this.form.patchValue({ nombre: '', apellidos: '', numeroDocumento: '', email: '', telefono: '', autorizaTratamientoDatos: false });
+    this.cotizar();
+  }
+
+  /** Recepción escoge una promoción (o ninguna); se recalcula el total y el abono mínimo. */
+  escogerPromocion(id: number | null): void {
+    this.promocionId.set(id);
+    this.cotizar();
+  }
+
+  private cargarPromociones(habitacionId: number, entrada: string, salida: string): void {
+    this.promocionService.aplicables(habitacionId, entrada, salida, this.form.controls.canal.value).subscribe({
+      next: (lista) => {
+        this.promociones.set(lista);
+        if (this.promocionId() != null && !lista.some((p) => p.id === this.promocionId())) this.promocionId.set(null);
+        this.cotizar();
+      },
+      error: () => {
+        this.promociones.set([]);
+        this.cotizar();
+      },
+    });
+  }
+
+  private cotizar(): void {
+    const habitacion = this.habitacion();
+    const entrada = this.form.controls.fechaEntrada.value;
+    const salida = this.form.controls.fechaSalida.value;
+    if (!habitacion || !entrada || !salida || (this.noches ?? 0) < 1) {
+      this.cotizacion.set(null);
+      return;
+    }
+    this.reservaService
+      .cotizacion({
+        habitacionId: habitacion.id,
+        fechaEntrada: formatearFechaIso(entrada),
+        fechaSalida: formatearFechaIso(salida),
+        promocionId: this.promocionId(),
+        canal: this.form.controls.canal.value,
+        huespedId: this.huespedSeleccionado()?.id ?? null,
+      })
+      .subscribe({
+        next: (c) => {
+          this.cotizacion.set(c);
+          // Se propone el abono mínimo; si el usuario ya escribió un valor mayor, se respeta
+          const actual = this.form.controls.abonoValor.value;
+          if (actual == null || actual === this.ultimoMinimo || actual < c.abonoMinimo) {
+            this.form.controls.abonoValor.setValue(c.abonoMinimo > 0 ? c.abonoMinimo : null, { emitEvent: false });
+          }
+          this.ultimoMinimo = c.abonoMinimo;
+        },
+        error: () => this.cotizacion.set(null),
+      });
+  }
+
+  /** Mensaje del abono inicial frente al mínimo exigido; null si está bien. */
+  get errorAbono(): string | null {
+    const c = this.cotizacion();
+    if (!c) return null;
+    const valor = Number(this.form.controls.abonoValor.value ?? 0);
+    if (c.abonoMinimo > 0 && valor < c.abonoMinimo) {
+      return `Para reservar se requiere un abono mínimo de ${formatearMoneda(c.abonoMinimo)} (${c.abonoMinimoPct} % del total).`;
+    }
+    if (valor > c.totalConImpuesto) return `El abono no puede superar el total de la reserva (${formatearMoneda(c.totalConImpuesto)}).`;
+    if (valor > 0 && !this.form.controls.abonoMetodo.value) return 'Indique el medio de pago del abono.';
+    return null;
   }
 
   usarSugerencia(sug: { entrada: string; salida: string }): void {
     this.form.patchValue({ fechaEntrada: this.aFecha(sug.entrada), fechaSalida: this.aFecha(sug.salida) });
   }
 
+  /** Se reserva por fechas: una habitación ocupada o reservada hoy admite reservas en fechas que no se crucen. */
   puedeReservar(): boolean {
-    return this.habitacion()?.estado === 'LIBRE';
+    return this.habitacion() != null;
   }
 
   etiquetaTipo(tipo: TipoHabitacion): string {
@@ -213,6 +285,8 @@ export class HabitacionReservaComponent implements OnInit {
   }
 
   get totalEstimado(): number | null {
+    const c = this.cotizacion();
+    if (c) return c.total;
     const tarifa = this.tarifaNoche();
     const noches = this.noches;
     if (tarifa == null || noches == null || noches < 1) return null;
@@ -226,6 +300,7 @@ export class HabitacionReservaComponent implements OnInit {
       (this.noches ?? 0) >= 1 &&
       this.disponibleEnFechas() === true &&
       this.tarifaNoche() != null &&
+      this.errorAbono === null &&
       !this.guardando() &&
       !this.verificandoDisponibilidad()
     );
@@ -271,6 +346,7 @@ export class HabitacionReservaComponent implements OnInit {
     if (this.tarifaNoche() == null) {
       return 'No se pudo cargar la tarifa para este tipo de habitación.';
     }
+    if (this.errorAbono) return this.errorAbono;
     return null;
   }
 
@@ -314,13 +390,17 @@ export class HabitacionReservaComponent implements OnInit {
             fechaSalida,
             canal: v.canal ?? 'PRESENCIAL',
             observaciones: v.observaciones?.trim() || null,
+            promocionId: this.promocionId(),
+            abonoInicial: Number(v.abonoValor ?? 0) > 0
+              ? { valor: Number(v.abonoValor), metodo: v.abonoMetodo ?? 'EFECTIVO', referencia: v.abonoReferencia?.trim() || null }
+              : null,
           }),
         ),
       )
       .subscribe({
-        next: () => {
+        next: (reserva) => {
           this.snackBar.open(`Habitación ${habitacion.numero} reservada`, 'OK', { duration: 3000 });
-          void this.router.navigate(['/habitaciones']);
+          void this.router.navigate(['/reservas', reserva.id]);
         },
         error: (err) => {
           this.guardando.set(false);
@@ -366,7 +446,10 @@ export class HabitacionReservaComponent implements OnInit {
           this.conflictos.set([]);
           this.sugerencias.set([]);
           this.alternativas.set([]);
+          this.cargarPromociones(habitacion.id, fechaEntrada, fechaSalida);
         } else {
+          this.promociones.set([]);
+          this.cotizacion.set(null);
           this.analizarConflicto(habitacion, fechaEntrada, fechaSalida);
         }
       },

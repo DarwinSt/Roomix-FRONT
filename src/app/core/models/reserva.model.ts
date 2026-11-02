@@ -1,5 +1,6 @@
 import type { EstadoReserva, TipoHabitacion } from './habitacion.model';
 import type { HuespedResumen } from './huesped.model';
+import type { MetodoPago } from './finanzas.model';
 
 export interface Reserva {
   id: number;
@@ -23,6 +24,14 @@ export interface Reserva {
   registradaPor: string | null;
   fechaHoraCreacion: string;
   fechaHoraUltimaActualizacion: string;
+  /** Noches × tarifa, antes del descuento. */
+  subtotal: number;
+  descuento: number;
+  promocionId: number | null;
+  promocionNombre: string | null;
+  /** Al cancelar con abonos: parte retenida como penalidad y parte devuelta. */
+  valorPenalidad: number | null;
+  valorDevuelto: number | null;
 }
 
 export type CanalReserva = 'PRESENCIAL' | 'TELEFONO' | 'CORREO' | 'WHATSAPP' | 'SITIO_WEB' | 'AGENCIA';
@@ -43,6 +52,107 @@ export interface CrearReservaRequest {
   fechaSalida: string;
   canal?: CanalReserva;
   observaciones?: string | null;
+  promocionId?: number | null;
+  abonoInicial?: AbonoRequest | null;
+}
+
+export interface AbonoRequest {
+  valor: number;
+  metodo: MetodoPago;
+  referencia?: string | null;
+}
+
+export interface Abono {
+  id: number;
+  valor: number;
+  metodo: MetodoPago;
+  metodoNombre: string;
+  referencia: string | null;
+  fechaHora: string;
+  registradoPor: string;
+  facturaId: number | null;
+  devuelto: boolean;
+  valorDevuelto: number | null;
+  fechaHoraDevolucion: string | null;
+}
+
+export interface ResumenAbonos {
+  reservaId: number;
+  totalReserva: number;
+  porcentajeImpuesto: number;
+  abonoMinimoPct: number;
+  abonoMinimo: number;
+  totalAbonado: number;
+  saldo: number;
+  valorPenalidad: number | null;
+  valorDevuelto: number | null;
+  abonos: Abono[];
+}
+
+/** Cotización del backend: misma regla que se aplica al confirmar la reserva. */
+export interface CotizacionReserva {
+  noches: number;
+  tarifaNoche: number;
+  subtotal: number;
+  descuento: number;
+  promocionNombre: string | null;
+  total: number;
+  porcentajeImpuesto: number;
+  impuesto: number;
+  totalConImpuesto: number;
+  abonoMinimoPct: number;
+  abonoMinimo: number;
+  penalidadCancelacionPct: number;
+}
+
+export type TipoDescuento = 'VALOR_FIJO' | 'PORCENTAJE';
+
+export interface Promocion {
+  id: number;
+  nombre: string;
+  descripcion: string | null;
+  minimoNoches: number | null;
+  tipoHabitacion: TipoHabitacion | null;
+  canal: CanalReserva | null;
+  vigenteDesde: string | null;
+  vigenteHasta: string | null;
+  tipoDescuento: TipoDescuento;
+  valor: number;
+  activa: boolean;
+  condiciones: string;
+  fechaHoraUltimaActualizacion: string;
+}
+
+export interface PromocionRequest {
+  nombre: string;
+  descripcion?: string | null;
+  minimoNoches?: number | null;
+  tipoHabitacion?: TipoHabitacion | null;
+  canal?: CanalReserva | null;
+  vigenteDesde?: string | null;
+  vigenteHasta?: string | null;
+  tipoDescuento: TipoDescuento;
+  valor: number;
+  activa?: boolean;
+}
+
+export interface PromocionAplicable {
+  id: number;
+  nombre: string;
+  descripcion: string | null;
+  condiciones: string;
+  tipoDescuento: TipoDescuento;
+  valor: number;
+  subtotal: number;
+  descuento: number;
+  totalConDescuento: number;
+}
+
+export interface PoliticaReserva {
+  abonoMinimoPct: number;
+  penalidadCancelacionPct: number;
+  actualizadaPor: string | null;
+  fechaHoraUltimaActualizacion: string | null;
 }
 
 export interface ActualizarReservaRequest {
