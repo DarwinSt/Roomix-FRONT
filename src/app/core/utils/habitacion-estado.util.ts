@@ -64,11 +64,14 @@ export function etiquetaMotivoInhabilitacion(motivo: MotivoInhabilitacion): stri
     : 'Mantenimiento programado — no reservable hoy';
 }
 
-/** Transiciones permitidas según estado actual (sin INHABILITADO manual). */
+/**
+ * Transiciones permitidas según estado actual (sin INHABILITADO manual).
+ * LIBRE → RESERVADO no se ofrece: las reservas se crean desde «Reservar», donde se registra el pago.
+ */
 export function transicionesDisponibles(habitacion: Habitacion): TransicionOpcion[] {
   switch (habitacion.estado) {
     case 'LIBRE':
-      return [opcion('RESERVADO', 'Confirma reserva con fechas de entrada y salida')];
+      return [];
     case 'RESERVADO':
       return [
         opcion('OCUPADO', 'Registrar check-in del huésped'),
@@ -94,7 +97,7 @@ function opcion(estado: EstadoHabitacion, hint: string): TransicionOpcion {
 }
 
 export function opcionesEstadoAlta(): TransicionOpcion[] {
-  return (['LIBRE', 'RESERVADO'] as EstadoHabitacion[]).map((estado) => opcion(estado, META[estado].hint));
+  return (['LIBRE'] as EstadoHabitacion[]).map((estado) => opcion(estado, META[estado].hint));
 }
 
 export function opcionesEstadoEdicion(habitacion: Habitacion): TransicionOpcion[] {

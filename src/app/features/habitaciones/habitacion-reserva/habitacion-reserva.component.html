@@ -12,33 +12,6 @@
 @if (loading()) {
   <div class="loading"><mat-spinner diameter="48" /></div>
 } @else if (habitacion(); as h) {
-  @if (!puedeReservar()) {
-    <mat-card class="aviso-card">
-      <mat-card-content>
-        <mat-icon>block</mat-icon>
-        <p>La habitación {{ h.numero }} no está disponible para reservar (estado: {{ etiqueta(h.estado) }}).</p>
-        @if (h.fechaEntrada && h.fechaSalida) {
-          <p class="detalle-ocupacion">
-            Tiene una reserva del {{ fechaTexto(h.fechaEntrada) }} al {{ fechaTexto(h.fechaSalida) }}@if (h.huesped) { a nombre de {{ h.huesped.nombreCompleto }} }.
-          </p>
-        }
-        @if (alternativas().length) {
-          <p class="conflicto-titulo"><mat-icon>bed</mat-icon>Habitaciones del mismo tipo disponibles esta noche:</p>
-          <div class="sugerencias">
-            @for (alt of alternativas(); track alt.habitacionId) {
-              <a mat-stroked-button [routerLink]="['/habitaciones', alt.habitacionId, 'reservar']">
-                Habitación {{ alt.numero }} · {{ formatearMoneda(alt.tarifaNoche) }}/noche
-              </a>
-            }
-          </div>
-        }
-        <div class="sugerencias">
-          <a mat-stroked-button routerLink="/reservas"><mat-icon>calendar_month</mat-icon>Ver calendario de reservas</a>
-          <a mat-button routerLink="/habitaciones">Volver al listado</a>
-        </div>
-      </mat-card-content>
-    </mat-card>
-  } @else {
     <mat-card class="habitacion-resumen">
       <mat-card-content>
         <div class="resumen-grid">
@@ -78,6 +51,15 @@
             Si el huésped llega tarde, las noches reservadas no cambian. La disponibilidad se valida al elegir fechas.
           </span>
         </div>
+        @if (h.estado !== 'LIBRE') {
+          <div class="info-banner aviso-estado">
+            <mat-icon>event_available</mat-icon>
+            <span>
+              Hoy la habitación está <strong>{{ etiqueta(h.estado) }}</strong>@if (h.fechaEntrada && h.fechaSalida) { (del {{ fechaTexto(h.fechaEntrada) }} al {{ fechaTexto(h.fechaSalida) }}) }.
+              Puede reservarla para fechas que no se crucen con esa estadía.
+            </span>
+          </div>
+        }
 
         <form [formGroup]="form" class="form-block">
           <p class="section-label">Datos del huésped</p>
@@ -179,6 +161,86 @@
               <mat-label>Observaciones (opcional)</mat-label>
               <textarea matInput rows="2" formControlName="observaciones" maxlength="500"></textarea>
             </mat-form-field>
+            @if (promociones().length) {
+              <p class="section-label full">Promociones disponibles</p>
+              <div class="promociones full" role="radiogroup" aria-label="Promoción de la reserva">
+                <button type="button" class="promo" [class.activa]="promocionId() === null" (click)="escogerPromocion(null)">
+                  <mat-icon>{{ promocionId() === null ? 'radio_button_checked' : 'radio_button_unchecked' }}</mat-icon>
+                  <span><strong>Sin promoción</strong><small>Tarifa normal</small></span>
+                </button>
+                @for (p of promociones(); track p.id) {
+                  <button type="button" class="promo" [class.activa]="promocionId() === p.id" (click)="escogerPromocion(p.id)">
+                    <mat-icon>{{ promocionId() === p.id ? 'radio_button_checked' : 'radio_button_unchecked' }}</mat-icon>
+                    <span>
+                      <strong>{{ p.nombre }} · −{{ formatearMoneda(p.descuento) }}</strong>
+                      <small>{{ p.condiciones }}@if (p.descripcion) { · {{ p.descripcion }} }</small>
+                    </span>
+                  </button>
+                }
+              </div>
+            }
+
+            @if (!cotizacion() && errorCotizacion()) {
+              <p class="section-label full">Pago de la reserva</p>
+              <div class="aviso-cotizacion full" role="alert">
+                <mat-icon>error_outline</mat-icon>
+                <span>{{ errorCotizacion() }}</span>
+                <button mat-stroked-button type="button" (click)="reintentarCotizacion()">Reintentar</button>
+              </div>
+            }
+            @if (cotizacion(); as cz) {
+              <p class="section-label full">Pago de la reserva</p>
+              <div class="cotizacion full">
+                <div><span>Alojamiento ({{ cz.noches }} noche(s) × {{ formatearMoneda(cz.tarifaNoche) }})</span><strong>{{ formatearMoneda(cz.subtotal) }}</strong></div>
+                @if (cz.descuento > 0) {
+                  <div class="descuento"><span>Promoción «{{ cz.promocionNombre }}»</span><strong>−{{ formatearMoneda(cz.descuento) }}</strong></div>
+                }
+                <div><span>IVA {{ cz.porcentajeImpuesto }} %</span><strong>{{ formatearMoneda(cz.impuesto) }}</strong></div>
+                <div class="total"><span>Total de la reserva</span><strong>{{ formatearMoneda(cz.totalConImpuesto) }}</strong></div>
+                @if (cz.abonoMinimo > 0) {
+                  <div class="minimo"><span>Abono mínimo para reservar ({{ cz.abonoMinimoPct }} %)</span><strong>{{ formatearMoneda(cz.abonoMinimo) }}</strong></div>
+                }
+              </div>
+              <div class="tipo-pago full" role="radiogroup" aria-label="Tipo de pago">
+                <button type="button" class="opcion-pago" role="radio" [class.activa]="pagoCompleto" [attr.aria-checked]="pagoCompleto"
+                        (click)="escogerTipoPago('COMPLETO')">
+                  <mat-icon>{{ pagoCompleto ? 'radio_button_checked' : 'radio_button_unchecked' }}</mat-icon>
+                  <span><strong>Pago completo</strong><small>{{ formatearMoneda(cz.totalConImpuesto) }}</small></span>
+                </button>
+                <button type="button" class="opcion-pago" role="radio" [class.activa]="!pagoCompleto" [attr.aria-checked]="!pagoCompleto"
+                        (click)="escogerTipoPago('PARCIAL')">
+                  <mat-icon>{{ !pagoCompleto ? 'radio_button_checked' : 'radio_button_unchecked' }}</mat-icon>
+                  <span><strong>Abono parcial</strong><small>{{ cz.abonoMinimo > 0 ? 'Desde ' + formatearMoneda(cz.abonoMinimo) : 'El saldo se paga en el check-out' }}</small></span>
+                </button>
+              </div>
+              <mat-form-field appearance="outline">
+                <mat-label>{{ pagoCompleto ? 'Valor pagado' : 'Valor del abono' }}</mat-label>
+                <span matTextPrefix>$&nbsp;</span>
+                <input matInput type="number" min="1" step="1000" formControlName="abonoValor" [readonly]="pagoCompleto" />
+                @if (pagoCompleto) {
+                  <mat-hint>Total de la reserva</mat-hint>
+                } @else if (cz.abonoMinimo > 0) {
+                  <mat-hint>Mínimo {{ formatearMoneda(cz.abonoMinimo) }} · saldo {{ formatearMoneda(cz.totalConImpuesto - +(form.controls.abonoValor.value ?? 0)) }}</mat-hint>
+                } @else {
+                  <mat-hint>Obligatorio · saldo {{ formatearMoneda(cz.totalConImpuesto - +(form.controls.abonoValor.value ?? 0)) }}</mat-hint>
+                }
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="roomix-dialog-select">
+                <mat-label>Medio de pago</mat-label>
+                <mat-select formControlName="abonoMetodo" panelClass="roomix-select-panel">
+                  @for (m of metodos; track m.value) { <mat-option [value]="m.value">{{ m.label }}</mat-option> }
+                </mat-select>
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="full">
+                <mat-label>Referencia del pago (opcional)</mat-label>
+                <input matInput formControlName="abonoReferencia" maxlength="80" />
+                <mat-hint>Número de aprobación, comprobante de transferencia…</mat-hint>
+              </mat-form-field>
+              @if (cz.penalidadCancelacionPct > 0) {
+                <p class="nota-penalidad full"><mat-icon>policy</mat-icon>Si la reserva se cancela, se retiene el {{ cz.penalidadCancelacionPct }} % de lo abonado y se devuelve el resto.</p>
+              }
+            }
+
             <div class="autorizacion-datos full">
               <mat-checkbox formControlName="autorizaTratamientoDatos">{{ textoAutorizacion }}</mat-checkbox>
               @if (form.controls.autorizaTratamientoDatos.touched && form.controls.autorizaTratamientoDatos.invalid) {
@@ -195,7 +257,9 @@
               Al confirmar:
               <strong>{{ noches }} noche(s)</strong>
               · {{ formatearMoneda(tarifaNoche()!) }}/noche
-              · total <strong>{{ formatearMoneda(totalEstimado) }}</strong>
+              · total <strong>{{ formatearMoneda(cotizacion()?.totalConImpuesto ?? totalEstimado) }}</strong>
+              @if (cotizacion()?.descuento) { (incluye promoción) }
+              @if (form.controls.abonoValor.value) { · {{ pagoCompleto ? 'pago completo' : 'abono' }} <strong>{{ formatearMoneda(+form.controls.abonoValor.value!) }}</strong> }
               · quedará en estado
               <span class="estado-chip estado-reservado">Reservado</span>
             </span>
@@ -259,5 +323,4 @@
         </div>
       </mat-card-content>
     </mat-card>
-  }
 }

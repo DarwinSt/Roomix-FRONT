@@ -54,6 +54,42 @@ export interface MovimientoFinanciero {
   anulado: boolean;
   motivoAnulacion: string | null;
   fechaHoraCreacion: string;
+  /** Egreso por pagar: no cuenta en los totales hasta confirmar el pago. */
+  pendiente: boolean;
+  fechaVencimiento: string | null;
+  vencido: boolean;
+  gastoRecurrenteId: number | null;
+}
+
+export interface GastoRecurrente {
+  id: number;
+  concepto: string;
+  categoria: CategoriaFinanciera;
+  categoriaNombre: string;
+  valor: number;
+  diaVencimiento: number;
+  tercero: string | null;
+  metodoPago: MetodoPago | null;
+  activo: boolean;
+  ultimoPeriodo: string | null;
+  proximoVencimiento: string | null;
+}
+
+export interface GastoRecurrenteRequest {
+  concepto: string;
+  categoria: CategoriaFinanciera;
+  valor: number;
+  diaVencimiento: number;
+  tercero?: string | null;
+  metodoPago?: MetodoPago | null;
+  activo?: boolean;
+}
+
+export interface PagarGastoRequest {
+  fecha?: string | null;
+  metodoPago?: MetodoPago | null;
+  valor?: number | null;
+  referencia?: string | null;
 }
 
 export interface MovimientoRequest {
@@ -65,6 +101,8 @@ export interface MovimientoRequest {
   metodoPago?: MetodoPago | null;
   tercero?: string | null;
   referencia?: string | null;
+  pendiente?: boolean | null;
+  fechaVencimiento?: string | null;
 }
 
 export interface TotalCategoria {
@@ -103,6 +141,10 @@ export interface ResumenFinanciero {
     variacionEgresosPct: number | null;
     variacionUtilidadPct: number | null;
   };
+  porPagar: number;
+  cantidadPorPagar: number;
+  porPagarVencido: number;
+  cantidadVencidos: number;
 }
 
 export interface FacturaItem {

@@ -250,6 +250,11 @@ export const routes: Routes = [
         loadComponent: () => import('./features/admin/usuarios/usuarios.component').then((m) => m.UsuariosComponent),
       },
       {
+        path: 'promociones',
+        ...con(ADMIN),
+        loadComponent: () => import('./features/admin/promociones/promociones.component').then((m) => m.PromocionesComponent),
+      },
+      {
         path: 'auditoria',
         ...con(ADMIN),
         loadComponent: () => import('./features/admin/auditoria/auditoria.component').then((m) => m.AuditoriaComponent),

@@ -17,8 +17,9 @@ import { ServicioHotelService } from '../../../core/services/modulos.service';
 import { ErrorDialogService } from '../../../core/services/error-dialog.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { roomixDialogConfig } from '../../../core/config/dialog.config';
-import { CANALES_RESERVA, CanalReserva, Reserva, claseEstadoReserva, etiquetaEstadoReserva } from '../../../core/models/reserva.model';
-import { CuentaReserva, etiquetaEstadoFactura } from '../../../core/models/finanzas.model';
+import { CANALES_RESERVA, CanalReserva, Reserva, ResumenAbonos, claseEstadoReserva, etiquetaEstadoReserva } from '../../../core/models/reserva.model';
+import { CuentaReserva, METODOS_PAGO, MetodoPago, etiquetaEstadoFactura } from '../../../core/models/finanzas.model';
+import { PromocionService } from '../../../core/services/reserva.service';
 import { TIPOS_HABITACION } from '../../../core/models/habitacion.model';
 import { SolicitudServicio, etiquetaEstadoSolicitud } from '../../../core/models/servicio.model';
 import { extractApiErrorMessage } from '../../../core/utils/api-error.util';
@@ -90,6 +91,69 @@ export class EditarReservaDialogComponent {
   }
 }
 
+/** Registrar un abono a una reserva confirmada o en curso (no puede superar el saldo). */
+@Component({
+  selector: 'app-abono-dialog',
+  host: { class: 'roomix-dialog-shell' },
+  imports: [ReactiveFormsModule, MatDialogModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSelectModule],
+  template: `
+    <div class="dialog-accent" aria-hidden="true"></div>
+    <div mat-dialog-title class="dialog-header">
+      <div class="header-icon"><mat-icon>savings</mat-icon></div>
+      <div class="header-text"><h2>Registrar abono</h2><p>Reserva #{{ data.reserva.id }} · saldo {{ moneda(data.resumen.saldo) }}</p></div>
+    </div>
+    <mat-dialog-content>
+      <form [formGroup]="form" class="rx-form-grid">
+        <mat-form-field appearance="outline">
+          <mat-label>Valor</mat-label>
+          <span matTextPrefix>$&nbsp;</span>
+          <input matInput type="number" min="1" step="1000" formControlName="valor" />
+          <mat-hint>Máximo {{ moneda(data.resumen.saldo) }}</mat-hint>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Medio de pago</mat-label>
+          <mat-select formControlName="metodo" panelClass="roomix-select-panel">
+            @for (m of metodos; track m.value) { <mat-option [value]="m.value">{{ m.label }}</mat-option> }
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="rx-full">
+          <mat-label>Referencia (opcional)</mat-label>
+          <input matInput formControlName="referencia" maxlength="80" />
+        </mat-form-field>
+      </form>
+      @if (error()) { <p class="error">{{ error() }}</p> }
+    </mat-dialog-content>
+    <mat-dialog-actions align="end">
+      <button mat-button mat-dialog-close>Cancelar</button>
+      <button mat-flat-button color="primary" (click)="guardar()">Registrar abono</button>
+    </mat-dialog-actions>
+  `,
+  styles: `.error { color: #c62828; font-size: 0.85rem; }`,
+})
+export class AbonoDialogComponent {
+  readonly data = inject<{ reserva: Reserva; resumen: ResumenAbonos }>(MAT_DIALOG_DATA);
+  private readonly service = inject(ReservaService);
+  private readonly ref = inject(MatDialogRef<AbonoDialogComponent, boolean>);
+  readonly metodos = METODOS_PAGO;
+  readonly moneda = moneda;
+  readonly error = signal<string | null>(null);
+  readonly form = inject(FormBuilder).group({
+    valor: [this.data.resumen.saldo as number | null, [Validators.required, Validators.min(1)]],
+    metodo: ['EFECTIVO' as MetodoPago, Validators.required],
+    referencia: [''],
+  });
+
+  guardar(): void {
+    const v = this.form.getRawValue();
+    const valor = Number(v.valor ?? 0);
+    if (valor <= 0) return this.error.set('Indique el valor del abono.');
+    if (valor > this.data.resumen.saldo) return this.error.set(`El abono no puede superar el saldo (${moneda(this.data.resumen.saldo)}).`);
+    this.service
+      .registrarAbono(this.data.reserva.id, { valor, metodo: v.metodo!, referencia: v.referencia?.trim() || null })
+      .subscribe({ next: () => this.ref.close(true), error: (e) => this.error.set(extractApiErrorMessage(e)) });
+  }
+}
+
 @Component({
   selector: 'app-reserva-detalle',
   imports: [RouterLink, MatButtonModule, MatIconModule, MatMenuModule, MatProgressSpinnerModule],
@@ -140,7 +204,9 @@ export class EditarReservaDialogComponent {
       </div>
 
       @if (r.motivoCancelacion) {
-        <div class="aviso"><mat-icon>info</mat-icon>Cancelada el {{ fecha(r.fechaHoraCancelacion, true) }}: {{ r.motivoCancelacion }}</div>
+        <div class="aviso"><mat-icon>info</mat-icon>Cancelada el {{ fecha(r.fechaHoraCancelacion, true) }}: {{ r.motivoCancelacion }}
+          @if (r.valorPenalidad != null) { · penalidad retenida {{ moneda(r.valorPenalidad) }}, devuelto al huésped {{ moneda(r.valorDevuelto ?? 0) }} }
+        </div>
       }
 
       <div class="rx-grid-2">
@@ -152,6 +218,10 @@ export class EditarReservaDialogComponent {
             <div class="rx-dato"><span>Salida</span><strong>{{ fecha(r.fechaSalida) }}</strong></div>
             <div class="rx-dato"><span>Noches</span><strong>{{ r.cantidadNoches }}</strong></div>
             <div class="rx-dato"><span>Tarifa por noche</span><strong>{{ moneda(r.tarifaNoche) }}</strong></div>
+            @if (r.descuento > 0) {
+              <div class="rx-dato"><span>Subtotal</span><strong>{{ moneda(r.subtotal) }}</strong></div>
+              <div class="rx-dato"><span>Promoción</span><strong class="descuento">{{ r.promocionNombre }} · −{{ moneda(r.descuento) }}</strong></div>
+            }
             <div class="rx-dato"><span>Total alojamiento</span><strong>{{ moneda(r.totalEstimado) }}</strong></div>
             <div class="rx-dato"><span>Check-in real</span><strong>{{ fecha(r.horaRealCheckIn, true) }}</strong></div>
             <div class="rx-dato"><span>Check-out real</span><strong>{{ fecha(r.horaRealCheckOut, true) }}</strong></div>
@@ -171,6 +241,49 @@ export class EditarReservaDialogComponent {
           </div>
         </section>
       </div>
+
+      @if (abonos(); as a) {
+        <section class="rx-card">
+          <div class="rx-card-titulo">
+            <mat-icon>savings</mat-icon>Abonos
+            <span class="spacer"></span>
+            @if (puedeOperar() && (r.estadoReserva === 'CONFIRMADA' || r.estadoReserva === 'EN_CURSO') && a.saldo > 0) {
+              <button mat-stroked-button class="no-imprimir" (click)="registrarAbono()"><mat-icon>add_card</mat-icon>Registrar abono</button>
+            }
+          </div>
+          <div class="abonos-resumen">
+            <div><span>Total de la reserva</span><strong class="rx-num">{{ moneda(a.totalReserva) }}</strong></div>
+            @if (a.abonoMinimo > 0) { <div><span>Abono mínimo ({{ a.abonoMinimoPct }} %)</span><strong class="rx-num">{{ moneda(a.abonoMinimo) }}</strong></div> }
+            <div><span>Abonado</span><strong class="rx-num">{{ moneda(a.totalAbonado) }}</strong></div>
+            <div class="saldo" [class.pendiente]="a.saldo > 0"><span>Saldo</span><strong class="rx-num">{{ moneda(a.saldo) }}</strong></div>
+          </div>
+          @if (a.abonos.length) {
+            <div class="rx-tabla-wrap">
+              <table class="rx-tabla">
+                <thead><tr><th>Fecha</th><th>Medio</th><th>Referencia</th><th>Registró</th><th>Estado</th><th class="derecha">Valor</th></tr></thead>
+                <tbody>
+                  @for (ab of a.abonos; track ab.id) {
+                    <tr>
+                      <td data-label="Fecha">{{ fecha(ab.fechaHora, true) }}</td>
+                      <td data-label="Medio">{{ ab.metodoNombre }}</td>
+                      <td data-label="Referencia">{{ ab.referencia ?? '—' }}</td>
+                      <td data-label="Registró">{{ ab.registradoPor }}</td>
+                      <td data-label="Estado">
+                        @if (ab.devuelto) { <span class="rx-chip critico">Devuelto {{ moneda(ab.valorDevuelto ?? 0) }}</span> }
+                        @else if (ab.facturaId) { <span class="rx-chip ok">Aplicado a la factura</span> }
+                        @else { <span class="rx-chip info">Vigente</span> }
+                      </td>
+                      <td data-label="Valor" class="derecha rx-num">{{ moneda(ab.valor) }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          } @else {
+            <p class="texto">La reserva no tiene abonos registrados.</p>
+          }
+        </section>
+      }
 
       @if (cuenta(); as c) {
         <section class="rx-card">
@@ -251,6 +364,10 @@ export class EditarReservaDialogComponent {
     .totales .total { font-size: 1.05rem; border-top: 1px solid var(--bg-300); padding-top: 0.25rem; }
     .saldo.pendiente strong { color: #c62828; }
     .facturas { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem; }
+    .descuento { color: #2e7d32; }
+    .abonos-resumen { display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; margin-bottom: 0.75rem; font-size: 0.9rem; }
+    .abonos-resumen div { display: flex; flex-direction: column; }
+    .abonos-resumen span { color: #5b6660; font-size: 0.8rem; }
     .comprobante-cabecera h2 { margin: 0; }
     .comprobante-cabecera p { margin: 0.15rem 0; font-size: 0.85rem; }
     .pie { font-size: 0.75rem; margin-top: 1rem; }
@@ -281,6 +398,8 @@ export class ReservaDetalleComponent implements OnInit {
   readonly reserva = signal<Reserva | null>(null);
   readonly cuenta = signal<CuentaReserva | null>(null);
   readonly servicios = signal<SolicitudServicio[]>([]);
+  readonly abonos = signal<ResumenAbonos | null>(null);
+  private readonly promociones = inject(PromocionService);
   readonly puedeOperar = computed(() => this.auth.tieneRol('ADMIN', 'RECEPCION'));
   readonly puedeFacturar = computed(() => this.auth.tieneRol('ADMIN', 'RECEPCION', 'FINANZAS'));
   readonly hayPendiente = computed(() => (this.cuenta()?.lineas ?? []).some((l) => !l.facturado));
@@ -308,6 +427,21 @@ export class ReservaDetalleComponent implements OnInit {
       this.facturas.cuentaReserva(this.id).subscribe({ next: (c) => this.cuenta.set(c), error: () => this.cuenta.set(null) });
     }
     this.serviciosService.solicitudes({ reservaId: this.id }).subscribe({ next: (s) => this.servicios.set(s), error: () => this.servicios.set([]) });
+    this.service.abonos(this.id).subscribe({ next: (a) => this.abonos.set(a), error: () => this.abonos.set(null) });
+  }
+
+  registrarAbono(): void {
+    const resumen = this.abonos();
+    if (!resumen) return;
+    this.dialog
+      .open(AbonoDialogComponent, { ...roomixDialogConfig({ width: '480px' }), data: { reserva: this.reserva(), resumen } })
+      .afterClosed()
+      .subscribe((ok) => {
+        if (ok) {
+          this.cargarCuenta();
+          this.snack.open('Abono registrado', 'OK', { duration: 2500 });
+        }
+      });
   }
 
   private refrescar(r: Reserva): void {
@@ -329,10 +463,22 @@ export class ReservaDetalleComponent implements OnInit {
 
   cancelar(): void {
     const r = this.reserva()!;
+    this.promociones.politicas().subscribe({
+      next: (p) => this.abrirCancelacion(r, p.penalidadCancelacionPct),
+      error: () => this.abrirCancelacion(r, 0),
+    });
+  }
+
+  private abrirCancelacion(r: Reserva, penalidadPct: number): void {
+    const abonado = this.abonos()?.totalAbonado ?? 0;
+    const retenido = Math.round((abonado * penalidadPct) / 100);
+    const aviso = abonado > 0
+      ? ` Abonado: ${moneda(abonado)}. Se retiene la penalidad del ${penalidadPct} % (${moneda(retenido)}) y se devuelven ${moneda(abonado - retenido)} al huésped.`
+      : '';
     this.dialog
       .open(MotivoDialogComponent, {
-        ...roomixDialogConfig({ width: '460px' }),
-        data: { title: 'Cancelar reserva', message: `Reserva #${r.id} de ${r.huesped.nombreCompleto}, habitación ${r.habitacionNumero}.`, confirmLabel: 'Cancelar reserva', label: 'Motivo de la cancelación' },
+        ...roomixDialogConfig({ width: '480px' }),
+        data: { title: 'Cancelar reserva', message: `Reserva #${r.id} de ${r.huesped.nombreCompleto}, habitación ${r.habitacionNumero}.${aviso}`, confirmLabel: 'Cancelar reserva', label: 'Motivo de la cancelación' },
       })
       .afterClosed()
       .subscribe((motivo?: string) => {

@@ -29,6 +29,7 @@ import { BarrasHorizontalesComponent } from '../../../shared/charts/barras-horiz
 import { Periodo, PeriodoSelectorComponent } from '../../../shared/periodo/periodo-selector.component';
 import { MovimientoDialogComponent } from '../movimiento-dialog/movimiento-dialog.component';
 import { MotivoDialogComponent } from '../../../shared/dialogs/motivo-dialog/motivo-dialog.component';
+import { GastosRecurrentesDialogComponent, PagarGastoDialogComponent } from '../gastos-dialogs/gastos-dialogs.component';
 
 @Component({
   selector: 'app-finanzas-panel',
@@ -74,6 +75,7 @@ export class FinanzasPanelComponent {
   filtroCategoria: CategoriaFinanciera | '' = '';
   filtroTexto = '';
   incluirAnulados = false;
+  filtroPendiente: '' | 'pagados' | 'pendientes' = '';
 
   readonly etiquetas = computed(() => this.resumen()?.serie.map((p) => p.etiqueta) ?? []);
   readonly series = computed<SerieGrafico[]>(() => {
@@ -126,8 +128,12 @@ export class FinanzasPanelComponent {
     this.cargandoMov.set(true);
     this.finanzas
       .movimientos({
-        desde: p.desde, hasta: p.hasta, tipo: this.filtroTipo, categoria: this.filtroCategoria,
-        texto: this.filtroTexto, incluirAnulados: this.incluirAnulados, pagina, tamano: 50,
+        // Los gastos por pagar se muestran sin importar el periodo (pueden vencer antes o después)
+        desde: this.filtroPendiente === 'pendientes' ? undefined : p.desde,
+        hasta: this.filtroPendiente === 'pendientes' ? undefined : p.hasta,
+        tipo: this.filtroTipo, categoria: this.filtroCategoria,
+        texto: this.filtroTexto, incluirAnulados: this.incluirAnulados,
+        pendiente: this.filtroPendiente === '' ? null : this.filtroPendiente === 'pendientes', pagina, tamano: 50,
       })
       .subscribe({
         next: (r) => {
@@ -198,5 +204,37 @@ export class FinanzasPanelComponent {
       ['Periodo', 'Ingresos', 'Egresos', 'Utilidad'],
       r.serie.map((p) => [p.etiqueta, p.ingresos, p.egresos, Number(p.ingresos) - Number(p.egresos)]),
     );
+  }
+
+  verPorPagar(): void {
+    this.filtroPendiente = 'pendientes';
+    this.filtroTipo = '';
+    this.filtroCategoria = '';
+    this.cambiarVista('movimientos');
+  }
+
+  pagar(m: MovimientoFinanciero): void {
+    this.dialog
+      .open(PagarGastoDialogComponent, { ...roomixDialogConfig({ width: '520px' }), data: m })
+      .afterClosed()
+      .subscribe((ok) => {
+        if (ok) {
+          this.snack.open('Pago registrado', 'OK', { duration: 2500 });
+          this.cargarResumen();
+          this.cargarMovimientos(this.pagina());
+        }
+      });
+  }
+
+  gastosRecurrentes(): void {
+    this.dialog
+      .open(GastosRecurrentesDialogComponent, { ...roomixDialogConfig({ width: '820px' }) })
+      .afterClosed()
+      .subscribe((cambios) => {
+        if (cambios) {
+          this.cargarResumen();
+          if (this.vista() === 'movimientos') this.cargarMovimientos(0);
+        }
+      });
   }
 }

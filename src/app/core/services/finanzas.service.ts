@@ -8,8 +8,11 @@ import {
   CuentaReserva,
   EstadoFactura,
   Factura,
+  GastoRecurrente,
+  GastoRecurrenteRequest,
   HotelInfo,
   MovimientoFinanciero,
+  PagarGastoRequest,
   MovimientoRequest,
   Pagina,
   PagoRequest,
@@ -42,10 +45,32 @@ export class FinanzasService {
     hasta?: string;
     incluirAnulados?: boolean;
     texto?: string;
+    pendiente?: boolean | null;
     pagina?: number;
     tamano?: number;
   }) {
     return this.http.get<Pagina<MovimientoFinanciero>>(`${this.baseUrl}/movimientos`, { params: params(f) });
+  }
+
+  /** Confirma el pago de un egreso por pagar. */
+  pagar(id: number, body: PagarGastoRequest) {
+    return this.http.patch<MovimientoFinanciero>(`${this.baseUrl}/movimientos/${id}/pagar`, body);
+  }
+
+  gastosRecurrentes() {
+    return this.http.get<GastoRecurrente[]>(`${this.baseUrl}/gastos-recurrentes`);
+  }
+
+  crearGastoRecurrente(body: GastoRecurrenteRequest) {
+    return this.http.post<GastoRecurrente>(`${this.baseUrl}/gastos-recurrentes`, body);
+  }
+
+  actualizarGastoRecurrente(id: number, body: GastoRecurrenteRequest) {
+    return this.http.put<GastoRecurrente>(`${this.baseUrl}/gastos-recurrentes/${id}`, body);
+  }
+
+  activarGastoRecurrente(id: number, valor: boolean) {
+    return this.http.patch<GastoRecurrente>(`${this.baseUrl}/gastos-recurrentes/${id}/activo`, {}, { params: params({ valor }) });
   }
 
   registrar(body: MovimientoRequest) {
