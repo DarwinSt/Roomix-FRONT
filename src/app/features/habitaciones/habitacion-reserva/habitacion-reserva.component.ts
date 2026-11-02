@@ -91,6 +91,8 @@ export class HabitacionReservaComponent implements OnInit {
   readonly promociones = signal<PromocionAplicable[]>([]);
   readonly promocionId = signal<number | null>(null);
   readonly cotizacion = signal<CotizacionReserva | null>(null);
+  /** Motivo por el que no se pudo cotizar; sin cotización no se puede registrar el pago ni confirmar. */
+  readonly errorCotizacion = signal<string | null>(null);
   private ultimoMinimo: number | null = null;
 
   // ---------------------------------------------------------------- Huésped existente (autocompletar)
@@ -244,11 +246,26 @@ export class HabitacionReservaComponent implements OnInit {
       .subscribe({
         next: (c) => {
           this.cotizacion.set(c);
+          this.errorCotizacion.set(null);
           this.proponerValorPago();
           this.ultimoMinimo = c.abonoMinimo;
         },
-        error: () => this.cotizacion.set(null),
+        error: (err: { status?: number; error?: { detail?: string; codigo?: string } }) => {
+          this.cotizacion.set(null);
+          const detalle = err?.error?.detail ? `${err.error.codigo ? '[' + err.error.codigo + '] ' : ''}${err.error.detail}` : null;
+          this.errorCotizacion.set(
+            detalle ??
+              (err?.status === 404
+                ? 'El servidor no tiene el cálculo de pagos de reservas (versión del backend desactualizada).'
+                : `No se pudo calcular el total y el pago de la reserva (${err?.status ? 'error ' + err.status : 'sin conexión con el servidor'}).`),
+          );
+        },
       });
+  }
+
+  reintentarCotizacion(): void {
+    this.errorCotizacion.set(null);
+    this.cotizar();
   }
 
   /** Pago completo o abono parcial; el completo fija el valor en el total de la reserva. */
@@ -280,7 +297,7 @@ export class HabitacionReservaComponent implements OnInit {
   /** Mensaje del pago al reservar frente al mínimo exigido; null si está bien. */
   get errorAbono(): string | null {
     const c = this.cotizacion();
-    if (!c) return 'Calculando el total de la reserva…';
+    if (!c) return this.errorCotizacion() ?? 'Calculando el total de la reserva…';
     const valor = Number(this.form.controls.abonoValor.value ?? 0);
     if (valor <= 0) return 'Para reservar registre el pago completo o un abono parcial.';
     if (c.abonoMinimo > 0 && valor < c.abonoMinimo) {

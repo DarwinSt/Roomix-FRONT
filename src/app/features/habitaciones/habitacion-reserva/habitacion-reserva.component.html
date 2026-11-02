@@ -180,6 +180,14 @@
               </div>
             }
 
+            @if (!cotizacion() && errorCotizacion()) {
+              <p class="section-label full">Pago de la reserva</p>
+              <div class="aviso-cotizacion full" role="alert">
+                <mat-icon>error_outline</mat-icon>
+                <span>{{ errorCotizacion() }}</span>
+                <button mat-stroked-button type="button" (click)="reintentarCotizacion()">Reintentar</button>
+              </div>
+            }
             @if (cotizacion(); as cz) {
               <p class="section-label full">Pago de la reserva</p>
               <div class="cotizacion full">

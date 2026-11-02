@@ -220,3 +220,16 @@
     mat-icon { color: var(--mat-sys-primary, #3f51b5); }
   }
 }
+
+.aviso-cotizacion {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid #e3b4b4;
+  background: #fdf1f1;
+  color: #8a1f1f;
+
+  span { flex: 1; }
+}
