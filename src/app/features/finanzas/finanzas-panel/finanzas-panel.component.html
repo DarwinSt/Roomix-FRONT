@@ -127,10 +127,10 @@
         <mat-option value="pendientes">Por pagar (todas las fechas)</mat-option>
       </mat-select>
     </mat-form-field>
-    <mat-form-field appearance="outline">
-      <mat-label>Buscar concepto, tercero o referencia</mat-label>
+    <mat-form-field appearance="outline" style="flex: 2 1 260px; max-width: 420px">
+      <mat-label>Buscar</mat-label>
       <mat-icon matPrefix>search</mat-icon>
-      <input matInput [(ngModel)]="filtroTexto" (keyup.enter)="cargarMovimientos(0)" />
+      <input matInput [(ngModel)]="filtroTexto" (keyup.enter)="cargarMovimientos(0)" placeholder="Concepto, tercero o referencia" />
     </mat-form-field>
     <div class="rx-toolbar-acciones">
       <mat-checkbox [(ngModel)]="incluirAnulados" (change)="cargarMovimientos(0)">Incluir anulados</mat-checkbox>

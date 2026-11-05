@@ -46,12 +46,13 @@ import { hoyIso } from '../../../core/utils/formato.util';
           <input matInput formControlName="concepto" maxlength="200" placeholder="Ej. Energía eléctrica de octubre" />
         </mat-form-field>
         @if (tipo() === 'EGRESO') {
-          <mat-checkbox formControlName="pendiente" class="rx-full">Queda por pagar (se registra el gasto y se paga después)</mat-checkbox>
+          <mat-checkbox formControlName="pendiente" class="rx-full por-pagar">Queda por pagar</mat-checkbox>
+          @if (esPendiente()) { <p class="rx-full por-pagar-ayuda">El egreso no cuenta en los totales hasta que se registre su pago. La fecha es el vencimiento.</p> }
         }
         <mat-form-field appearance="outline">
           <mat-label>{{ esPendiente() ? 'Fecha de vencimiento' : 'Fecha' }}</mat-label>
           <input matInput type="date" formControlName="fecha" />
-          @if (esPendiente()) { <mat-hint>No cuenta en los egresos hasta confirmar el pago</mat-hint> }
+          
         </mat-form-field>
         <mat-form-field appearance="outline">
           <mat-label>Método de pago</mat-label>
@@ -76,7 +77,7 @@ import { hoyIso } from '../../../core/utils/formato.util';
       <button mat-flat-button color="primary" (click)="guardar()" [disabled]="guardando()">Registrar</button>
     </mat-dialog-actions>
   `,
-  styles: `.tipo { margin-bottom: 1rem; } .error { color: #c62828; font-size: 0.85rem; margin: 0; }`,
+  styles: ` .por-pagar { margin: 0.25rem 0 0.5rem; } .por-pagar-ayuda { margin: -0.5rem 0 1rem; font-size: 0.8rem; color: #5b6660; } .tipo { margin-bottom: 1rem; } .error { color: #c62828; font-size: 0.85rem; margin: 0; }`,
 })
 export class MovimientoDialogComponent {
   private readonly finanzas = inject(FinanzasService);

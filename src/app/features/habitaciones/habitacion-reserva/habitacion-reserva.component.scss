@@ -190,7 +190,8 @@
   .total { border-top: 1px solid #d8ddd9; padding-top: 0.25rem; font-size: 1rem; }
   .minimo strong { color: #1f3f7a; }
 }
-.nota-penalidad { display: flex; align-items: center; gap: 0.4rem; margin: 0; font-size: 0.85rem; color: #5b6660; }
+.nota-penalidad { display: flex; align-items: flex-start; gap: 0.4rem; margin: 0.75rem 0 0; font-size: 0.85rem; color: #5b6660; }
+.nota-penalidad mat-icon { flex: none; }
 
 .tipo-pago {
   display: grid;
