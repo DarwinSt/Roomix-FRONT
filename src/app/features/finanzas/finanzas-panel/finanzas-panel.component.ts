@@ -57,6 +57,12 @@ export class FinanzasPanelComponent {
   readonly porcentaje = porcentaje;
   readonly fecha = fechaCorta;
   readonly metodo = etiquetaMetodoPago;
+
+  /** Reserva de un abono o de una devolución por cancelación (referencia «RES-n»); null si el movimiento no viene de una reserva. */
+  reservaDe(m: { referencia: string | null }): number | null {
+    const id = /^RES-(\d+)$/.exec(m.referencia ?? '')?.[1];
+    return id ? Number(id) : null;
+  }
   readonly colores = COLORES_SERIE;
 
   readonly vista = signal<'resumen' | 'movimientos'>('resumen');

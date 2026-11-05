@@ -45,10 +45,12 @@ const TEMAS: Tema[] = [
     ruta: '/reservas',
     roles: ['ADMIN', 'RECEPCION'],
     pasos: [
-      'Para reservar, ve a Habitaciones, elige una disponible y pulsa «Reservar». Selecciona fechas, huésped, canal (directo, teléfono, Booking, etc.) y observaciones.',
-      'Si el huésped no existe, créalo desde el mismo diálogo. Es obligatorio registrar la autorización de tratamiento de datos (Ley 1581 de 2012).',
-      'En el detalle de la reserva puedes editarla, cancelarla (con motivo obligatorio), hacer check-in o check-out e imprimir el comprobante.',
-      'Al hacer check-out el sistema genera la factura con alojamiento y servicios consumidos; luego registra el pago desde la factura.',
+      'Para reservar, ve a Habitaciones, elige la habitación y pulsa «Reservar». Selecciona fechas, huésped, canal y observaciones. Puedes reservar fechas futuras de una habitación ocupada si no se cruzan con otra estadía.',
+      'Si hay promociones que aplican (por ejemplo, 5 noches o más) escoge una; el total se recalcula con el descuento y el IVA.',
+      'El pago es obligatorio para reservar: elige «Pago completo» (el total con IVA) o «Abono parcial» (al menos el abono mínimo que fija el hotel) e indica el medio de pago.',
+      'Si el huésped no existe, créalo desde el mismo formulario. Es obligatorio registrar la autorización de tratamiento de datos (Ley 1581 de 2012).',
+      'En el detalle de la reserva verás los abonos (abonado y saldo) y puedes registrar otro; también editarla, cancelarla (con motivo; se muestra la penalidad que se retiene), hacer check-in o check-out e imprimir el comprobante.',
+      'Al hacer check-out el sistema genera la factura con alojamiento y servicios; los abonos ya aparecen como pagos y desde la factura se registra el saldo.',
     ],
   },
   {
@@ -123,8 +125,10 @@ const TEMAS: Tema[] = [
     roles: ['ADMIN', 'FINANZAS'],
     pasos: [
       'El panel muestra ingresos, egresos y utilidad del periodo con su comparativo, gráficos diarios o mensuales y totales por categoría.',
-      'Registra egresos manuales (nómina, servicios públicos, proveedores). Los ingresos se generan solos al registrar pagos de facturas.',
-      'En Facturas puedes consultar, registrar pagos parciales o totales, imprimir y anular (con motivo).',
+      'Registra egresos manuales (nómina, servicios públicos, proveedores). Los ingresos se generan solos al registrar pagos de facturas y abonos de reservas («Ver reserva» lleva a la reserva del abono).',
+      'Marca «Queda por pagar» para un gasto con vencimiento: no cuenta en los egresos hasta que registres su pago. El indicador «Por pagar» muestra el total y los vencidos.',
+      'Con «Gastos recurrentes» programa los gastos fijos del mes (arriendo, nómina, servicios); cada mes se crea solo el egreso por pagar.',
+      'En Facturas puedes consultar, registrar pagos parciales o totales, imprimir y anular (con motivo). Al anular una factura pagada sus pagos quedan devueltos y su saldo en $0.',
     ],
   },
   {
@@ -146,6 +150,17 @@ const TEMAS: Tema[] = [
       'Crea usuarios con uno de los 6 roles: Administrador, Recepción, Housekeeping, Finanzas, Eventos y Almacén. Cada rol ve solo sus módulos.',
       'Puedes desactivar usuarios o restablecer su contraseña (se genera una clave temporal que deberán cambiar).',
       'La Auditoría registra quién hizo cada acción, cuándo, desde qué IP y con qué resultado; se puede filtrar por usuario, módulo y fecha.',
+    ],
+  },
+  {
+    titulo: 'Promociones y políticas de reserva',
+    icono: 'sell',
+    ruta: '/promociones',
+    roles: ['ADMIN'],
+    pasos: [
+      'Crea promociones de valor fijo o porcentaje con condiciones: mínimo de noches, tipo de habitación, canal y fechas de llegada. Actívalas o desactívalas cuando quieras.',
+      'Recepción solo ve las promociones que aplican a cada reserva y puede escoger una.',
+      'En «Políticas de reserva» define el abono mínimo para reservar (% del total con IVA) y la penalidad por cancelación (% de lo abonado que se retiene; el resto se devuelve).',
     ],
   },
 ];

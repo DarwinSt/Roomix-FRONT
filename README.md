@@ -79,7 +79,7 @@ Antes de desplegar, agrega la URL del frontend a `CORS_ALLOWED_ORIGINS` en el ba
 
 | Plataforma | Configuración |
 |------------|---------------|
-| **Render (Static Site)** | Build command: `npm ci && npm run build` · Publish directory: `dist/roomix/browser` · Variable `API_URL`. En *Redirects/Rewrites* agrega `/*` → `/index.html` (Rewrite). |
+| **Render (Static Site)** | Build command: `npm ci && npm run build` · Publish directory: `dist/roomix/browser` · Variable `API_URL`. En *Redirects/Rewrites* agrega `/*` → `/index.html` (Rewrite); sin esa regla, refrescar (F5) una ruta interna da «Not Found». Como respaldo, `npm run build` genera `404.html` (`scripts/spa-fallback.mjs`). |
 | **Railway** | Usa el `Dockerfile` (nginx). Define `API_URL` como variable (Railway la pasa como build arg). Genera un dominio público. |
 | **Vercel** | Importa el repo; `vercel.json` ya define build, salida y rewrites. Define `API_URL` en *Environment Variables*. |
 | **Docker** | `docker build --build-arg API_URL=https://.../api -t roomix-front .` y `docker run -p 8080:80 roomix-front`. |
@@ -87,6 +87,8 @@ Antes de desplegar, agrega la URL del frontend a `CORS_ALLOWED_ORIGINS` en el ba
 ## App Android (APK)
 
 La misma aplicación Angular se empaqueta como app nativa con **Capacitor 8** (sin reescribir la UI). El proyecto nativo está en `android/`.
+
+> El proyecto usa Capacitor directamente y **no** es un proyecto Ionic: `ionic serve`, `ionic build` o `ionic cap …` responden «can only be run in an Ionic project directory». Equivalentes: `npm start`, `npm run build`, `npx cap sync android`, `npm run android:open` y `npx cap run android`.
 
 ### Requisitos
 

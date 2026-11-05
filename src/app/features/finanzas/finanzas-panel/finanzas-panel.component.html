@@ -170,6 +170,8 @@
               <td class="acciones derecha">
                 @if (m.facturaId) {
                   <a mat-icon-button [routerLink]="['/facturas', m.facturaId]" matTooltip="Ver factura" aria-label="Ver factura"><mat-icon>receipt_long</mat-icon></a>
+                } @else if (reservaDe(m); as reservaId) {
+                  <a mat-icon-button [routerLink]="['/reservas', reservaId]" matTooltip="Ver reserva" aria-label="Ver reserva"><mat-icon>event_available</mat-icon></a>
                 } @else if (!m.anulado) {
                   @if (m.pendiente) {
                     <button mat-icon-button (click)="pagar(m)" matTooltip="Registrar pago" aria-label="Registrar pago"><mat-icon>task_alt</mat-icon></button>

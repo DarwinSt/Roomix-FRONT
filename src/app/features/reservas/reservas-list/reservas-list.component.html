@@ -52,7 +52,7 @@
     <div class="rx-tabla-wrap">
       <table class="rx-tabla">
         <thead>
-          <tr><th>Reserva</th><th>Huésped</th><th>Estancia</th><th>Canal</th><th class="derecha">Total</th><th>Estado</th><th></th></tr>
+          <tr><th>Reserva</th><th>Huésped</th><th>Estancia</th><th>Canal</th><th class="derecha" title="Tarifa por noches menos la promoción; el IVA y los servicios se suman en la cuenta y la factura">Alojamiento (sin IVA)</th><th>Estado</th><th></th></tr>
         </thead>
         <tbody>
           @for (r of paginaActual(); track r.id) {
@@ -61,7 +61,7 @@
               <td data-label="Huésped" class="ancho">{{ r.huesped.nombreCompleto }}<span class="sub">{{ r.huesped.tipoDocumento }} {{ r.huesped.numeroDocumento }}</span></td>
               <td data-label="Estancia">{{ fecha(r.fechaEntrada) }} → {{ fecha(r.fechaSalida) }}<span class="sub">{{ r.cantidadNoches }} noche(s)</span></td>
               <td data-label="Canal">{{ r.canalNombre ?? '—' }}</td>
-              <td data-label="Total" class="derecha rx-num">{{ moneda(r.totalEstimado) }}</td>
+              <td data-label="Alojamiento (sin IVA)" class="derecha rx-num">{{ moneda(r.totalEstimado) }}</td>
               <td data-label="Estado"><span class="rx-chip {{ claseEstado(r.estadoReserva) }}">{{ etiquetaEstado(r.estadoReserva) }}</span></td>
               <td class="acciones derecha" (click)="$event.stopPropagation()">
                 <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="Acciones de la reserva"><mat-icon>more_vert</mat-icon></button>
