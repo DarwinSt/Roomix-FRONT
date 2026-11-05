@@ -35,10 +35,9 @@ import { fechaCorta, hoyIso, moneda } from '../../../core/utils/formato.util';
       <div class="header-text"><h2>Registrar pago</h2><p>{{ data.concepto }} · vence {{ fecha(data.fechaVencimiento) }}</p></div>
     </div>
     <mat-dialog-content>
-      <form [formGroup]="form" class="rx-form-grid">
+      <form [formGroup]="form" class="dialog-form-grid">
         <mat-form-field appearance="outline">
-          <mat-label>Valor pagado</mat-label>
-          <span matTextPrefix>$&nbsp;</span>
+          <mat-label>Valor pagado (COP)</mat-label>
           <input matInput type="number" min="1" formControlName="valor" />
         </mat-form-field>
         <mat-form-field appearance="outline">
@@ -99,8 +98,8 @@ export class PagarGastoDialogComponent {
       <div class="header-text"><h2>{{ data ? 'Editar gasto recurrente' : 'Nuevo gasto recurrente' }}</h2><p>Cada mes se genera un egreso «por pagar» con vencimiento el día indicado.</p></div>
     </div>
     <mat-dialog-content>
-      <form [formGroup]="form" class="rx-form-grid">
-        <mat-form-field appearance="outline" class="rx-full">
+      <form [formGroup]="form" class="dialog-form-grid">
+        <mat-form-field appearance="outline" class="full">
           <mat-label>Concepto</mat-label>
           <input matInput formControlName="concepto" maxlength="200" placeholder="Ej. Arriendo del local, nómina quincenal, energía" />
         </mat-form-field>
@@ -111,27 +110,26 @@ export class PagarGastoDialogComponent {
           </mat-select>
         </mat-form-field>
         <mat-form-field appearance="outline">
-          <mat-label>Valor mensual</mat-label>
-          <span matTextPrefix>$&nbsp;</span>
+          <mat-label>Valor mensual (COP)</mat-label>
           <input matInput type="number" min="1" formControlName="valor" />
         </mat-form-field>
         <mat-form-field appearance="outline">
           <mat-label>Día de vencimiento</mat-label>
           <input matInput type="number" min="1" max="28" formControlName="diaVencimiento" />
-          <mat-hint>Del 1 al 28, para que exista en todos los meses</mat-hint>
+          <mat-hint>Del 1 al 28</mat-hint>
         </mat-form-field>
         <mat-form-field appearance="outline">
-          <mat-label>Método de pago habitual</mat-label>
+          <mat-label>Medio de pago</mat-label>
           <mat-select formControlName="metodoPago" panelClass="roomix-select-panel">
             <mat-option [value]="null">—</mat-option>
             @for (m of metodos; track m.value) { <mat-option [value]="m.value">{{ m.label }}</mat-option> }
           </mat-select>
         </mat-form-field>
-        <mat-form-field appearance="outline" class="rx-full">
+        <mat-form-field appearance="outline" class="full">
           <mat-label>Proveedor / tercero</mat-label>
           <input matInput formControlName="tercero" maxlength="150" />
         </mat-form-field>
-        @if (data) { <mat-slide-toggle formControlName="activo" class="rx-full">Activo</mat-slide-toggle> }
+        @if (data) { <mat-slide-toggle formControlName="activo" class="full">Activo (genera el egreso cada mes)</mat-slide-toggle> }
       </form>
       @if (error()) { <p class="error">{{ error() }}</p> }
     </mat-dialog-content>

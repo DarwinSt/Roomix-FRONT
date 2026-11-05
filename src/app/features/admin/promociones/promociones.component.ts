@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -17,12 +18,13 @@ import { CANALES_RESERVA, CanalReserva, Promocion, PromocionRequest, TipoDescuen
 import { TIPOS_HABITACION, TipoHabitacion } from '../../../core/models/habitacion.model';
 import { extractApiErrorMessage } from '../../../core/utils/api-error.util';
 import { fechaCorta, moneda } from '../../../core/utils/formato.util';
+import { formatearFechaIso, parsearFechaApi } from '../../../core/utils/date.util';
 
 /** Crear o editar una promoción: condiciones (todas deben cumplirse) y descuento. */
 @Component({
   selector: 'app-promocion-dialog',
   host: { class: 'roomix-dialog-shell' },
-  imports: [ReactiveFormsModule, MatDialogModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSelectModule, MatSlideToggleModule],
+  imports: [ReactiveFormsModule, MatDialogModule, MatButtonModule, MatDatepickerModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSelectModule, MatSlideToggleModule],
   template: `
     <div class="dialog-accent" aria-hidden="true"></div>
     <div mat-dialog-title class="dialog-header">
@@ -30,19 +32,19 @@ import { fechaCorta, moneda } from '../../../core/utils/formato.util';
       <div class="header-text"><h2>{{ data ? 'Editar promoción' : 'Nueva promoción' }}</h2><p>La promoción aplica cuando la reserva cumple todas las condiciones.</p></div>
     </div>
     <mat-dialog-content>
-      <form [formGroup]="form" class="rx-form-grid">
-        <mat-form-field appearance="outline" class="rx-full">
+      <form [formGroup]="form" class="dialog-form-grid">
+        <mat-form-field appearance="outline" class="full">
           <mat-label>Nombre</mat-label>
           <input matInput formControlName="nombre" maxlength="100" />
           <mat-hint>Lo verá recepción al reservar, por ejemplo «Estadía larga»</mat-hint>
         </mat-form-field>
-        <mat-form-field appearance="outline" class="rx-full">
+        <mat-form-field appearance="outline" class="full">
           <mat-label>Descripción (opcional)</mat-label>
           <input matInput formControlName="descripcion" maxlength="300" />
         </mat-form-field>
 
-        <p class="rx-full seccion">Descuento</p>
-        <mat-form-field appearance="outline">
+        <p class="section-label">Descuento</p>
+        <mat-form-field appearance="outline" class="roomix-dialog-select">
           <mat-label>Tipo de descuento</mat-label>
           <mat-select formControlName="tipoDescuento" panelClass="roomix-select-panel">
             <mat-option value="VALOR_FIJO">Valor fijo (pesos)</mat-option>
@@ -50,51 +52,57 @@ import { fechaCorta, moneda } from '../../../core/utils/formato.util';
           </mat-select>
         </mat-form-field>
         <mat-form-field appearance="outline">
-          <mat-label>{{ form.controls.tipoDescuento.value === 'PORCENTAJE' ? 'Porcentaje' : 'Valor' }}</mat-label>
-          @if (form.controls.tipoDescuento.value === 'VALOR_FIJO') { <span matTextPrefix>$&nbsp;</span> }
+          <mat-label>{{ form.controls.tipoDescuento.value === 'PORCENTAJE' ? 'Porcentaje' : 'Valor (COP)' }}</mat-label>
           <input matInput type="number" min="1" formControlName="valor" />
           @if (form.controls.tipoDescuento.value === 'PORCENTAJE') { <span matTextSuffix>&nbsp;%</span> }
         </mat-form-field>
 
-        <p class="rx-full seccion">Condiciones (deje en blanco las que no apliquen)</p>
+        <p class="section-label">Condiciones <span class="opcional">(deje en blanco las que no apliquen)</span></p>
         <mat-form-field appearance="outline">
           <mat-label>Mínimo de noches</mat-label>
           <input matInput type="number" min="1" formControlName="minimoNoches" />
           <mat-hint>Ej.: 6 para «más de 5 noches»</mat-hint>
         </mat-form-field>
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" class="roomix-dialog-select">
           <mat-label>Tipo de habitación</mat-label>
           <mat-select formControlName="tipoHabitacion" panelClass="roomix-select-panel">
             <mat-option [value]="null">Cualquiera</mat-option>
             @for (t of tipos; track t.value) { <mat-option [value]="t.value">{{ t.label }}</mat-option> }
           </mat-select>
         </mat-form-field>
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" class="roomix-dialog-select">
           <mat-label>Canal de la reserva</mat-label>
           <mat-select formControlName="canal" panelClass="roomix-select-panel">
             <mat-option [value]="null">Cualquiera</mat-option>
             @for (c of canales; track c.value) { <mat-option [value]="c.value">{{ c.label }}</mat-option> }
           </mat-select>
         </mat-form-field>
-        <span></span>
+        <div class="activa"><mat-slide-toggle formControlName="activa">Promoción activa</mat-slide-toggle></div>
         <mat-form-field appearance="outline">
           <mat-label>Llegadas desde</mat-label>
-          <input matInput type="date" formControlName="vigenteDesde" />
+          <input matInput [matDatepicker]="pickerDesde" formControlName="vigenteDesde" />
+          <mat-datepicker-toggle matIconSuffix [for]="pickerDesde" />
+          <mat-datepicker #pickerDesde />
         </mat-form-field>
         <mat-form-field appearance="outline">
           <mat-label>Llegadas hasta</mat-label>
-          <input matInput type="date" formControlName="vigenteHasta" />
+          <input matInput [matDatepicker]="pickerHasta" formControlName="vigenteHasta" [min]="form.controls.vigenteDesde.value" />
+          <mat-datepicker-toggle matIconSuffix [for]="pickerHasta" />
+          <mat-datepicker #pickerHasta />
         </mat-form-field>
-        <mat-slide-toggle formControlName="activa" class="rx-full">Promoción activa</mat-slide-toggle>
       </form>
-      @if (error()) { <p class="error">{{ error() }}</p> }
+      @if (error()) { <p class="error full">{{ error() }}</p> }
     </mat-dialog-content>
     <mat-dialog-actions align="end">
       <button mat-button mat-dialog-close>Cancelar</button>
       <button mat-flat-button color="primary" (click)="guardar()" [disabled]="guardando()">Guardar</button>
     </mat-dialog-actions>
   `,
-  styles: `.error { color: #c62828; font-size: 0.85rem; } .seccion { margin: 0.5rem 0 0; font-weight: 600; font-size: 0.85rem; color: #5b6660; }`,
+  styles: `
+    .error { color: #c62828; font-size: 0.85rem; margin: 0.5rem 0 0; }
+    .opcional { text-transform: none; letter-spacing: 0; font-weight: 400; color: var(--text-200, #5b6660); }
+    .activa { display: flex; align-items: center; min-height: 56px; padding-bottom: 1.25rem; }
+  `,
 })
 export class PromocionDialogComponent {
   readonly data = inject<Promocion | null>(MAT_DIALOG_DATA);
@@ -112,8 +120,8 @@ export class PromocionDialogComponent {
     minimoNoches: [this.data?.minimoNoches ?? (null as number | null), Validators.min(1)],
     tipoHabitacion: [(this.data?.tipoHabitacion ?? null) as TipoHabitacion | null],
     canal: [(this.data?.canal ?? null) as CanalReserva | null],
-    vigenteDesde: [this.data?.vigenteDesde ?? ''],
-    vigenteHasta: [this.data?.vigenteHasta ?? ''],
+    vigenteDesde: [parsearFechaApi(this.data?.vigenteDesde)],
+    vigenteHasta: [parsearFechaApi(this.data?.vigenteHasta)],
     activa: [this.data?.activa ?? true],
   });
 
@@ -128,6 +136,10 @@ export class PromocionDialogComponent {
       this.error.set('El porcentaje no puede superar 100.');
       return;
     }
+    if (v.vigenteDesde && v.vigenteHasta && v.vigenteDesde > v.vigenteHasta) {
+      this.error.set('La fecha «Llegadas desde» debe ser anterior o igual a «Llegadas hasta».');
+      return;
+    }
     const body: PromocionRequest = {
       nombre: v.nombre!.trim(),
       descripcion: v.descripcion?.trim() || null,
@@ -136,8 +148,8 @@ export class PromocionDialogComponent {
       minimoNoches: v.minimoNoches ? Number(v.minimoNoches) : null,
       tipoHabitacion: v.tipoHabitacion,
       canal: v.canal,
-      vigenteDesde: v.vigenteDesde || null,
-      vigenteHasta: v.vigenteHasta || null,
+      vigenteDesde: v.vigenteDesde ? formatearFechaIso(v.vigenteDesde) : null,
+      vigenteHasta: v.vigenteHasta ? formatearFechaIso(v.vigenteHasta) : null,
       activa: !!v.activa,
     };
     this.guardando.set(true);
@@ -171,13 +183,13 @@ export class PromocionDialogComponent {
           <mat-label>Abono mínimo para reservar</mat-label>
           <input matInput type="number" min="0" max="100" formControlName="abonoMinimoPct" />
           <span matTextSuffix>&nbsp;%</span>
-          <mat-hint>Porcentaje del total con IVA. 0 = sin abono obligatorio</mat-hint>
+          <mat-hint>% del total con IVA (0 = sin mínimo)</mat-hint>
         </mat-form-field>
         <mat-form-field appearance="outline">
           <mat-label>Penalidad por cancelación</mat-label>
           <input matInput type="number" min="0" max="100" formControlName="penalidadCancelacionPct" />
           <span matTextSuffix>&nbsp;%</span>
-          <mat-hint>Porcentaje de lo abonado que se retiene; el resto se devuelve</mat-hint>
+          <mat-hint>% de lo abonado que se retiene</mat-hint>
         </mat-form-field>
         <button mat-flat-button color="primary" (click)="guardarPolitica()" [disabled]="politica.invalid || guardandoPolitica()">Guardar políticas</button>
       </form>
@@ -209,7 +221,7 @@ export class PromocionDialogComponent {
     }
   `,
   styles: `
-    .politica { display: flex; flex-wrap: wrap; gap: 0.75rem 1rem; align-items: flex-start; }
+    .politica { display: flex; flex-wrap: wrap; gap: 1.1rem 1rem; align-items: flex-start; }
     .politica mat-form-field { flex: 1 1 240px; }
     .politica button { margin-top: 0.35rem; }
     .ejemplo { margin: 0.75rem 0 0; font-size: 0.85rem; }

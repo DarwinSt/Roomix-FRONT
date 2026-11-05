@@ -103,10 +103,9 @@ export class EditarReservaDialogComponent {
       <div class="header-text"><h2>Registrar abono</h2><p>Reserva #{{ data.reserva.id }} · saldo {{ moneda(data.resumen.saldo) }}</p></div>
     </div>
     <mat-dialog-content>
-      <form [formGroup]="form" class="rx-form-grid">
+      <form [formGroup]="form" class="dialog-form-grid">
         <mat-form-field appearance="outline">
-          <mat-label>Valor</mat-label>
-          <span matTextPrefix>$&nbsp;</span>
+          <mat-label>Valor (COP)</mat-label>
           <input matInput type="number" min="1" step="1000" formControlName="valor" />
           <mat-hint>Máximo {{ moneda(data.resumen.saldo) }}</mat-hint>
         </mat-form-field>
@@ -116,7 +115,7 @@ export class EditarReservaDialogComponent {
             @for (m of metodos; track m.value) { <mat-option [value]="m.value">{{ m.label }}</mat-option> }
           </mat-select>
         </mat-form-field>
-        <mat-form-field appearance="outline" class="rx-full">
+        <mat-form-field appearance="outline" class="full">
           <mat-label>Referencia (opcional)</mat-label>
           <input matInput formControlName="referencia" maxlength="80" />
         </mat-form-field>

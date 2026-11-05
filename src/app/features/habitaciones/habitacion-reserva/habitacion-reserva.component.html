@@ -75,11 +75,11 @@
             </div>
           } @else {
             <mat-form-field appearance="outline" class="buscar-huesped">
-              <mat-label>¿Ya se ha hospedado? Buscar por nombre o documento</mat-label>
+              <mat-label>Buscar huésped que ya se hospedó</mat-label>
               <mat-icon matPrefix>person_search</mat-icon>
               <input matInput [ngModel]="textoBusqueda()" [ngModelOptions]="{ standalone: true }"
                      (ngModelChange)="onBuscarHuesped($event)" [matAutocomplete]="acHuesped" autocomplete="off" />
-              <mat-hint>Escriba al menos 2 letras; no importan tildes ni mayúsculas. Si no aparece, registre los datos abajo.</mat-hint>
+              <mat-hint>Nombre o documento; si no aparece, regístrelo abajo</mat-hint>
               <mat-autocomplete #acHuesped="matAutocomplete" (optionSelected)="seleccionarHuesped($event.option.value)">
                 @if (buscandoHuesped()) {
                   <mat-option disabled>Buscando…</mat-option>
@@ -220,7 +220,7 @@
                 @if (pagoCompleto) {
                   <mat-hint>Total de la reserva</mat-hint>
                 } @else if (cz.abonoMinimo > 0) {
-                  <mat-hint>Mínimo {{ formatearMoneda(cz.abonoMinimo) }} · saldo {{ formatearMoneda(cz.totalConImpuesto - +(form.controls.abonoValor.value ?? 0)) }}</mat-hint>
+                  <mat-hint>Mín. {{ formatearMoneda(cz.abonoMinimo) }} · saldo {{ formatearMoneda(cz.totalConImpuesto - +(form.controls.abonoValor.value ?? 0)) }}</mat-hint>
                 } @else {
                   <mat-hint>Obligatorio · saldo {{ formatearMoneda(cz.totalConImpuesto - +(form.controls.abonoValor.value ?? 0)) }}</mat-hint>
                 }
@@ -234,7 +234,7 @@
               <mat-form-field appearance="outline" class="full">
                 <mat-label>Referencia del pago (opcional)</mat-label>
                 <input matInput formControlName="abonoReferencia" maxlength="80" />
-                <mat-hint>Número de aprobación, comprobante de transferencia…</mat-hint>
+                <mat-hint>Aprobación del datáfono o comprobante</mat-hint>
               </mat-form-field>
               @if (cz.penalidadCancelacionPct > 0) {
                 <p class="nota-penalidad full"><mat-icon>policy</mat-icon>Si la reserva se cancela, se retiene el {{ cz.penalidadCancelacionPct }} % de lo abonado y se devuelve el resto.</p>
