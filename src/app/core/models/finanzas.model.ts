@@ -59,6 +59,8 @@ export interface MovimientoFinanciero {
   fechaVencimiento: string | null;
   vencido: boolean;
   gastoRecurrenteId: number | null;
+  /** Abono de reserva que originó el ingreso. */
+  abonoId: number | null;
 }
 
 export interface GastoRecurrente {
