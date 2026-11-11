@@ -17,6 +17,7 @@ const EVENTOS: Rol[] = ['ADMIN', 'EVENTOS', 'RECEPCION', 'FINANZAS'];
 const EVENTOS_GESTION: Rol[] = ['ADMIN', 'EVENTOS'];
 const FINANZAS: Rol[] = ['ADMIN', 'FINANZAS'];
 const FACTURAS: Rol[] = ['ADMIN', 'FINANZAS', 'RECEPCION'];
+const CAJA: Rol[] = ['ADMIN', 'RECEPCION', 'FINANZAS'];
 const ADMIN: Rol[] = ['ADMIN'];
 
 const con = (roles: Rol[]) => ({ canActivate: [rolGuard], data: { roles } });
@@ -225,6 +226,16 @@ export const routes: Routes = [
         path: 'finanzas',
         ...con(FINANZAS),
         loadComponent: () => import('./features/finanzas/finanzas-panel/finanzas-panel.component').then((m) => m.FinanzasPanelComponent),
+      },
+      {
+        path: 'caja',
+        ...con(CAJA),
+        loadComponent: () => import('./features/caja/caja.component').then((m) => m.CajaComponent),
+      },
+      {
+        path: 'caja/turnos/:id',
+        ...con(CAJA),
+        loadComponent: () => import('./features/caja/turno-detalle.component').then((m) => m.TurnoDetalleComponent),
       },
       {
         path: 'facturas',

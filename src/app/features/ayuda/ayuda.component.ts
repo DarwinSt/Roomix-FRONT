@@ -119,6 +119,20 @@ const TEMAS: Tema[] = [
     ],
   },
   {
+    titulo: 'Caja y turnos de recepción',
+    icono: 'point_of_sale',
+    ruta: '/caja',
+    roles: ['ADMIN', 'RECEPCION', 'FINANZAS'],
+    pasos: [
+      'Al iniciar tu turno entra a Caja y pulsa «Abrir turno»: cuenta el efectivo que recibes y regístralo como base. Si no coincide con la base que dejó el turno anterior, explica la diferencia.',
+      'Sin turno abierto la recepción no puede cobrar: reservas con pago, abonos, pagos de facturas ni movimientos. El hotel tiene una sola caja, así que solo puede haber un turno abierto a la vez.',
+      'Los pagos que registras en reservas y facturas entran solos a tu turno. Desde Caja registras además otros ingresos (ventas en recepción) y egresos pagados en efectivo (compras pequeñas); quedan también en Finanzas.',
+      'Usa «Retiro / aporte» para sacar billetes a la caja fuerte o recibir monedas de cambio: no son ingresos ni gastos del hotel, pero cambian el efectivo en caja.',
+      'Al terminar pulsa «Cerrar turno»: cuenta los billetes y monedas, el sistema calcula el efectivo esperado y la diferencia (un faltante o sobrante debe explicarse), indica la base que queda para el siguiente turno y entrega el resto.',
+      'El acta del turno (con arqueo, totales por medio de pago, conteo, movimientos y espacio para firmas) se puede imprimir. Administración y finanzas consultan el historial de todos los turnos; cada recepcionista ve los suyos.',
+    ],
+  },
+  {
     titulo: 'Finanzas y facturación',
     icono: 'account_balance',
     ruta: '/finanzas',
