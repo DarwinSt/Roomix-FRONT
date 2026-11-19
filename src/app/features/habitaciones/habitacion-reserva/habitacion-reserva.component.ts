@@ -34,13 +34,15 @@ import { formatearFechaIso } from '../../../core/utils/date.util';
 import { etiquetaEstado, metaEstado } from '../../../core/utils/habitacion-estado.util';
 
 /** Al reservar siempre se registra un pago: el total o un abono parcial (≥ mínimo de la política). */
-type TipoPago = 'COMPLETO' | 'PARCIAL';
+type TipoPago = 'COMPLETO' | 'PARCIAL' | 'SIN_PAGO';
 
 const DATOS_HUESPED = ['nombre', 'apellidos', 'tipoDocumento', 'numeroDocumento', 'email', 'telefono'] as const;
 
+import { ConfiguracionService } from '../../../core/services/configuracion.service';
+import { MonedaDirective } from '../../../shared/directivas/moneda.directive';
 @Component({
   selector: 'app-habitacion-reserva',
-  imports: [
+  imports: [MonedaDirective, 
     ReactiveFormsModule,
     RouterLink,
     MatCardModule,
@@ -77,6 +79,10 @@ export class HabitacionReservaComponent implements OnInit {
   readonly verificandoDisponibilidad = signal(false);
   readonly habitacion = signal<Habitacion | null>(null);
   readonly tarifaNoche = signal<number | null>(null);
+  private readonly configuracion = inject(ConfiguracionService);
+  /** El hotel cobra por persona y noche (la tarifa es por persona). */
+  readonly porPersona = this.configuracion.porPersona;
+  readonly cobraIva = this.configuracion.cobraIva;
   readonly disponibleEnFechas = signal<boolean | null>(null);
   readonly errorDisponibilidad = signal<string | null>(null);
   readonly tiposDocumento = TIPOS_DOCUMENTO;
@@ -119,6 +125,7 @@ export class HabitacionReservaComponent implements OnInit {
     fechaEntrada: [new Date(), Validators.required],
     fechaSalida: [this.sumaDias(new Date(), 1), Validators.required],
     canal: ['PRESENCIAL' as CanalReserva],
+    cantidadPersonas: [1 as number | null, [Validators.required, Validators.min(1), Validators.max(100)]],
     observaciones: ['', Validators.maxLength(500)],
     tipoPago: ['COMPLETO' as TipoPago],
     abonoValor: [null as number | null],
@@ -152,7 +159,7 @@ export class HabitacionReservaComponent implements OnInit {
 
     // Solo las fechas y el canal cambian la disponibilidad, las promociones y el total
     const c = this.form.controls;
-    merge(c.fechaEntrada.valueChanges, c.fechaSalida.valueChanges, c.canal.valueChanges)
+    merge(c.fechaEntrada.valueChanges, c.fechaSalida.valueChanges, c.canal.valueChanges, c.cantidadPersonas.valueChanges)
       .pipe(debounceTime(350), takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.verificarDisponibilidad());
 
@@ -213,7 +220,7 @@ export class HabitacionReservaComponent implements OnInit {
   }
 
   private cargarPromociones(habitacionId: number, entrada: string, salida: string): void {
-    this.promocionService.aplicables(habitacionId, entrada, salida, this.form.controls.canal.value).subscribe({
+    this.promocionService.aplicables(habitacionId, entrada, salida, this.form.controls.canal.value, this.personas).subscribe({
       next: (lista) => {
         this.promociones.set(lista);
         if (this.promocionId() != null && !lista.some((p) => p.id === this.promocionId())) this.promocionId.set(null);
@@ -242,6 +249,7 @@ export class HabitacionReservaComponent implements OnInit {
         promocionId: this.promocionId(),
         canal: this.form.controls.canal.value,
         huespedId: this.huespedSeleccionado()?.id ?? null,
+        cantidadPersonas: this.personas,
       })
       .subscribe({
         next: (c) => {
@@ -271,7 +279,7 @@ export class HabitacionReservaComponent implements OnInit {
   /** Pago completo o abono parcial; el completo fija el valor en el total de la reserva. */
   escogerTipoPago(tipo: TipoPago): void {
     this.form.controls.tipoPago.setValue(tipo);
-    if (tipo === 'PARCIAL') this.form.controls.abonoValor.setValue(null, { emitEvent: false });
+    if (tipo === 'PARCIAL' || tipo === 'SIN_PAGO') this.form.controls.abonoValor.setValue(null, { emitEvent: false });
     this.proponerValorPago();
   }
 
@@ -279,11 +287,34 @@ export class HabitacionReservaComponent implements OnInit {
     return this.form.controls.tipoPago.value === 'COMPLETO';
   }
 
+  get sinPago(): boolean {
+    return this.form.controls.tipoPago.value === 'SIN_PAGO';
+  }
+
+  /** Personas de la estadía (1 si el campo está vacío). */
+  get personas(): number {
+    const n = Number(this.form.controls.cantidadPersonas.value);
+    return Number.isFinite(n) && n >= 1 ? Math.floor(n) : 1;
+  }
+
+  /** La capacidad es una sugerencia: solo se advierte si la superan. */
+  get superaCapacidad(): boolean {
+    const cap = this.habitacion()?.capacidad;
+    return cap != null && this.personas > cap;
+  }
+
   /** Completo → el total; parcial → el abono mínimo, respetando un valor mayor que ya se haya escrito. */
   private proponerValorPago(): void {
     const c = this.cotizacion();
     if (!c) return;
     const control = this.form.controls.abonoValor;
+    if (this.sinPago) {
+      if (c.pagoObligatorio) this.form.controls.tipoPago.setValue('COMPLETO');
+      else {
+        control.setValue(null, { emitEvent: false });
+        return;
+      }
+    }
     if (this.pagoCompleto) {
       control.setValue(c.totalConImpuesto, { emitEvent: false });
       return;
@@ -299,6 +330,7 @@ export class HabitacionReservaComponent implements OnInit {
     const c = this.cotizacion();
     if (!c) return this.errorCotizacion() ?? 'Calculando el total de la reserva…';
     const valor = Number(this.form.controls.abonoValor.value ?? 0);
+    if (!c.pagoObligatorio && (this.sinPago || valor <= 0)) return null;
     if (valor <= 0) return 'Para reservar registre el pago completo o un abono parcial.';
     if (c.abonoMinimo > 0 && valor < c.abonoMinimo) {
       return `Para reservar se requiere un abono mínimo de ${formatearMoneda(c.abonoMinimo)} (${c.abonoMinimoPct} % del total).`;
@@ -334,7 +366,7 @@ export class HabitacionReservaComponent implements OnInit {
     const tarifa = this.tarifaNoche();
     const noches = this.noches;
     if (tarifa == null || noches == null || noches < 1) return null;
-    return tarifa * noches;
+    return tarifa * noches * (this.porPersona() ? this.personas : 1);
   }
 
   get puedeConfirmar(): boolean {
@@ -435,11 +467,14 @@ export class HabitacionReservaComponent implements OnInit {
             canal: v.canal ?? 'PRESENCIAL',
             observaciones: v.observaciones?.trim() || null,
             promocionId: this.promocionId(),
-            abonoInicial: {
-              valor: Number(v.abonoValor),
-              metodo: v.abonoMetodo ?? 'EFECTIVO',
-              referencia: v.abonoReferencia?.trim() || null,
-            },
+            cantidadPersonas: this.personas,
+            abonoInicial: this.sinPago || Number(v.abonoValor ?? 0) <= 0
+              ? null
+              : {
+                  valor: Number(v.abonoValor),
+                  metodo: v.abonoMetodo ?? 'EFECTIVO',
+                  referencia: v.abonoReferencia?.trim() || null,
+                },
           }),
         ),
       )

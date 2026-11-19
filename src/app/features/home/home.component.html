@@ -129,7 +129,9 @@
             <span class="num">{{ o.incidenciasSinAsignar }}</span><span>Tareas sin asignar</span>
           </a>
           <a routerLink="/incidencias" class="op"><span class="num">{{ o.incidenciasActivas }}</span><span>Limpieza / mantenimiento activos</span></a>
-          <a routerLink="/servicios" class="op"><span class="num">{{ o.serviciosActivos }}</span><span>Servicios en curso</span></a>
+          @if (puedeServicios()) {
+            <a routerLink="/servicios" class="op"><span class="num">{{ o.serviciosActivos }}</span><span>Servicios en curso</span></a>
+          }
           <a routerLink="/personal" class="op"><span class="num">{{ o.personalOcupado }}</span><span>Personal ocupado</span></a>
         </div>
       </section>

@@ -53,6 +53,11 @@ export class UsuarioService {
     return this.http.get<{ codigo: Rol; nombre: string; descripcion: string }[]>(`${this.baseUrl}/roles`);
   }
 
+  /** Permisos por módulo (casillas) y los que marca cada rol por defecto. */
+  permisos() {
+    return this.http.get<import('../models/permisos.model').CatalogoPermisos>(`${this.baseUrl}/permisos`);
+  }
+
   crear(body: UsuarioRequest) {
     return this.http.post<Usuario>(this.baseUrl, body);
   }

@@ -24,10 +24,11 @@ import { extractApiErrorMessage } from '../../../core/utils/api-error.util';
 import { fechaCorta, hoyIso, moneda } from '../../../core/utils/formato.util';
 
 /** Confirmar el pago de un egreso que estaba «por pagar». */
+import { MonedaDirective } from '../../../shared/directivas/moneda.directive';
 @Component({
   selector: 'app-pagar-gasto-dialog',
   host: { class: 'roomix-dialog-shell' },
-  imports: [ReactiveFormsModule, MatDialogModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSelectModule],
+  imports: [MonedaDirective, ReactiveFormsModule, MatDialogModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSelectModule],
   template: `
     <div class="dialog-accent" aria-hidden="true"></div>
     <div mat-dialog-title class="dialog-header">
@@ -38,7 +39,7 @@ import { fechaCorta, hoyIso, moneda } from '../../../core/utils/formato.util';
       <form [formGroup]="form" class="dialog-form-grid">
         <mat-form-field appearance="outline">
           <mat-label>Valor pagado (COP)</mat-label>
-          <input matInput type="number" min="1" formControlName="valor" />
+          <input matInput rxMoneda formControlName="valor" />
         </mat-form-field>
         <mat-form-field appearance="outline">
           <mat-label>Fecha del pago</mat-label>
@@ -90,7 +91,7 @@ export class PagarGastoDialogComponent {
 @Component({
   selector: 'app-gasto-recurrente-form-dialog',
   host: { class: 'roomix-dialog-shell' },
-  imports: [ReactiveFormsModule, MatDialogModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSelectModule, MatSlideToggleModule],
+  imports: [MonedaDirective, ReactiveFormsModule, MatDialogModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSelectModule, MatSlideToggleModule],
   template: `
     <div class="dialog-accent" aria-hidden="true"></div>
     <div mat-dialog-title class="dialog-header">
@@ -111,7 +112,7 @@ export class PagarGastoDialogComponent {
         </mat-form-field>
         <mat-form-field appearance="outline">
           <mat-label>Valor mensual (COP)</mat-label>
-          <input matInput type="number" min="1" formControlName="valor" />
+          <input matInput rxMoneda formControlName="valor" />
         </mat-form-field>
         <mat-form-field appearance="outline">
           <mat-label>Día de vencimiento</mat-label>

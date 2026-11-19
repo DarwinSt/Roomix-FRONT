@@ -247,7 +247,7 @@ export class CajaComponent implements OnInit {
 
   readonly esRecepcion = computed(() => this.auth.rol() === 'RECEPCION');
   readonly esAdmin = computed(() => this.auth.rol() === 'ADMIN');
-  readonly puedeAbrir = computed(() => this.esRecepcion() || this.esAdmin());
+  readonly puedeAbrir = computed(() => this.auth.puede('CAJA_OPERAR'));
   /** El cajero opera su turno; el administrador puede registrar retiros/aportes y cerrar cualquier turno. */
   readonly puedeOperar = computed(() => !!this.estado()?.esMio || this.esAdmin());
 

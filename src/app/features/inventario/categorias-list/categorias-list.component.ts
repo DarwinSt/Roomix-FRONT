@@ -36,7 +36,7 @@ export class CategoriasListComponent implements OnInit {
   private readonly errorDialog = inject(ErrorDialogService);
   private readonly auth = inject(AuthService);
   private readonly dialog = inject(MatDialog);
-  readonly puedeGestionar = computed(() => this.auth.tieneRol('ADMIN', 'ALMACEN'));
+  readonly puedeGestionar = computed(() => this.auth.puede('INVENTARIO_GESTIONAR'));
 
   readonly columns = ['nombre', 'descripcion', 'ejemplos', 'tipo', 'creado', 'acciones'];
   readonly loading = signal(true);

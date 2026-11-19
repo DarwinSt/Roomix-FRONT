@@ -287,3 +287,20 @@ a[mat-list-item].active {
     color: var(--text-200);
   }
 }
+
+/* Logo y nombre del hotel (configuración del hotel) */
+.brand-logo-hotel {
+  max-height: 64px;
+  max-width: 160px;
+  object-fit: contain;
+}
+
+.brand-hotel {
+  display: block;
+  color: var(--primary-300, #1f5c3d);
+  margin-top: 0.35rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-align: center;
+  line-height: 1.2;
+}

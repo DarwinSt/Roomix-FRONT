@@ -60,7 +60,7 @@
         </mat-form-field>
         <mat-form-field appearance="outline">
           <mat-label>Precio unitario (COP)</mat-label>
-          <input matInput type="number" formControlName="precioUnitario" min="0" />
+          <input matInput rxMoneda formControlName="precioUnitario" />
           <mat-hint>Se usa para valorizar el inventario</mat-hint>
         </mat-form-field>
         <div class="actions full">

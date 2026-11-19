@@ -95,9 +95,9 @@ export class HabitacionesListComponent implements OnInit {
   private readonly errorDialog = inject(ErrorDialogService);
   private readonly dialog = inject(MatDialog);
   private readonly auth = inject(AuthService);
-  readonly esAdmin = computed(() => this.auth.tieneRol('ADMIN'));
+  readonly esAdmin = computed(() => this.auth.puede('HABITACIONES_ADMINISTRAR'));
   /** Reservar, cambiar estado y editar: administración y recepción (igual que el backend). */
-  readonly puedeOperar = computed(() => this.auth.tieneRol('ADMIN', 'RECEPCION'));
+  readonly puedeOperar = computed(() => this.auth.puede('HABITACIONES_OPERAR'));
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
@@ -238,7 +238,7 @@ export class HabitacionesListComponent implements OnInit {
   }
 
   acciones(h: Habitacion): AccionRapida[] {
-    return accionesRapidasDisponibles(h);
+    return accionesRapidasDisponibles(h).filter((a) => a.tipo !== 'SOLICITAR_SERVICIO' || this.auth.puede('SERVICIOS_SOLICITUDES'));
   }
 
   trackAccion = trackAccionRapida;

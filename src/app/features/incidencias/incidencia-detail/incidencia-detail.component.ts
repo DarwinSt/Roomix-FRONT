@@ -24,6 +24,7 @@ import { ConfirmDialogComponent } from '../../../shared/dialogs/confirm-dialog/c
 import { roomixDialogConfig } from '../../../core/config/dialog.config';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 
+import { FinalizarIncidenciaDialogComponent, MaterialGastado } from '../finalizar-incidencia-dialog.component';
 @Component({
   selector: 'app-incidencia-detail',
   imports: [
@@ -150,21 +151,19 @@ export class IncidenciaDetailComponent implements OnInit {
   finalizar(): void {
     const inc = this.incidencia();
     if (!inc) return;
-    const ref = this.dialog.open(ConfirmDialogComponent, {
-      ...roomixDialogConfig({ width: '440px' }),
-      data: {
-        title: 'Finalizar incidencia',
-        message: '¿Confirmar que el servicio fue completado? La habitación volverá a su estado operativo.',
-        confirmLabel: 'Finalizar servicio',
-        icon: 'task_alt',
-      },
-    });
-    ref.afterClosed().subscribe((ok) => {
-      if (!ok) return;
-      this.incidenciaService.finalizar(inc.id).subscribe({
+    const pendientes = inc.tareas.filter((t) => !t.completada).length;
+    if (pendientes > 0) {
+      // Se avisa antes de pedir los materiales: el servidor no deja finalizar con tareas pendientes
+      this.snackBar.open(`Completa las ${pendientes} tarea(s) pendientes del checklist antes de finalizar`, 'OK', { duration: 4000 });
+      return;
+    }
+    const ref = this.dialog.open(FinalizarIncidenciaDialogComponent, { ...roomixDialogConfig({ width: '560px' }), data: inc });
+    ref.afterClosed().subscribe((materiales?: MaterialGastado[] | null) => {
+      if (!materiales) return;
+      this.incidenciaService.finalizar(inc.id, materiales).subscribe({
         next: (data) => {
           this.incidencia.set(data);
-          this.snackBar.open('Incidencia finalizada · habitación actualizada', 'OK', { duration: 3500 });
+          this.snackBar.open(materiales.length ? `Incidencia finalizada · ${materiales.length} material(es) descontado(s) del inventario` : 'Incidencia finalizada', 'OK', { duration: 3500 });
         },
         error: (err) => this.errorDialog.mostrarDesdeApi(err),
       });

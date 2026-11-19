@@ -10,6 +10,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { extractApiErrorMessage } from '../../../core/utils/api-error.util';
 import { ROOMIX_LOGO_URL } from '../../../core/config/brand.config';
 
+import { ConfiguracionService } from '../../../core/services/configuracion.service';
 @Component({
   selector: 'app-login',
   imports: [
@@ -24,9 +25,15 @@ import { ROOMIX_LOGO_URL } from '../../../core/config/brand.config';
   template: `
     <div class="rx-auth">
       <div class="rx-auth-card">
-        <img [src]="logo" alt="Roomix" class="rx-auth-logo" />
-        <h1>Bienvenido a Roomix</h1>
-        <p class="rx-auth-sub">Todo tu hotel, en una sola plataforma</p>
+        @if (logoHotel(); as logoH) {
+          <img [src]="logoH" [alt]="nombreHotel()" class="rx-auth-logo logo-hotel" />
+          <h1>Bienvenido a {{ nombreHotel() }}</h1>
+          <p class="rx-auth-sub">Administración con Roomix</p>
+        } @else {
+          <img [src]="logo" alt="Roomix" class="rx-auth-logo" />
+          <h1>Bienvenido a {{ nombreHotel() === 'Roomix' ? 'Roomix' : nombreHotel() }}</h1>
+          <p class="rx-auth-sub">{{ nombreHotel() === 'Roomix' ? 'Todo tu hotel, en una sola plataforma' : 'Administración con Roomix' }}</p>
+        }
 
         @if (expirada) {
           <div class="rx-auth-aviso"><mat-icon>schedule</mat-icon>Tu sesión expiró. Inicia sesión de nuevo.</div>
@@ -70,6 +77,9 @@ export class LoginComponent {
   private readonly route = inject(ActivatedRoute);
 
   readonly logo = ROOMIX_LOGO_URL;
+  private readonly configuracion = inject(ConfiguracionService);
+  readonly logoHotel = this.configuracion.logoUrl;
+  readonly nombreHotel = this.configuracion.nombreHotel;
   readonly cargando = signal(false);
   readonly error = signal<string | null>(null);
   readonly verPassword = signal(false);

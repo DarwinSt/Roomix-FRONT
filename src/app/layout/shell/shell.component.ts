@@ -14,6 +14,7 @@ import { AsyncPipe } from '@angular/common';
 import { ROOMIX_LOGO_ICON_URL, ROOMIX_LOGO_URL } from '../../core/config/brand.config';
 import { environment } from '../../../environments/environment';
 import { AuthService } from '../../core/services/auth.service';
+import { ConfiguracionService } from '../../core/services/configuracion.service';
 import { ItemNavegacion, navegacionPara } from '../../core/config/navegacion.config';
 import { etiquetaRol } from '../../core/models/auth.model';
 
@@ -47,6 +48,10 @@ export class ShellComponent {
   private readonly drawer = viewChild.required<MatSidenav>('drawer');
   private readonly contenido = viewChild(MatSidenavContent);
 
+  private readonly configuracion = inject(ConfiguracionService);
+  /** Logo del hotel si lo configuró; si no, el de Roomix. */
+  readonly logoHotel = this.configuracion.logoUrl;
+  readonly nombreHotel = this.configuracion.nombreHotel;
   readonly logoUrl = ROOMIX_LOGO_URL;
   readonly logoIconUrl = ROOMIX_LOGO_ICON_URL;
   /** Swagger del backend configurado (local, producción o APK). */
@@ -92,7 +97,7 @@ export class ShellComponent {
 
   /** Menú lateral: solo los módulos del rol, agrupados. */
   readonly grupos = computed(() => {
-    const items = navegacionPara(this.auth.rol());
+    const items = navegacionPara((p) => this.auth.puede(p));
     return GRUPOS.map((g) => ({ ...g, items: items.filter((i) => i.grupo === g.clave) })).filter((g) => g.items.length > 0);
   });
 

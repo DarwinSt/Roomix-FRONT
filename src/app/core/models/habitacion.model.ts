@@ -23,7 +23,9 @@ export interface Habitacion {
   precioNoche: number | null;
   /** Piso o planta (plano del hotel) */
   piso: number | null;
+  /** Capacidad sugerida de huéspedes (no limita las reservas) */
   capacidad: number | null;
+  camas: number | null;
   /** Ids de fotos: la imagen se obtiene con HabitacionService.urlFoto */
   fotoIds: number[];
   estado: EstadoHabitacion;
@@ -48,6 +50,7 @@ export interface HabitacionRequest {
   precioNoche: number;
   piso?: number | null;
   capacidad?: number | null;
+  camas?: number | null;
   estado?: EstadoHabitacion;
   fechaEntrada?: string | null;
   fechaSalida?: string | null;

@@ -32,6 +32,11 @@ export interface Reserva {
   /** Al cancelar con abonos: parte retenida como penalidad y parte devuelta. */
   valorPenalidad: number | null;
   valorDevuelto: number | null;
+  /** Personas de la estadía y si la tarifa es por persona (Roomix 1.2). */
+  cantidadPersonas?: number;
+  cobroPorPersona?: boolean;
+  capacidadSugerida?: number | null;
+  superaCapacidad?: boolean;
 }
 
 export type CanalReserva = 'PRESENCIAL' | 'TELEFONO' | 'CORREO' | 'WHATSAPP' | 'SITIO_WEB' | 'AGENCIA';
@@ -54,6 +59,8 @@ export interface CrearReservaRequest {
   observaciones?: string | null;
   promocionId?: number | null;
   abonoInicial?: AbonoRequest | null;
+  /** Personas de la estadía (define el total cuando el hotel cobra por persona). */
+  cantidadPersonas?: number;
 }
 
 export interface AbonoRequest {
@@ -103,6 +110,11 @@ export interface CotizacionReserva {
   abonoMinimoPct: number;
   abonoMinimo: number;
   penalidadCancelacionPct: number;
+  cantidadPersonas: number;
+  cobroPorPersona: boolean;
+  capacidadSugerida: number | null;
+  superaCapacidad: boolean;
+  pagoObligatorio: boolean;
 }
 
 export type TipoDescuento = 'VALOR_FIJO' | 'PORCENTAJE';
@@ -151,6 +163,8 @@ export interface PromocionAplicable {
 export interface PoliticaReserva {
   abonoMinimoPct: number;
   penalidadCancelacionPct: number;
+  /** Si es false, se puede reservar sin pago. */
+  pagoObligatorio: boolean;
   actualizadaPor: string | null;
   fechaHoraUltimaActualizacion: string | null;
 }
@@ -161,6 +175,7 @@ export interface ActualizarReservaRequest {
   fechaSalida: string;
   canal?: CanalReserva | null;
   observaciones?: string | null;
+  cantidadPersonas?: number | null;
 }
 
 export interface HabitacionDisponible {

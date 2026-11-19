@@ -26,7 +26,13 @@
           @if (h.precioNoche != null) {
             <div class="resumen-item">
               <span class="resumen-label">Tarifa</span>
-              <strong>{{ formatearMoneda(h.precioNoche) }}/noche</strong>
+              <strong>{{ formatearMoneda(h.precioNoche) }}{{ porPersona() ? '/persona/noche' : '/noche' }}</strong>
+            </div>
+          }
+          @if (h.capacidad != null || h.camas != null) {
+            <div class="resumen-item">
+              <span class="resumen-label">Capacidad sugerida</span>
+              <strong>{{ h.capacidad != null ? h.capacidad + ' persona(s)' : '—' }}@if (h.camas != null) { · {{ h.camas }} cama(s) }</strong>
             </div>
           }
           <div class="resumen-item">
@@ -150,6 +156,16 @@
               <mat-datepicker #pickerSalida />
             </mat-form-field>
 
+            <mat-form-field appearance="outline">
+              <mat-label>Personas</mat-label>
+              <input matInput type="number" min="1" max="100" formControlName="cantidadPersonas" />
+              @if (superaCapacidad) {
+                <mat-hint class="aviso-capacidad">Supera la capacidad sugerida ({{ habitacion()?.capacidad }}); se puede reservar igual</mat-hint>
+              } @else if (porPersona()) {
+                <mat-hint>El total se calcula por persona</mat-hint>
+              }
+            </mat-form-field>
+
             <p class="section-label full">Canal y observaciones</p>
             <mat-form-field appearance="outline" class="full">
               <mat-label>Canal de la reserva</mat-label>
@@ -191,11 +207,13 @@
             @if (cotizacion(); as cz) {
               <p class="section-label full">Pago de la reserva</p>
               <div class="cotizacion full">
-                <div><span>Alojamiento ({{ cz.noches }} noche(s) × {{ formatearMoneda(cz.tarifaNoche) }})</span><strong>{{ formatearMoneda(cz.subtotal) }}</strong></div>
+                <div><span>Alojamiento ({{ cz.noches }} noche(s){{ cz.cobroPorPersona ? ' × ' + cz.cantidadPersonas + ' persona(s)' : '' }} × {{ formatearMoneda(cz.tarifaNoche) }})</span><strong>{{ formatearMoneda(cz.subtotal) }}</strong></div>
                 @if (cz.descuento > 0) {
                   <div class="descuento"><span>Promoción «{{ cz.promocionNombre }}»</span><strong>−{{ formatearMoneda(cz.descuento) }}</strong></div>
                 }
-                <div><span>IVA {{ cz.porcentajeImpuesto }} %</span><strong>{{ formatearMoneda(cz.impuesto) }}</strong></div>
+                @if (cobraIva() || cz.impuesto > 0) {
+                  <div><span>IVA {{ cz.porcentajeImpuesto }} %</span><strong>{{ formatearMoneda(cz.impuesto) }}</strong></div>
+                }
                 <div class="total"><span>Total de la reserva</span><strong>{{ formatearMoneda(cz.totalConImpuesto) }}</strong></div>
                 @if (cz.abonoMinimo > 0) {
                   <div class="minimo"><span>Abono mínimo para reservar ({{ cz.abonoMinimoPct }} %)</span><strong>{{ formatearMoneda(cz.abonoMinimo) }}</strong></div>
@@ -212,17 +230,25 @@
                   <mat-icon>{{ !pagoCompleto ? 'radio_button_checked' : 'radio_button_unchecked' }}</mat-icon>
                   <span><strong>Abono parcial</strong><small>{{ cz.abonoMinimo > 0 ? 'Desde ' + formatearMoneda(cz.abonoMinimo) : 'El saldo se paga en el check-out' }}</small></span>
                 </button>
+                @if (!cz.pagoObligatorio) {
+                  <button type="button" class="opcion-pago" role="radio" [class.activa]="sinPago" [attr.aria-checked]="sinPago"
+                          (click)="escogerTipoPago('SIN_PAGO')">
+                    <mat-icon>{{ sinPago ? 'radio_button_checked' : 'radio_button_unchecked' }}</mat-icon>
+                    <span><strong>Sin pago</strong><small>Todo se cobra en el check-out</small></span>
+                  </button>
+                }
               </div>
+              @if (!sinPago) {
               <mat-form-field appearance="outline">
                 <mat-label>{{ pagoCompleto ? 'Valor pagado' : 'Valor del abono' }}</mat-label>
                 <span matTextPrefix>$&nbsp;</span>
-                <input matInput type="number" min="1" step="1000" formControlName="abonoValor" [readonly]="pagoCompleto" />
+                <input matInput rxMoneda formControlName="abonoValor" [readonly]="pagoCompleto" />
                 @if (pagoCompleto) {
                   <mat-hint>Total de la reserva</mat-hint>
                 } @else if (cz.abonoMinimo > 0) {
                   <mat-hint>Mín. {{ formatearMoneda(cz.abonoMinimo) }} · saldo {{ formatearMoneda(cz.totalConImpuesto - +(form.controls.abonoValor.value ?? 0)) }}</mat-hint>
                 } @else {
-                  <mat-hint>Obligatorio · saldo {{ formatearMoneda(cz.totalConImpuesto - +(form.controls.abonoValor.value ?? 0)) }}</mat-hint>
+                  <mat-hint>{{ cz.pagoObligatorio ? 'Obligatorio' : 'Opcional' }} · saldo {{ formatearMoneda(cz.totalConImpuesto - +(form.controls.abonoValor.value ?? 0)) }}</mat-hint>
                 }
               </mat-form-field>
               <mat-form-field appearance="outline" class="roomix-dialog-select">
@@ -236,6 +262,7 @@
                 <input matInput formControlName="abonoReferencia" maxlength="80" />
                 <mat-hint>Aprobación del datáfono o comprobante</mat-hint>
               </mat-form-field>
+              }
               @if (cz.penalidadCancelacionPct > 0) {
                 <p class="nota-penalidad full"><mat-icon>policy</mat-icon>Si la reserva se cancela, se retiene el {{ cz.penalidadCancelacionPct }} % de lo abonado y se devuelve el resto.</p>
               }
@@ -256,7 +283,7 @@
             <span>
               Al confirmar:
               <strong>{{ noches }} noche(s)</strong>
-              · {{ formatearMoneda(tarifaNoche()!) }}/noche
+              · {{ formatearMoneda(tarifaNoche()!) }}{{ porPersona() ? '/persona/noche · ' + personas + ' persona(s)' : '/noche' }}
               · total <strong>{{ formatearMoneda(cotizacion()?.totalConImpuesto ?? totalEstimado) }}</strong>
               @if (cotizacion()?.descuento) { (incluye promoción) }
               @if (form.controls.abonoValor.value) { · {{ pagoCompleto ? 'pago completo' : 'abono' }} <strong>{{ formatearMoneda(+form.controls.abonoValor.value!) }}</strong> }

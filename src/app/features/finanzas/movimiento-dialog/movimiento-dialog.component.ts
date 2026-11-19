@@ -15,10 +15,11 @@ import { extractApiErrorMessage } from '../../../core/utils/api-error.util';
 import { hoyIso } from '../../../core/utils/formato.util';
 
 /** Registro manual de un ingreso o egreso (nómina, servicios públicos, proveedores...). */
+import { MonedaDirective } from '../../../shared/directivas/moneda.directive';
 @Component({
   selector: 'app-movimiento-dialog',
   host: { class: 'roomix-dialog-shell' },
-  imports: [ReactiveFormsModule, MatDialogModule, MatButtonModule, MatButtonToggleModule, MatCheckboxModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSelectModule],
+  imports: [MonedaDirective, ReactiveFormsModule, MatDialogModule, MatButtonModule, MatButtonToggleModule, MatCheckboxModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSelectModule],
   template: `
     <div class="dialog-accent" aria-hidden="true"></div>
     <div mat-dialog-title class="dialog-header">
@@ -39,7 +40,7 @@ import { hoyIso } from '../../../core/utils/formato.util';
         </mat-form-field>
         <mat-form-field appearance="outline">
           <mat-label>Valor (COP)</mat-label>
-          <input matInput type="number" min="1" formControlName="valor" />
+          <input matInput rxMoneda formControlName="valor" />
         </mat-form-field>
         <mat-form-field appearance="outline" class="rx-full">
           <mat-label>Concepto</mat-label>

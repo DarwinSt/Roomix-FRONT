@@ -91,7 +91,7 @@ export class ReservasListComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly auth = inject(AuthService);
 
-  readonly puedeOperar = computed(() => this.auth.tieneRol('ADMIN', 'RECEPCION'));
+  readonly puedeOperar = computed(() => this.auth.puede('RESERVAS_GESTIONAR'));
   readonly estadosFiltro = ESTADOS_RESERVA_FILTRO;
   readonly etiquetaEstado = etiquetaEstadoReserva;
   readonly claseEstado = claseEstadoReserva;

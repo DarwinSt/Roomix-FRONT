@@ -14,7 +14,7 @@ import { CategoriaFinanciera, METODOS_PAGO, MetodoPago, TipoMovimiento } from '.
 import { extractApiErrorMessage } from '../../core/utils/api-error.util';
 import { moneda } from '../../core/utils/formato.util';
 
-const BASE_IMPORTS = [ReactiveFormsModule, MatDialogModule, MatButtonModule, MatButtonToggleModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSelectModule];
+const BASE_IMPORTS = [MonedaDirective, ReactiveFormsModule, MatDialogModule, MatButtonModule, MatButtonToggleModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSelectModule];
 
 // ------------------------------------------------------------------ Abrir turno
 export interface AbrirTurnoData {
@@ -22,6 +22,7 @@ export interface AbrirTurnoData {
   ultimoCajero: string | null;
 }
 
+import { MonedaDirective } from '../../shared/directivas/moneda.directive';
 @Component({
   selector: 'app-abrir-turno-dialog',
   host: { class: 'roomix-dialog-shell' },
@@ -41,7 +42,7 @@ export interface AbrirTurnoData {
       <form [formGroup]="form" class="dialog-form-grid">
         <mat-form-field appearance="outline" class="full">
           <mat-label>Base recibida (COP)</mat-label>
-          <input matInput type="number" min="0" formControlName="base" />
+          <input matInput rxMoneda formControlName="base" />
           <mat-hint>Efectivo con el que empieza el turno (para dar vueltas)</mat-hint>
         </mat-form-field>
         <mat-form-field appearance="outline" class="full">
@@ -122,7 +123,7 @@ export class AbrirTurnoDialogComponent {
         </mat-form-field>
         <mat-form-field appearance="outline">
           <mat-label>Valor (COP)</mat-label>
-          <input matInput type="number" min="1" formControlName="valor" />
+          <input matInput rxMoneda formControlName="valor" />
         </mat-form-field>
         <mat-form-field appearance="outline" class="full">
           <mat-label>Concepto</mat-label>
@@ -227,7 +228,7 @@ export class MovimientoCajaDialogComponent {
         </mat-button-toggle-group>
         <mat-form-field appearance="outline" class="full">
           <mat-label>Valor (COP)</mat-label>
-          <input matInput type="number" min="1" formControlName="valor" />
+          <input matInput rxMoneda formControlName="valor" />
         </mat-form-field>
         <mat-form-field appearance="outline" class="full">
           <mat-label>Motivo</mat-label>
@@ -285,7 +286,7 @@ export interface CerrarTurnoData {
 @Component({
   selector: 'app-cerrar-turno-dialog',
   host: { class: 'roomix-dialog-shell' },
-  imports: [...BASE_IMPORTS, FormsModule],
+  imports: [MonedaDirective, ...BASE_IMPORTS, FormsModule],
   template: `
     <div class="dialog-accent" aria-hidden="true"></div>
     <div mat-dialog-title class="dialog-header">
@@ -323,7 +324,7 @@ export interface CerrarTurnoData {
       } @else {
         <mat-form-field appearance="outline" class="total">
           <mat-label>Total de efectivo contado (COP)</mat-label>
-          <input matInput type="number" min="0" [ngModel]="totalManual()" (ngModelChange)="totalManual.set($event)" />
+          <input matInput rxMoneda [ngModel]="totalManual()" (ngModelChange)="totalManual.set($event)" />
         </mat-form-field>
       }
 
@@ -342,7 +343,7 @@ export interface CerrarTurnoData {
       <div class="dialog-form-grid">
         <mat-form-field appearance="outline">
           <mat-label>Base que queda en la caja</mat-label>
-          <input matInput type="number" min="0" [ngModel]="base()" (ngModelChange)="base.set($event)" />
+          <input matInput rxMoneda [ngModel]="base()" (ngModelChange)="base.set($event)" />
           <mat-hint>Para el siguiente turno</mat-hint>
         </mat-form-field>
         <mat-form-field appearance="outline">

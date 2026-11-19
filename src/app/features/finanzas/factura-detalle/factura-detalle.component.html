@@ -20,7 +20,8 @@
 
   <article class="documento rx-card">
     <header class="encabezado">
-      <div>
+      @if (logoHotel(); as logo) { <img class="logo-hotel" [src]="logo" [alt]="hotel()?.nombre ?? 'Logo del hotel'" /> }
+      <div class="datos-hotel">
         <h2>{{ hotel()?.nombre }}</h2>
         <p>NIT {{ hotel()?.nit }}<br />{{ hotel()?.direccion }} · {{ hotel()?.ciudad }}<br />{{ hotel()?.telefono }} · {{ hotel()?.email }}</p>
       </div>

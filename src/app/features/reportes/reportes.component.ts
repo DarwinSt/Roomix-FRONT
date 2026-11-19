@@ -159,7 +159,7 @@ export class ReportesComponent {
   cambiarPeriodo(p: Periodo): void {
     this.periodo = p;
     this.cargando.set(true);
-    const verEventos = this.auth.tieneRol('ADMIN', 'FINANZAS');
+    const verEventos = this.auth.puede('EVENTOS_VER');
     forkJoin({
       ocupacion: this.reportes.ocupacion(p.desde, p.hasta),
       ...(verEventos ? { eventos: this.eventosService.reporte(p.desde, p.hasta) } : {}),

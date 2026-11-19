@@ -16,10 +16,11 @@ import { ArticuloInventario, MovimientoInventario, TipoMovimientoStock } from '.
 import { fechaCorta, moneda } from '../../../core/utils/formato.util';
 
 /** Registrar una entrada (compra), salida (consumo) o ajuste por conteo físico. */
+import { MonedaDirective } from '../../../shared/directivas/moneda.directive';
 @Component({
   selector: 'app-stock-dialog',
   host: { class: 'roomix-dialog-shell' },
-  imports: [ReactiveFormsModule, MatDialogModule, MatButtonModule, MatButtonToggleModule, MatCheckboxModule, MatFormFieldModule, MatIconModule, MatInputModule],
+  imports: [MonedaDirective, ReactiveFormsModule, MatDialogModule, MatButtonModule, MatButtonToggleModule, MatCheckboxModule, MatFormFieldModule, MatIconModule, MatInputModule],
   template: `
     <div class="dialog-accent" aria-hidden="true"></div>
     <div mat-dialog-title class="dialog-header">
@@ -46,7 +47,7 @@ import { fechaCorta, moneda } from '../../../core/utils/formato.util';
         @if (tipo() === 'ENTRADA') {
           <mat-form-field appearance="outline">
             <mat-label>Costo unitario (COP)</mat-label>
-            <input matInput type="number" min="0" formControlName="costoUnitario" />
+            <input matInput rxMoneda formControlName="costoUnitario" />
             @if (totalCompra() > 0) { <mat-hint>Total {{ moneda(totalCompra()) }}</mat-hint> }
           </mat-form-field>
           <mat-form-field appearance="outline" class="rx-full">

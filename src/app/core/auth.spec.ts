@@ -5,10 +5,11 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { ActivatedRouteSnapshot, Router, RouterStateSnapshot, UrlTree, provideRouter } from '@angular/router';
 import { environment } from '../../environments/environment';
 import { AuthService } from './services/auth.service';
-import { authGuard, invitadoGuard, rolGuard } from './guards/auth.guard';
+import { authGuard, invitadoGuard, permisoGuard, rolGuard } from './guards/auth.guard';
 import { authInterceptor } from './interceptors/auth.interceptor';
 import { NAVEGACION, navegacionPara } from './config/navegacion.config';
 import { PATRON_PASSWORD, Rol, Usuario } from './models/auth.model';
+import { PERMISOS_POR_ROL } from './models/permisos.model';
 
 const CLAVE = 'roomix.sesion';
 
@@ -100,6 +101,14 @@ describe('Autenticación y autorización (frontend)', () => {
       expect(ruta(ejecutar(() => rolGuard(rutaConRoles(['ADMIN', 'FINANZAS']), estado('/finanzas'))))).toBe('/inicio?sinPermiso=1');
     });
 
+    it('permisoGuard decide por los permisos del usuario', () => {
+      iniciarSesion('HOUSEKEEPING');
+      configurar();
+      const conPermisos = (permisos: string[]) => ({ data: { permisos } }) as unknown as ActivatedRouteSnapshot;
+      expect(ejecutar(() => permisoGuard(conPermisos(['LIMPIEZA']), estado('/incidencias')))).toBe(true);
+      expect(ruta(ejecutar(() => permisoGuard(conPermisos(['FINANZAS']), estado('/finanzas'))))).toBe('/inicio?sinPermiso=1');
+    });
+
     it('invitadoGuard envía al inicio si ya hay sesión', () => {
       iniciarSesion('ADMIN');
       configurar();
@@ -137,15 +146,24 @@ describe('Autenticación y autorización (frontend)', () => {
     });
   });
 
-  describe('Menú por rol', () => {
-    it('cada rol ve solo sus módulos', () => {
-      const rutas = (rol: Rol) => navegacionPara(rol).map((i) => i.path);
+  describe('Menú por permisos', () => {
+    it('cada rol ve solo los módulos de sus permisos por defecto', () => {
+      const rutas = (rol: Rol) => navegacionPara((p) => PERMISOS_POR_ROL[rol].includes(p)).map((i) => i.path);
       expect(rutas('ADMIN')).toHaveLength(NAVEGACION.length);
       expect(rutas('ALMACEN')).toContain('/inventario');
       expect(rutas('ALMACEN')).not.toContain('/finanzas');
       expect(rutas('FINANZAS')).toContain('/reportes');
       expect(rutas('HOUSEKEEPING')).not.toContain('/usuarios');
-      expect(navegacionPara(null)).toEqual([]);
+      expect(rutas('RECEPCION')).toContain('/caja');
+      // Sin permisos solo quedan las páginas comunes (inicio y ayuda)
+      expect(navegacionPara(() => false).map((i) => i.path)).toEqual(['/inicio', '/ayuda']);
+    });
+
+    it('un permiso marcado a mano agrega su módulo al menú', () => {
+      const permisos = [...PERMISOS_POR_ROL.RECEPCION, 'FINANZAS' as const];
+      const rutas = navegacionPara((p) => permisos.includes(p)).map((i) => i.path);
+      expect(rutas).toContain('/finanzas');
+      expect(rutas).not.toContain('/usuarios');
     });
   });
 

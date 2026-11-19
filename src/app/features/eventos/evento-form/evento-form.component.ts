@@ -28,9 +28,10 @@ function crearFilaRecurso(fb: FormBuilder, r?: RecursoValor) {
   });
 }
 
+import { MonedaDirective } from '../../../shared/directivas/moneda.directive';
 @Component({
   selector: 'app-evento-form',
-  imports: [ReactiveFormsModule, RouterLink, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule, MatProgressSpinnerModule, MatSelectModule],
+  imports: [MonedaDirective, ReactiveFormsModule, RouterLink, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule, MatProgressSpinnerModule, MatSelectModule],
   template: `
     <div class="page-header row">
       <div>
@@ -82,7 +83,7 @@ function crearFilaRecurso(fb: FormBuilder, r?: RecursoValor) {
             </mat-form-field>
             <mat-form-field appearance="outline">
               <mat-label>Valor base (alquiler del salón)</mat-label>
-              <input matInput type="number" min="0" formControlName="valorBase" />
+              <input matInput rxMoneda formControlName="valorBase" />
               <button mat-icon-button matSuffix type="button" (click)="sugerirValor()" aria-label="Calcular por horas" title="Calcular con la tarifa por hora"><mat-icon>calculate</mat-icon></button>
             </mat-form-field>
             <mat-form-field appearance="outline" class="rx-full"><mat-label>Descripción</mat-label><textarea matInput rows="2" formControlName="descripcion"></textarea></mat-form-field>
@@ -118,7 +119,7 @@ function crearFilaRecurso(fb: FormBuilder, r?: RecursoValor) {
                 </mat-form-field>
                 <mat-form-field appearance="outline" class="desc"><mat-label>Descripción</mat-label><input matInput formControlName="descripcion" /></mat-form-field>
                 <mat-form-field appearance="outline"><mat-label>Cantidad</mat-label><input matInput type="number" min="1" formControlName="cantidad" /></mat-form-field>
-                <mat-form-field appearance="outline"><mat-label>Valor unitario</mat-label><input matInput type="number" min="0" formControlName="valorUnitario" /></mat-form-field>
+                <mat-form-field appearance="outline"><mat-label>Valor unitario</mat-label><input matInput rxMoneda formControlName="valorUnitario" /></mat-form-field>
                 <button mat-icon-button type="button" (click)="recursos.removeAt(i)" aria-label="Quitar recurso"><mat-icon>delete</mat-icon></button>
               </div>
             }

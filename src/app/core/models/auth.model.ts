@@ -20,6 +20,9 @@ export interface Usuario {
   email: string;
   rol: Rol;
   rolNombre: string;
+  /** Permisos con los que trabaja (los de su rol o los marcados a mano). */
+  permisos?: import('./permisos.model').Permiso[];
+  permisosPersonalizados?: boolean;
   activo: boolean;
   debeCambiarPassword: boolean;
   ultimoAcceso: string | null;
@@ -38,6 +41,8 @@ export interface UsuarioRequest {
   nombreCompleto: string;
   email: string;
   rol: Rol;
+  /** null: los permisos por defecto del rol. */
+  permisos?: import('./permisos.model').Permiso[] | null;
   password?: string | null;
   activo?: boolean;
 }

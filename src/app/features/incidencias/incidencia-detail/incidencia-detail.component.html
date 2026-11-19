@@ -132,6 +132,16 @@
             · {{ inc.fechaHoraFinalizacion | fechaRoomix }}
           }
         </p>
+        @if (inc.materialesUsados?.length) {
+          <div class="materiales">
+            <strong>Materiales gastados</strong>
+            <ul>
+              @for (m of inc.materialesUsados; track m.articuloId) {
+                <li>{{ m.articuloNombre }}: {{ m.cantidad }} {{ (m.unidad ?? '').toLowerCase() }}</li>
+              }
+            </ul>
+          </div>
+        }
       </mat-card-content>
     </mat-card>
   } @else {

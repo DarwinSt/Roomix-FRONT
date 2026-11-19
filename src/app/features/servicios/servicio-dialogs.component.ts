@@ -23,6 +23,7 @@ import { extractApiErrorMessage } from '../../core/utils/api-error.util';
 import { aInputFechaHora, desdeInputFechaHora, moneda } from '../../core/utils/formato.util';
 
 /** Nueva solicitud de servicio para una reserva activa (se carga a la cuenta del huésped). */
+import { MonedaDirective } from '../../shared/directivas/moneda.directive';
 @Component({
   selector: 'app-solicitud-dialog',
   host: { class: 'roomix-dialog-shell' },
@@ -214,7 +215,7 @@ export class AsignarSolicitudDialogComponent implements OnInit {
 @Component({
   selector: 'app-catalogo-dialog',
   host: { class: 'roomix-dialog-shell' },
-  imports: [ReactiveFormsModule, MatDialogModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSelectModule, MatSlideToggleModule],
+  imports: [MonedaDirective, ReactiveFormsModule, MatDialogModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSelectModule, MatSlideToggleModule],
   template: `
     <div class="dialog-accent" aria-hidden="true"></div>
     <div mat-dialog-title class="dialog-header">
@@ -235,7 +236,7 @@ export class AsignarSolicitudDialogComponent implements OnInit {
         </mat-form-field>
         <mat-form-field appearance="outline">
           <mat-label>Precio (COP)</mat-label>
-          <input matInput type="number" min="0" formControlName="precio" />
+          <input matInput rxMoneda formControlName="precio" />
         </mat-form-field>
         <mat-form-field appearance="outline">
           <mat-label>Unidad de cobro</mat-label>

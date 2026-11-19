@@ -21,10 +21,12 @@ import { MotivoDialogComponent } from '../../../shared/dialogs/motivo-dialog/mot
 import { claseEstadoFactura } from '../facturas-list/facturas-list.component';
 
 /** Registro de un pago (total o abono) sobre una factura. */
+import { MonedaDirective } from '../../../shared/directivas/moneda.directive';
+import { ConfiguracionService } from '../../../core/services/configuracion.service';
 @Component({
   selector: 'app-pago-dialog',
   host: { class: 'roomix-dialog-shell' },
-  imports: [ReactiveFormsModule, MatDialogModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSelectModule],
+  imports: [MonedaDirective, ReactiveFormsModule, MatDialogModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSelectModule],
   template: `
     <div class="dialog-accent" aria-hidden="true"></div>
     <div mat-dialog-title class="dialog-header">
@@ -36,7 +38,7 @@ import { claseEstadoFactura } from '../facturas-list/facturas-list.component';
       <form [formGroup]="form" class="rx-form-grid">
         <mat-form-field appearance="outline">
           <mat-label>Valor</mat-label>
-          <input matInput type="number" formControlName="valor" min="1" [max]="data.saldo" />
+          <input matInput rxMoneda formControlName="valor" />
           <mat-hint>Puede ser un abono parcial</mat-hint>
         </mat-form-field>
         <mat-form-field appearance="outline">
@@ -99,6 +101,7 @@ export class PagoDialogComponent {
   styleUrl: './factura-detalle.component.scss',
 })
 export class FacturaDetalleComponent implements OnInit {
+  readonly logoHotel = inject(ConfiguracionService).logoUrl;
   private readonly route = inject(ActivatedRoute);
   private readonly service = inject(FacturaService);
   private readonly errorDialog = inject(ErrorDialogService);
@@ -113,7 +116,7 @@ export class FacturaDetalleComponent implements OnInit {
   readonly clase = claseEstadoFactura;
   readonly factura = signal<Factura | null>(null);
   readonly cargando = signal(true);
-  readonly puedeAnular = computed(() => this.auth.tieneRol('ADMIN', 'FINANZAS'));
+  readonly puedeAnular = computed(() => this.auth.puede('FINANZAS'));
 
   ngOnInit(): void {
     this.cargar();
