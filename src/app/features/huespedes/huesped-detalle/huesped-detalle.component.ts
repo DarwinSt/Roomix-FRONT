@@ -142,8 +142,8 @@ export class HuespedDetalleComponent implements OnInit {
   readonly reservas = signal<Reserva[]>([]);
   readonly facturas = signal<Factura[]>([]);
   readonly servicios = signal<SolicitudServicio[]>([]);
-  readonly puedeEditar = computed(() => this.auth.tieneRol('ADMIN', 'RECEPCION'));
-  readonly verFacturas = computed(() => this.auth.tieneRol('ADMIN', 'RECEPCION', 'FINANZAS'));
+  readonly puedeEditar = computed(() => this.auth.puede('RESERVAS_GESTIONAR'));
+  readonly verFacturas = computed(() => this.auth.puede('FACTURAS'));
   readonly resumen = computed(() => {
     const validas = this.reservas().filter((r) => r.estadoReserva !== 'CANCELADA');
     const facturas = this.facturas().filter((f) => f.estado !== 'ANULADA');

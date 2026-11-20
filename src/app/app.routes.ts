@@ -1,25 +1,30 @@
 import { Routes } from '@angular/router';
 import { ShellComponent } from './layout/shell/shell.component';
-import { authGuard, invitadoGuard, rolGuard } from './core/guards/auth.guard';
-import { Rol } from './core/models/auth.model';
+import { authGuard, invitadoGuard, permisoGuard } from './core/guards/auth.guard';
+import { Permiso } from './core/models/permisos.model';
 
-// Roles por módulo (mismas reglas que SecurityConfig del backend)
-const HABITACIONES: Rol[] = ['ADMIN', 'RECEPCION', 'HOUSEKEEPING', 'EVENTOS'];
-const HABITACIONES_GESTION: Rol[] = ['ADMIN', 'RECEPCION'];
-const RESERVAS: Rol[] = ['ADMIN', 'RECEPCION', 'FINANZAS'];
-const RECEPCION: Rol[] = ['ADMIN', 'RECEPCION'];
-const INCIDENCIAS: Rol[] = ['ADMIN', 'RECEPCION', 'HOUSEKEEPING'];
-const PERSONAL: Rol[] = ['ADMIN', 'RECEPCION', 'HOUSEKEEPING', 'EVENTOS'];
-const INVENTARIO: Rol[] = ['ADMIN', 'ALMACEN', 'HOUSEKEEPING', 'FINANZAS'];
-const INVENTARIO_GESTION: Rol[] = ['ADMIN', 'ALMACEN'];
-const SERVICIOS: Rol[] = ['ADMIN', 'RECEPCION', 'HOUSEKEEPING', 'EVENTOS', 'FINANZAS'];
-const EVENTOS: Rol[] = ['ADMIN', 'EVENTOS', 'RECEPCION', 'FINANZAS'];
-const EVENTOS_GESTION: Rol[] = ['ADMIN', 'EVENTOS'];
-const FINANZAS: Rol[] = ['ADMIN', 'FINANZAS'];
-const FACTURAS: Rol[] = ['ADMIN', 'FINANZAS', 'RECEPCION'];
-const ADMIN: Rol[] = ['ADMIN'];
+// Permiso que exige cada ruta (mismas reglas que SecurityConfig del backend; el módulo debe estar licenciado)
+const HABITACIONES: Permiso[] = ['HABITACIONES_VER'];
+const HABITACIONES_GESTION: Permiso[] = ['HABITACIONES_OPERAR'];
+const HABITACIONES_ADMIN: Permiso[] = ['HABITACIONES_ADMINISTRAR'];
+const RESERVAS: Permiso[] = ['RESERVAS_VER'];
+const RECEPCION: Permiso[] = ['RESERVAS_GESTIONAR'];
+const INCIDENCIAS: Permiso[] = ['LIMPIEZA'];
+const PERSONAL: Permiso[] = ['PERSONAL_VER'];
+const INVENTARIO: Permiso[] = ['INVENTARIO_VER'];
+const INVENTARIO_GESTION: Permiso[] = ['INVENTARIO_GESTIONAR'];
+const SERVICIOS: Permiso[] = ['SERVICIOS_VER'];
+const EVENTOS: Permiso[] = ['EVENTOS_VER'];
+const EVENTOS_GESTION: Permiso[] = ['EVENTOS_GESTIONAR'];
+const FINANZAS: Permiso[] = ['FINANZAS'];
+const REPORTES: Permiso[] = ['REPORTES'];
+const FACTURAS: Permiso[] = ['FACTURAS'];
+const CAJA: Permiso[] = ['CAJA_VER'];
+const USUARIOS: Permiso[] = ['USUARIOS'];
+const PROMOCIONES: Permiso[] = ['PROMOCIONES_GESTIONAR'];
+const CONFIGURACION: Permiso[] = ['CONFIGURACION'];
 
-const con = (roles: Rol[]) => ({ canActivate: [rolGuard], data: { roles } });
+const con = (permisos: Permiso[]) => ({ canActivate: [permisoGuard], data: { permisos } });
 
 export const routes: Routes = [
   {
@@ -72,7 +77,7 @@ export const routes: Routes = [
       },
       {
         path: 'habitaciones/nueva',
-        ...con(ADMIN),
+        ...con(HABITACIONES_ADMIN),
         loadComponent: () =>
           import('./features/habitaciones/habitacion-form/habitacion-form.component').then((m) => m.HabitacionFormComponent),
       },
@@ -227,6 +232,16 @@ export const routes: Routes = [
         loadComponent: () => import('./features/finanzas/finanzas-panel/finanzas-panel.component').then((m) => m.FinanzasPanelComponent),
       },
       {
+        path: 'caja',
+        ...con(CAJA),
+        loadComponent: () => import('./features/caja/caja.component').then((m) => m.CajaComponent),
+      },
+      {
+        path: 'caja/turnos/:id',
+        ...con(CAJA),
+        loadComponent: () => import('./features/caja/turno-detalle.component').then((m) => m.TurnoDetalleComponent),
+      },
+      {
         path: 'facturas',
         ...con(FACTURAS),
         loadComponent: () => import('./features/finanzas/facturas-list/facturas-list.component').then((m) => m.FacturasListComponent),
@@ -239,24 +254,29 @@ export const routes: Routes = [
       },
       {
         path: 'reportes',
-        ...con(FINANZAS),
+        ...con(REPORTES),
         loadComponent: () => import('./features/reportes/reportes.component').then((m) => m.ReportesComponent),
       },
 
       // Administración
       {
         path: 'usuarios',
-        ...con(ADMIN),
+        ...con(USUARIOS),
         loadComponent: () => import('./features/admin/usuarios/usuarios.component').then((m) => m.UsuariosComponent),
       },
       {
         path: 'promociones',
-        ...con(ADMIN),
+        ...con(PROMOCIONES),
         loadComponent: () => import('./features/admin/promociones/promociones.component').then((m) => m.PromocionesComponent),
       },
       {
+        path: 'configuracion',
+        ...con(CONFIGURACION),
+        loadComponent: () => import('./features/admin/configuracion/configuracion.component').then((m) => m.ConfiguracionComponent),
+      },
+      {
         path: 'auditoria',
-        ...con(ADMIN),
+        ...con(USUARIOS),
         loadComponent: () => import('./features/admin/auditoria/auditoria.component').then((m) => m.AuditoriaComponent),
       },
     ],

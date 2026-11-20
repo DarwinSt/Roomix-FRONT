@@ -55,8 +55,9 @@ export class IncidenciaService {
     return this.http.patch<Incidencia>(`${this.baseUrl}/${id}/tareas/${tareaId}`, body);
   }
 
-  finalizar(id: number) {
-    return this.http.patch<Incidencia>(`${this.baseUrl}/${id}/finalizar`, {});
+  /** Finaliza el servicio; los materiales gastados se descuentan del inventario. */
+  finalizar(id: number, materiales: { articuloId: number; cantidad: number }[] = []) {
+    return this.http.patch<Incidencia>(`${this.baseUrl}/${id}/finalizar`, { materiales });
   }
 
   cancelar(id: number) {

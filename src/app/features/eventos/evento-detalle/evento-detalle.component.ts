@@ -296,8 +296,8 @@ export class EventoDetalleComponent implements OnInit {
   readonly cargando = signal(true);
   readonly error = signal<string | null>(null);
   readonly evento = signal<Evento | null>(null);
-  readonly puedeGestionar = computed(() => this.auth.tieneRol('ADMIN', 'EVENTOS'));
-  readonly puedeFacturar = computed(() => this.auth.tieneRol('ADMIN', 'FINANZAS'));
+  readonly puedeGestionar = computed(() => this.auth.puede('EVENTOS_GESTIONAR'));
+  readonly puedeFacturar = computed(() => this.auth.puede('FINANZAS'));
   readonly abierto = computed(() => {
     const e = this.evento();
     return !!e && (e.estado === 'PROGRAMADO' || e.estado === 'EN_CURSO');

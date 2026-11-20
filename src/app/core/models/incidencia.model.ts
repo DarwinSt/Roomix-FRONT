@@ -35,6 +35,8 @@ export interface Incidencia {
   fechaHoraUltimaActualizacion: string;
   fechaHoraFinalizacion: string | null;
   fechaHoraProgramada: string | null;
+  /** Materiales del inventario gastados (registrados al finalizar). */
+  materialesUsados?: { articuloId: number; articuloNombre: string; cantidad: number; unidad: string | null }[];
 }
 
 export interface CrearIncidenciaRequest {

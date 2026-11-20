@@ -4,6 +4,8 @@ import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { LoginResponse, MensajeResponse, Rol, Usuario } from '../models/auth.model';
+import { MODULO_DE_PERMISO, PERMISOS_POR_ROL, Permiso } from '../models/permisos.model';
+import { ConfiguracionService } from './configuracion.service';
 
 interface Sesion {
   token: string;
@@ -28,6 +30,13 @@ export class AuthService {
   readonly usuario = computed(() => this.sesion()?.usuario ?? null);
   readonly rol = computed<Rol | null>(() => this.sesion()?.usuario.rol ?? null);
   readonly autenticado = computed(() => this.sesion() !== null);
+  private readonly configuracion = inject(ConfiguracionService);
+  /** Permisos del usuario; una sesión anterior a los permisos por casillas usa los de su rol. */
+  readonly permisos = computed<Permiso[]>(() => {
+    const u = this.sesion()?.usuario;
+    if (!u) return [];
+    return u.permisos ?? PERMISOS_POR_ROL[u.rol] ?? [];
+  });
 
   token(): string | null {
     const s = this.sesion();
@@ -41,6 +50,15 @@ export class AuthService {
 
   estaAutenticado(): boolean {
     return this.token() !== null;
+  }
+
+  /** El usuario tiene alguno de los permisos y su módulo está en la licencia del hotel. */
+  puede(...permisos: Permiso[]): boolean {
+    const propios = this.permisos();
+    return permisos.some((p) => {
+      const modulo = MODULO_DE_PERMISO[p];
+      return propios.includes(p) && (!modulo || this.configuracion.modulo(modulo));
+    });
   }
 
   tieneRol(...roles: Rol[]): boolean {

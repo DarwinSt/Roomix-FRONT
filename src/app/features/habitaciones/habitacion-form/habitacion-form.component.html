@@ -33,9 +33,7 @@
           <mat-icon matPrefix>payments</mat-icon>
           <input
             matInput
-            type="number"
-            min="1"
-            step="1000"
+            rxMoneda
             formControlName="precioNoche"
             placeholder="280000"
           />
@@ -50,10 +48,17 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>Capacidad (personas)</mat-label>
+          <mat-label>Capacidad sugerida (personas)</mat-label>
           <mat-icon matPrefix>group</mat-icon>
-          <input matInput type="number" min="1" max="20" formControlName="capacidad" />
-          <mat-hint>Vacío: según el tipo de habitación</mat-hint>
+          <input matInput type="number" min="1" max="100" formControlName="capacidad" />
+          <mat-hint>Orientativa: no limita las reservas. Vacío: según el tipo</mat-hint>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Camas</mat-label>
+          <mat-icon matPrefix>bed</mat-icon>
+          <input matInput type="number" min="0" max="100" formControlName="camas" />
+          <mat-hint>Opcional</mat-hint>
         </mat-form-field>
 
         <mat-form-field appearance="outline">

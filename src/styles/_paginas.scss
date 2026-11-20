@@ -612,3 +612,22 @@ mat-card.resumen-card {
   flex-direction: row !important;
   align-items: center;
 }
+
+/* Logo del hotel en el inicio de sesión (configuración del hotel) */
+.rx-auth-logo.logo-hotel {
+  width: auto;
+  max-width: 220px;
+  max-height: 96px;
+  object-fit: contain;
+}
+
+/* Visor de fotos de la habitación */
+.visor-foto-panel .mat-mdc-dialog-surface {
+  background: transparent !important;
+  box-shadow: none !important;
+  overflow: visible;
+}
+
+.visor-foto-fondo {
+  background: rgba(0, 0, 0, 0.85);
+}

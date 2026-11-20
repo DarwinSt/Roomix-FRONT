@@ -34,9 +34,10 @@ const CARACTERISTICAS_BASE = [
   'Sofá cama', 'Cuna disponible', 'Accesible para silla de ruedas',
 ];
 
+import { MonedaDirective } from '../../../shared/directivas/moneda.directive';
 @Component({
   selector: 'app-habitacion-form',
-  imports: [
+  imports: [MonedaDirective, 
     ReactiveFormsModule,
     RouterLink,
     MatCardModule,
@@ -124,7 +125,8 @@ export class HabitacionFormComponent implements OnInit {
     tipoHabitacion: ['DOBLE' as TipoHabitacion, Validators.required],
     precioNoche: [null as number | null, [Validators.required, Validators.min(0.01)]],
     piso: [null as number | null, [Validators.min(0), Validators.max(99)]],
-    capacidad: [null as number | null, [Validators.min(1), Validators.max(20)]],
+    capacidad: [null as number | null, [Validators.min(1), Validators.max(100)]],
+    camas: [null as number | null, [Validators.min(0), Validators.max(100)]],
     estado: ['LIBRE' as EstadoHabitacion, Validators.required],
     fechaEntrada: [null as Date | null],
     fechaSalida: [null as Date | null],
@@ -175,6 +177,7 @@ export class HabitacionFormComponent implements OnInit {
           precioNoche: h.precioNoche,
           piso: h.piso,
           capacidad: h.capacidad,
+          camas: h.camas,
           estado: h.estado,
           fechaEntrada: parsearFechaApi(h.fechaEntrada),
           fechaSalida: parsearFechaApi(h.fechaSalida),
@@ -211,6 +214,7 @@ export class HabitacionFormComponent implements OnInit {
       // Vacíos: el backend los deduce del número (piso) y del tipo (capacidad)
       piso: v.piso === null || (v.piso as unknown) === '' ? null : Number(v.piso),
       capacidad: v.capacidad === null || (v.capacidad as unknown) === '' ? null : Number(v.capacidad),
+      camas: v.camas === null || (v.camas as unknown) === '' ? null : Number(v.camas),
       estado: v.estado!,
       caracteristicas,
       fechaEntrada:

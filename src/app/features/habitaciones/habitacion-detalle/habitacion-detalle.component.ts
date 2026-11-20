@@ -4,6 +4,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatDialog } from '@angular/material/dialog';
+import { VisorFotoComponent } from './visor-foto.component';
 import { HabitacionService } from '../../../core/services/habitacion.service';
 import { ErrorDialogService } from '../../../core/services/error-dialog.service';
 import { AuthService } from '../../../core/services/auth.service';
@@ -16,6 +18,7 @@ import { fechaCorta, moneda } from '../../../core/utils/formato.util';
 const MAX_FOTOS = 6;
 const MAX_BYTES = 2 * 1024 * 1024;
 
+import { ConfiguracionService } from '../../../core/services/configuracion.service';
 @Component({
   selector: 'app-habitacion-detalle',
   imports: [RouterLink, MatButtonModule, MatIconModule, MatProgressSpinnerModule],
@@ -26,7 +29,7 @@ const MAX_BYTES = 2 * 1024 * 1024;
       <div class="page-header row">
         <div>
           <h1>Habitación {{ h.numero }}</h1>
-          <p>{{ tipo(h) }} · Piso {{ h.piso ?? '—' }} · {{ h.capacidad ?? '—' }} personas · {{ moneda(h.precioNoche) }}/noche</p>
+          <p>{{ tipo(h) }} · Piso {{ h.piso ?? '—' }} · {{ h.capacidad ?? '—' }} personas@if (h.camas != null) { · {{ h.camas }} cama(s) } · {{ moneda(h.precioNoche) }}{{ porPersona() ? '/persona/noche' : '/noche' }}</p>
         </div>
         <div class="rx-acciones">
           <a mat-stroked-button routerLink="/habitaciones"><mat-icon>arrow_back</mat-icon>Habitaciones</a>
@@ -48,26 +51,32 @@ const MAX_BYTES = 2 * 1024 * 1024;
               <button mat-stroked-button (click)="input.click()" [disabled]="subiendo()">
                 <mat-icon>add_a_photo</mat-icon>{{ subiendo() ? 'Subiendo…' : 'Subir foto' }}
               </button>
-              <input #input type="file" accept="image/jpeg,image/png,image/webp" hidden (change)="subir(input)" />
             }
           </div>
-          @if (h.fotoIds.length === 0) {
-            <div class="sin-foto"><mat-icon>image</mat-icon><p>Sin fotos registradas.</p></div>
-          } @else {
-            <img class="principal" [src]="url(h.id, fotoActual()!)" [alt]="'Habitación ' + h.numero" />
-            <div class="miniaturas">
-              @for (f of h.fotoIds; track f) {
-                <div class="mini" [class.sel]="f === fotoActual()">
-                  <button type="button" (click)="seleccion.set(f)" [attr.aria-label]="'Ver foto ' + ($index + 1)">
-                    <img [src]="url(h.id, f)" alt="" loading="lazy" />
-                  </button>
-                  @if (esAdmin()) {
-                    <button type="button" class="quitar" (click)="eliminarFoto(f)" aria-label="Eliminar foto"><mat-icon>close</mat-icon></button>
-                  }
-                </div>
+          <input #input type="file" accept="image/jpeg,image/png,image/webp" hidden (change)="subir(input)" />
+          <!-- Cuadrícula de fotos: las casillas vacías permiten subir más (administración) -->
+          <div class="galeria">
+            @for (f of h.fotoIds; track f) {
+              <div class="celda">
+                <button type="button" class="foto" (click)="ampliar(h, $index)" [attr.aria-label]="'Ampliar foto ' + ($index + 1)">
+                  <img [src]="url(h.id, f)" [alt]="'Habitación ' + h.numero + ', foto ' + ($index + 1)" loading="lazy" />
+                </button>
+                @if (esAdmin()) {
+                  <button type="button" class="quitar" (click)="eliminarFoto(f)" aria-label="Eliminar foto"><mat-icon>close</mat-icon></button>
+                }
+              </div>
+            }
+            @for (v of vacias(h.fotoIds.length); track v) {
+              @if (esAdmin()) {
+                <button type="button" class="celda vacia" (click)="input.click()" [disabled]="subiendo()" aria-label="Subir foto">
+                  <mat-icon>add_a_photo</mat-icon>
+                </button>
+              } @else {
+                <div class="celda vacia"><mat-icon>image</mat-icon></div>
               }
-            </div>
-          }
+            }
+          </div>
+          @if (h.fotoIds.length === 0 && !esAdmin()) { <p class="rx-muted nota">Sin fotos registradas.</p> }
           @if (esAdmin()) { <p class="rx-muted nota">JPG, PNG o WebP de hasta 2 MB.</p> }
         </section>
 
@@ -77,7 +86,8 @@ const MAX_BYTES = 2 * 1024 * 1024;
             <div class="rx-dato"><span>Estado</span><strong><span class="estado-badge compacto" [class]="meta(h).cssClass">{{ etiquetaEstado(h) }}</span></strong></div>
             <div class="rx-dato"><span>Tipo</span><strong>{{ tipo(h) }}</strong></div>
             <div class="rx-dato"><span>Piso</span><strong>{{ h.piso ?? '—' }}</strong></div>
-            <div class="rx-dato"><span>Capacidad</span><strong>{{ h.capacidad ?? '—' }} personas</strong></div>
+            <div class="rx-dato"><span>Capacidad sugerida</span><strong>{{ h.capacidad ?? '—' }} personas</strong></div>
+            <div class="rx-dato"><span>Camas</span><strong>{{ h.camas ?? '—' }}</strong></div>
             <div class="rx-dato"><span>Tarifa</span><strong>{{ moneda(h.precioNoche) }}</strong></div>
             @if (h.huesped) {
               <div class="rx-dato"><span>Huésped actual</span><strong>{{ h.huesped.nombreCompleto }}</strong></div>
@@ -132,7 +142,14 @@ const MAX_BYTES = 2 * 1024 * 1024;
     .rx-card-titulo { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
     .spacer { flex: 1; }
     .principal { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border-radius: 12px; background: var(--bg-200); }
-    .miniaturas { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.6rem; }
+    .galeria { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+    .celda { position: relative; aspect-ratio: 4 / 3; border-radius: 10px; }
+    .celda .foto { padding: 0; border: none; width: 100%; height: 100%; border-radius: 10px; overflow: hidden; cursor: zoom-in; display: block; background: var(--bg-200); }
+    .celda .foto img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .celda.vacia { display: grid; place-items: center; border: 1.5px dashed #c5ccc8; background: #fafcfb; color: #8a948f; }
+    button.celda.vacia { cursor: pointer; font: inherit; }
+    button.celda.vacia:hover:not(:disabled) { border-color: var(--primary-300); color: var(--primary-300); }
+    @media (max-width: 420px) { .galeria { grid-template-columns: repeat(2, 1fr); } }
     .mini { position: relative; }
     .mini button:first-child { padding: 0; border: 2px solid transparent; border-radius: 10px; overflow: hidden; cursor: pointer; background: none; display: block; }
     .mini.sel button:first-child { border-color: var(--primary-300); }
@@ -154,6 +171,7 @@ export class HabitacionDetalleComponent implements OnInit {
   private readonly snack = inject(MatSnackBar);
   private readonly errorDialog = inject(ErrorDialogService);
   private readonly auth = inject(AuthService);
+  private readonly dialog = inject(MatDialog);
 
   readonly moneda = moneda;
   readonly fecha = fechaCorta;
@@ -161,14 +179,30 @@ export class HabitacionDetalleComponent implements OnInit {
   readonly etiquetaReserva = etiquetaEstadoReserva;
   readonly claseReserva = claseEstadoReserva;
   readonly maxFotos = MAX_FOTOS;
+  readonly porPersona = inject(ConfiguracionService).porPersona;
+
+  /** Casillas vacías de la cuadrícula hasta completar el máximo de fotos. */
+  vacias(cantidad: number): number[] {
+    return Array.from({ length: Math.max(this.maxFotos - cantidad, 0) }, (_, i) => i);
+  }
+
+  /** Abre la foto en un diálogo a pantalla completa (por encima del menú lateral) con flechas para recorrer la galería. */
+  ampliar(h: Habitacion, indice: number): void {
+    this.dialog.open(VisorFotoComponent, {
+      data: { urls: h.fotoIds.map((f) => this.url(h.id, f)), indice, titulo: 'Habitación ' + h.numero },
+      panelClass: 'visor-foto-panel',
+      backdropClass: 'visor-foto-fondo',
+      maxWidth: '96vw',
+    });
+  }
 
   readonly cargando = signal(true);
   readonly subiendo = signal(false);
   readonly habitacion = signal<Habitacion | null>(null);
   readonly historial = signal<Reserva[]>([]);
   readonly seleccion = signal<number | null>(null);
-  readonly esAdmin = computed(() => this.auth.tieneRol('ADMIN'));
-  readonly puedeOperar = computed(() => this.auth.tieneRol('ADMIN', 'RECEPCION'));
+  readonly esAdmin = computed(() => this.auth.puede('HABITACIONES_ADMINISTRAR'));
+  readonly puedeOperar = computed(() => this.auth.puede('HABITACIONES_OPERAR'));
   readonly fotoActual = computed(() => {
     const ids = this.habitacion()?.fotoIds ?? [];
     const s = this.seleccion();

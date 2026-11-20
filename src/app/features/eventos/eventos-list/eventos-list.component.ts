@@ -22,10 +22,11 @@ export function claseEstadoEvento(e: EstadoEvento): string {
 }
 
 /** Crear o editar un salón. */
+import { MonedaDirective } from '../../../shared/directivas/moneda.directive';
 @Component({
   selector: 'app-salon-dialog',
   host: { class: 'roomix-dialog-shell' },
-  imports: [ReactiveFormsModule, MatDialogModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSlideToggleModule],
+  imports: [MonedaDirective, ReactiveFormsModule, MatDialogModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSlideToggleModule],
   template: `
     <div class="dialog-accent" aria-hidden="true"></div>
     <div mat-dialog-title class="dialog-header">
@@ -36,7 +37,7 @@ export function claseEstadoEvento(e: EstadoEvento): string {
       <form [formGroup]="form" class="rx-form-grid">
         <mat-form-field appearance="outline" class="rx-full"><mat-label>Nombre</mat-label><input matInput formControlName="nombre" /></mat-form-field>
         <mat-form-field appearance="outline"><mat-label>Capacidad (personas)</mat-label><input matInput type="number" min="1" formControlName="capacidad" /></mat-form-field>
-        <mat-form-field appearance="outline"><mat-label>Tarifa por hora (COP)</mat-label><input matInput type="number" min="0" formControlName="tarifaHora" /></mat-form-field>
+        <mat-form-field appearance="outline"><mat-label>Tarifa por hora (COP)</mat-label><input matInput rxMoneda formControlName="tarifaHora" /></mat-form-field>
         <mat-form-field appearance="outline" class="rx-full"><mat-label>Descripción</mat-label><textarea matInput rows="2" formControlName="descripcion"></textarea></mat-form-field>
         <mat-slide-toggle formControlName="activo" class="rx-full">Disponible</mat-slide-toggle>
       </form>
@@ -179,7 +180,7 @@ export class EventosListComponent implements OnInit {
   readonly cargando = signal(true);
   readonly eventos = signal<Evento[]>([]);
   readonly salones = signal<Salon[]>([]);
-  readonly puedeGestionar = computed(() => this.auth.tieneRol('ADMIN', 'EVENTOS'));
+  readonly puedeGestionar = computed(() => this.auth.puede('EVENTOS_GESTIONAR'));
 
   readonly eventosVista = computed(() => {
     const ahora = new Date();

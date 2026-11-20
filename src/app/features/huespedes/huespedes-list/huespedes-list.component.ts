@@ -32,7 +32,7 @@ import { etiquetaUltimaActualizacion, programarAutoRefresh } from '../../../core
 })
 export class HuespedesListComponent implements OnInit {
   private readonly auth = inject(AuthService);
-  readonly puedeEditar = computed(() => this.auth.tieneRol('ADMIN', 'RECEPCION'));
+  readonly puedeEditar = computed(() => this.auth.puede('RESERVAS_GESTIONAR'));
 
   private readonly huespedService = inject(HuespedService);
   private readonly errorDialog = inject(ErrorDialogService);

@@ -47,7 +47,8 @@ const TEMAS: Tema[] = [
     pasos: [
       'Para reservar, ve a Habitaciones, elige la habitación y pulsa «Reservar». Selecciona fechas, huésped, canal y observaciones. Puedes reservar fechas futuras de una habitación ocupada si no se cruzan con otra estadía.',
       'Si hay promociones que aplican (por ejemplo, 5 noches o más) escoge una; el total se recalcula con el descuento y el IVA.',
-      'El pago es obligatorio para reservar: elige «Pago completo» (el total con IVA) o «Abono parcial» (al menos el abono mínimo que fija el hotel) e indica el medio de pago.',
+      'Indica cuántas personas se alojan. Si el hotel cobra por persona, el total es tarifa × noches × personas. La capacidad de la habitación es una sugerencia: si la superas el sistema solo avisa.',
+      'Elige «Pago completo» (el total) o «Abono parcial» (al menos el abono mínimo que fija el hotel) e indica el medio de pago. Si el hotel no exige pago para reservar, aparece también «Sin pago».',
       'Si el huésped no existe, créalo desde el mismo formulario. Es obligatorio registrar la autorización de tratamiento de datos (Ley 1581 de 2012).',
       'En el detalle de la reserva verás los abonos (abonado y saldo) y puedes registrar otro; también editarla, cancelarla (con motivo; se muestra la penalidad que se retiene), hacer check-in o check-out e imprimir el comprobante.',
       'Al hacer check-out el sistema genera la factura con alojamiento y servicios; los abonos ya aparecen como pagos y desde la factura se registra el saldo.',
@@ -71,7 +72,7 @@ const TEMAS: Tema[] = [
     pasos: [
       'Los estados son: Disponible, Reservada, Ocupada, En limpieza y En mantenimiento. El color de cada tarjeta indica el estado.',
       'El «Plano» muestra las habitaciones agrupadas por piso para ver la ocupación del edificio de un vistazo.',
-      'En el detalle de la habitación verás fotos, capacidad, características y el historial de reservas. El administrador puede subir hasta 6 fotos.',
+      'En el detalle de la habitación verás sus fotos en cuadrícula (tócalas para ampliarlas), la capacidad sugerida, las camas, las características y el historial de reservas. El administrador puede subir hasta 6 fotos desde las casillas vacías.',
     ],
   },
   {
@@ -82,6 +83,7 @@ const TEMAS: Tema[] = [
     pasos: [
       'Las tareas de limpieza se crean automáticamente al hacer check-out; las de mantenimiento se reportan desde la habitación.',
       'Asigna cada tarea a una persona del personal, inicia y finaliza el trabajo; al terminar la habitación vuelve a estar disponible.',
+      'Al finalizar puedes registrar los materiales gastados (jabón, papel, químicos…): se descuentan del inventario y quedan anotados en la tarea.',
     ],
   },
   {
@@ -119,6 +121,20 @@ const TEMAS: Tema[] = [
     ],
   },
   {
+    titulo: 'Caja y turnos de recepción',
+    icono: 'point_of_sale',
+    ruta: '/caja',
+    roles: ['ADMIN', 'RECEPCION', 'FINANZAS'],
+    pasos: [
+      'Al iniciar tu turno entra a Caja y pulsa «Abrir turno»: cuenta el efectivo que recibes y regístralo como base. Si no coincide con la base que dejó el turno anterior, explica la diferencia.',
+      'Sin turno abierto la recepción no puede cobrar: reservas con pago, abonos, pagos de facturas ni movimientos. El hotel tiene una sola caja, así que solo puede haber un turno abierto a la vez.',
+      'Los pagos que registras en reservas y facturas entran solos a tu turno. Desde Caja registras además otros ingresos (ventas en recepción) y egresos pagados en efectivo (compras pequeñas); quedan también en Finanzas.',
+      'Usa «Retiro / aporte» para sacar billetes a la caja fuerte o recibir monedas de cambio: no son ingresos ni gastos del hotel, pero cambian el efectivo en caja.',
+      'Al terminar pulsa «Cerrar turno»: cuenta los billetes y monedas, el sistema calcula el efectivo esperado y la diferencia (un faltante o sobrante debe explicarse), indica la base que queda para el siguiente turno y entrega el resto.',
+      'El acta del turno (con arqueo, totales por medio de pago, conteo, movimientos y espacio para firmas) se puede imprimir. Administración y finanzas consultan el historial de todos los turnos; cada recepcionista ve los suyos.',
+    ],
+  },
+  {
     titulo: 'Finanzas y facturación',
     icono: 'account_balance',
     ruta: '/finanzas',
@@ -147,9 +163,22 @@ const TEMAS: Tema[] = [
     ruta: '/usuarios',
     roles: ['ADMIN'],
     pasos: [
-      'Crea usuarios con uno de los 6 roles: Administrador, Recepción, Housekeeping, Finanzas, Eventos y Almacén. Cada rol ve solo sus módulos.',
+      'Al crear un usuario elige su rol (Administrador, Recepción, Housekeeping, Finanzas, Eventos o Almacén): se marcan los permisos de ese rol. Puedes marcar o quitar casillas para esa persona; «Usar los del rol» vuelve a la plantilla.',
       'Puedes desactivar usuarios o restablecer su contraseña (se genera una clave temporal que deberán cambiar).',
       'La Auditoría registra quién hizo cada acción, cuándo, desde qué IP y con qué resultado; se puede filtrar por usuario, módulo y fecha.',
+    ],
+  },
+  {
+    titulo: 'Configuración del hotel',
+    icono: 'tune',
+    ruta: '/configuracion',
+    roles: ['ADMIN'],
+    pasos: [
+      'Define el nombre y el logo del hotel, el NIT y los datos de contacto: aparecen en el menú, el inicio de sesión, los comprobantes y las facturas.',
+      'Elige si cobras el alojamiento por habitación o por persona, y si el hotel cobra IVA (y su porcentaje).',
+      'Activa el correo de confirmación para que el huésped reciba los datos de su reserva al crearla (requiere que el servidor tenga el envío de correos configurado).',
+      'Indica después de cuántos meses sin actividad se borran los datos personales de los huéspedes (Ley 1581); las reservas y facturas se conservan.',
+      'Los módulos contratados se ven al final; para agregar o quitar módulos comunícate con el proveedor de Roomix.',
     ],
   },
   {
@@ -160,10 +189,17 @@ const TEMAS: Tema[] = [
     pasos: [
       'Crea promociones de valor fijo o porcentaje con condiciones: mínimo de noches, tipo de habitación, canal y fechas de llegada. Actívalas o desactívalas cuando quieras.',
       'Recepción solo ve las promociones que aplican a cada reserva y puede escoger una.',
-      'En «Políticas de reserva» define el abono mínimo para reservar (% del total con IVA) y la penalidad por cancelación (% de lo abonado que se retiene; el resto se devuelve).',
+      'En «Políticas de reserva» define si se exige un pago para confirmar la reserva, el abono mínimo (% del total con IVA) y la penalidad por cancelación (% de lo abonado que se retiene; el resto se devuelve).',
     ],
   },
 ];
+
+import { ConfiguracionService } from '../../core/services/configuracion.service';
+import { Modulo } from '../../core/models/permisos.model';
+
+const MODULO_DE_RUTA: Record<string, Modulo | undefined> = {
+  '/caja': 'CAJA', '/servicios': 'SERVICIOS', '/eventos': 'EVENTOS', '/inventario': 'INVENTARIO', '/reportes': 'REPORTES',
+};
 
 @Component({
   selector: 'app-ayuda',
@@ -221,7 +257,11 @@ export class AyudaComponent {
   readonly roles = ROLES;
   readonly rolSesion = computed(() => this.auth.rol()!);
   readonly filtro = signal<'mio' | 'todos'>('mio');
-  readonly temas = computed(() => (this.filtro() === 'todos' ? TEMAS : TEMAS.filter((t) => this.puedeIr(t))));
+  private readonly configuracion = inject(ConfiguracionService);
+  /** Solo los temas de los módulos que tiene el hotel. */
+  private readonly licenciados = computed(() =>
+    TEMAS.filter((t) => !t.ruta || !MODULO_DE_RUTA[t.ruta] || this.configuracion.modulo(MODULO_DE_RUTA[t.ruta]!)));
+  readonly temas = computed(() => (this.filtro() === 'todos' ? this.licenciados() : this.licenciados().filter((t) => this.puedeIr(t))));
 
   puedeIr(t: Tema): boolean {
     const rol = this.auth.rol();

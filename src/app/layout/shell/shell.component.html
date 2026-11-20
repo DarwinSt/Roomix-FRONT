@@ -5,8 +5,13 @@
     [mode]="(isHandset$ | async) ? 'over' : 'side'"
     [opened]="(isHandset$ | async) === false"
   >
-    <a class="brand" routerLink="/" aria-label="Roomix — Inicio">
-      <img [src]="logoUrl" alt="Roomix" class="brand-logo" />
+    <a class="brand" routerLink="/" [attr.aria-label]="nombreHotel() + ' — Inicio'">
+      @if (logoHotel(); as logo) {
+        <img [src]="logo" [alt]="nombreHotel()" class="brand-logo brand-logo-hotel" />
+        <span class="brand-hotel">{{ nombreHotel() }}</span>
+      } @else {
+        <img [src]="logoUrl" alt="Roomix" class="brand-logo" />
+      }
     </a>
     <mat-nav-list>
       @for (grupo of grupos(); track grupo.clave) {
@@ -47,7 +52,7 @@
         }
         <img [src]="logoIconUrl" alt="" class="toolbar-logo" aria-hidden="true" />
       </div>
-      <span class="toolbar-title">Panel Roomix</span>
+      <span class="toolbar-title">{{ nombreHotel() === 'Roomix' ? 'Panel Roomix' : nombreHotel() }}</span>
       <div class="toolbar-trailing">
         @if (usuario(); as u) {
           <button mat-button class="usuario-btn" [matMenuTriggerFor]="menuUsuario" aria-label="Menú de usuario">

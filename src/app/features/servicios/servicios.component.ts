@@ -51,9 +51,9 @@ export class ServiciosComponent implements OnInit {
   readonly solicitudes = signal<SolicitudServicio[]>([]);
   readonly catalogo = signal<ServicioCatalogo[]>([]);
 
-  readonly puedeSolicitar = computed(() => this.auth.tieneRol('ADMIN', 'RECEPCION'));
-  readonly puedeGestionar = computed(() => this.auth.tieneRol('ADMIN', 'RECEPCION', 'HOUSEKEEPING', 'EVENTOS'));
-  readonly puedeEditarCatalogo = computed(() => this.auth.tieneRol('ADMIN', 'EVENTOS'));
+  readonly puedeSolicitar = computed(() => this.auth.puede('SERVICIOS_SOLICITUDES') && this.auth.puede('RESERVAS_GESTIONAR'));
+  readonly puedeGestionar = computed(() => this.auth.puede('SERVICIOS_SOLICITUDES'));
+  readonly puedeEditarCatalogo = computed(() => this.auth.puede('SERVICIOS_CATALOGO'));
 
   readonly resumen = computed(() => {
     const s = this.solicitudes();

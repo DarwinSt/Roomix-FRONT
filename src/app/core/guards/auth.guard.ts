@@ -1,6 +1,7 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { Rol } from '../models/auth.model';
+import { Permiso } from '../models/permisos.model';
 import { AuthService } from '../services/auth.service';
 
 /** Exige sesión iniciada; si la contraseña es temporal, obliga a cambiarla primero. */
@@ -25,6 +26,20 @@ export const rolGuard: CanActivateFn = (route) => {
   const router = inject(Router);
   const roles = (route.data?.['roles'] as Rol[] | undefined) ?? [];
   if (roles.length === 0 || auth.tieneRol(...roles)) {
+    return true;
+  }
+  return router.createUrlTree(['/inicio'], { queryParams: { sinPermiso: 1 } });
+};
+
+/**
+ * Restringe una ruta al permiso de `data.permiso` (y a que su módulo esté licenciado). El backend aplica las mismas
+ * reglas; esto solo evita mostrar pantallas que responderían 403.
+ */
+export const permisoGuard: CanActivateFn = (route) => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+  const permisos = (route.data?.['permisos'] as Permiso[] | undefined) ?? [];
+  if (permisos.length === 0 || auth.puede(...permisos)) {
     return true;
   }
   return router.createUrlTree(['/inicio'], { queryParams: { sinPermiso: 1 } });

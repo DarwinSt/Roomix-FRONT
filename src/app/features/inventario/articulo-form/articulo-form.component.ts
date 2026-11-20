@@ -13,9 +13,10 @@ import { InventarioService } from '../../../core/services/inventario.service';
 import { ErrorDialogService } from '../../../core/services/error-dialog.service';
 import { UNIDADES_MEDIDA, CategoriaInventario, UnidadMedida } from '../../../core/models/inventario.model';
 
+import { MonedaDirective } from '../../../shared/directivas/moneda.directive';
 @Component({
   selector: 'app-articulo-form',
-  imports: [
+  imports: [MonedaDirective, 
     ReactiveFormsModule,
     RouterLink,
     MatCardModule,

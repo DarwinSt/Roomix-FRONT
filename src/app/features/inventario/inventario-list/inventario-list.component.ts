@@ -67,7 +67,7 @@ export class InventarioListComponent implements OnInit {
   private readonly auth = inject(AuthService);
   readonly moneda = moneda;
   /** Altas, movimientos y bajas: administración y almacén (igual que el backend). */
-  readonly puedeGestionar = computed(() => this.auth.tieneRol('ADMIN', 'ALMACEN'));
+  readonly puedeGestionar = computed(() => this.auth.puede('INVENTARIO_GESTIONAR'));
 
   readonly loading = signal(true);
   readonly articulos = signal<ArticuloInventario[]>([]);

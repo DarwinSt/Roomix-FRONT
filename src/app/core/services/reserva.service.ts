@@ -103,11 +103,12 @@ export class ReservaService {
   }
 
   /** Subtotal, descuento, IVA y abono mínimo con la misma regla que aplica el backend al confirmar. */
-  cotizacion(q: { habitacionId: number; fechaEntrada: string; fechaSalida: string; promocionId?: number | null; canal?: CanalReserva | null; huespedId?: number | null }) {
+  cotizacion(q: { habitacionId: number; fechaEntrada: string; fechaSalida: string; promocionId?: number | null; canal?: CanalReserva | null; huespedId?: number | null; cantidadPersonas?: number | null }) {
     let params = new HttpParams().set('habitacionId', q.habitacionId).set('fechaEntrada', q.fechaEntrada).set('fechaSalida', q.fechaSalida);
     if (q.promocionId != null) params = params.set('promocionId', q.promocionId);
     if (q.canal) params = params.set('canal', q.canal);
     if (q.huespedId != null) params = params.set('huespedId', q.huespedId);
+    if (q.cantidadPersonas != null) params = params.set('cantidadPersonas', q.cantidadPersonas);
     return this.http.get<CotizacionReserva>(`${this.baseUrl}/cotizacion`, { params });
   }
 
@@ -129,9 +130,10 @@ export class PromocionService {
     return this.http.get<Promocion[]>(this.baseUrl);
   }
 
-  aplicables(habitacionId: number, fechaEntrada: string, fechaSalida: string, canal?: CanalReserva | null) {
+  aplicables(habitacionId: number, fechaEntrada: string, fechaSalida: string, canal?: CanalReserva | null, cantidadPersonas?: number | null) {
     let params = new HttpParams().set('habitacionId', habitacionId).set('fechaEntrada', fechaEntrada).set('fechaSalida', fechaSalida);
     if (canal) params = params.set('canal', canal);
+    if (cantidadPersonas != null) params = params.set('cantidadPersonas', cantidadPersonas);
     return this.http.get<PromocionAplicable[]>(`${this.baseUrl}/aplicables`, { params });
   }
 
@@ -151,7 +153,7 @@ export class PromocionService {
     return this.http.get<PoliticaReserva>(`${environment.apiUrl}/politicas-reserva`);
   }
 
-  actualizarPoliticas(body: { abonoMinimoPct: number; penalidadCancelacionPct: number }) {
+  actualizarPoliticas(body: { abonoMinimoPct: number; penalidadCancelacionPct: number; pagoObligatorio?: boolean }) {
     return this.http.put<PoliticaReserva>(`${environment.apiUrl}/politicas-reserva`, body);
   }
 }

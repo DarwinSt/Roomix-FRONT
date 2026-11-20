@@ -43,7 +43,7 @@ export class PersonalListComponent implements OnInit {
   private readonly snack = inject(MatSnackBar);
   private readonly auth = inject(AuthService);
   /** Altas, ediciones y bajas de personal: solo administración (igual que el backend) */
-  readonly esAdmin = computed(() => this.auth.tieneRol('ADMIN'));
+  readonly esAdmin = computed(() => this.auth.puede('PERSONAL_GESTIONAR'));
   verInactivos = false;
 
   readonly loading = signal(true);

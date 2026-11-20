@@ -21,10 +21,11 @@ import { fechaCorta, moneda } from '../../../core/utils/formato.util';
 import { formatearFechaIso, parsearFechaApi } from '../../../core/utils/date.util';
 
 /** Crear o editar una promoción: condiciones (todas deben cumplirse) y descuento. */
+import { MonedaDirective } from '../../../shared/directivas/moneda.directive';
 @Component({
   selector: 'app-promocion-dialog',
   host: { class: 'roomix-dialog-shell' },
-  imports: [ReactiveFormsModule, MatDialogModule, MatButtonModule, MatDatepickerModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSelectModule, MatSlideToggleModule],
+  imports: [MonedaDirective, ReactiveFormsModule, MatDialogModule, MatButtonModule, MatDatepickerModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSelectModule, MatSlideToggleModule],
   template: `
     <div class="dialog-accent" aria-hidden="true"></div>
     <div mat-dialog-title class="dialog-header">
@@ -53,7 +54,7 @@ import { formatearFechaIso, parsearFechaApi } from '../../../core/utils/date.uti
         </mat-form-field>
         <mat-form-field appearance="outline">
           <mat-label>{{ form.controls.tipoDescuento.value === 'PORCENTAJE' ? 'Porcentaje' : 'Valor (COP)' }}</mat-label>
-          <input matInput type="number" min="1" formControlName="valor" />
+          <input matInput rxMoneda formControlName="valor" />
           @if (form.controls.tipoDescuento.value === 'PORCENTAJE') { <span matTextSuffix>&nbsp;%</span> }
         </mat-form-field>
 
@@ -179,6 +180,7 @@ export class PromocionDialogComponent {
     <section class="rx-card">
       <div class="rx-card-titulo"><mat-icon>policy</mat-icon>Políticas de reserva</div>
       <form [formGroup]="politica" class="politica">
+        <mat-slide-toggle formControlName="pagoObligatorio" class="pago-obligatorio">Exigir un pago para confirmar la reserva</mat-slide-toggle>
         <mat-form-field appearance="outline">
           <mat-label>Abono mínimo para reservar</mat-label>
           <input matInput type="number" min="0" max="100" formControlName="abonoMinimoPct" />
@@ -223,6 +225,7 @@ export class PromocionDialogComponent {
   styles: `
     .politica { display: flex; flex-wrap: wrap; gap: 1.1rem 1rem; align-items: flex-start; }
     .politica mat-form-field { flex: 1 1 240px; }
+    .politica .pago-obligatorio { flex: 1 1 100%; }
     .politica button { margin-top: 0.35rem; }
     .ejemplo { margin: 0.75rem 0 0; font-size: 0.85rem; }
     .sub { display: block; color: #5b6660; font-size: 0.8rem; }
@@ -241,6 +244,7 @@ export class PromocionesComponent implements OnInit {
   readonly promociones = signal<Promocion[]>([]);
   readonly ejemploPolitica = signal<string | null>(null);
   readonly politica = inject(FormBuilder).nonNullable.group({
+    pagoObligatorio: [true],
     abonoMinimoPct: [0, [Validators.required, Validators.min(0), Validators.max(100)]],
     penalidadCancelacionPct: [0, [Validators.required, Validators.min(0), Validators.max(100)]],
   });
@@ -249,7 +253,8 @@ export class PromocionesComponent implements OnInit {
     this.cargar();
     this.service.politicas().subscribe({
       next: (p) => {
-        this.politica.setValue({ abonoMinimoPct: Number(p.abonoMinimoPct), penalidadCancelacionPct: Number(p.penalidadCancelacionPct) });
+        this.politica.setValue({ pagoObligatorio: p.pagoObligatorio ?? true, abonoMinimoPct: Number(p.abonoMinimoPct),
+          penalidadCancelacionPct: Number(p.penalidadCancelacionPct) });
         this.actualizarEjemplo();
       },
       error: (e) => this.errorDialog.mostrarDesdeApi(e),
@@ -271,14 +276,16 @@ export class PromocionesComponent implements OnInit {
   }
 
   private actualizarEjemplo(): void {
-    const { abonoMinimoPct: a, penalidadCancelacionPct: p } = this.politica.getRawValue();
+    const { pagoObligatorio, abonoMinimoPct: a, penalidadCancelacionPct: p } = this.politica.getRawValue();
     const total = 500000;
     const abono = Math.ceil((total * a) / 100);
     const retenido = Math.round((abono * p) / 100);
     this.ejemploPolitica.set(
-      a > 0
-        ? `Ejemplo: en una reserva de ${moneda(total)} (con IVA) se exige un abono de ${moneda(abono)}; si se cancela, se retienen ${moneda(retenido)} y se devuelven ${moneda(abono - retenido)}.`
-        : 'Sin abono mínimo: las reservas se pueden crear sin abono (los abonos siguen siendo opcionales).',
+      !pagoObligatorio
+        ? `Las reservas se pueden confirmar sin pago; si el huésped abona y luego cancela, se retiene el ${p} % de lo abonado.`
+        : a > 0
+          ? `Ejemplo: en una reserva de ${moneda(total)} (con IVA) se exige un abono de ${moneda(abono)}; si se cancela, se retienen ${moneda(retenido)} y se devuelven ${moneda(abono - retenido)}.`
+          : 'Se exige algún pago (de cualquier valor) para confirmar la reserva; el saldo se cobra en el check-out.',
     );
   }
 

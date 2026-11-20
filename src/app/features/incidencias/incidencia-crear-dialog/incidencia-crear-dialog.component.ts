@@ -32,6 +32,7 @@ export interface IncidenciaCrearDialogData {
   contextoLimpieza?: ContextoLimpieza;
 }
 
+import { ConfiguracionService } from '../../../core/services/configuracion.service';
 @Component({
   selector: 'app-incidencia-crear-dialog',
   host: { class: 'roomix-dialog-shell' },
@@ -54,6 +55,7 @@ export class IncidenciaCrearDialogComponent implements OnInit {
   private readonly incidenciaService = inject(IncidenciaService);
   private readonly habitacionService = inject(HabitacionService);
   private readonly errorDialog = inject(ErrorDialogService);
+  private readonly configuracion = inject(ConfiguracionService);
   readonly data: IncidenciaCrearDialogData = inject(MAT_DIALOG_DATA, { optional: true }) ?? {};
 
   readonly ALCANCES = ALCANCES_INCIDENCIA;
@@ -82,7 +84,8 @@ export class IncidenciaCrearDialogComponent implements OnInit {
   readonly opcionesServicio = computed(() => {
     const h = this.habitacionSeleccionada();
     if (!h || this.alcance !== 'HABITACION') return [];
-    return serviciosPermitidos(h.estado);
+    // El servicio al cuarto solo se ofrece si el hotel tiene el módulo de servicios
+    return serviciosPermitidos(h.estado).filter((o) => o.tipo !== 'SERVICIO_CUARTO' || this.configuracion.modulo('SERVICIOS'));
   });
 
   readonly opcionActiva = (): OpcionServicioHabitacion | null => {

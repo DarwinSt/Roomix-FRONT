@@ -6,6 +6,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { CatalogoPermisos, Permiso, PermisoInfo } from '../../../core/models/permisos.model';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -23,7 +25,7 @@ import { ConfirmDialogComponent } from '../../../shared/dialogs/confirm-dialog/c
 @Component({
   selector: 'app-usuario-dialog',
   host: { class: 'roomix-dialog-shell' },
-  imports: [ReactiveFormsModule, MatDialogModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSelectModule, MatSlideToggleModule],
+  imports: [ReactiveFormsModule, MatDialogModule, MatButtonModule, MatCheckboxModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSelectModule, MatSlideToggleModule],
   template: `
     <div class="dialog-accent" aria-hidden="true"></div>
     <div mat-dialog-title class="dialog-header">
@@ -63,6 +65,32 @@ import { ConfirmDialogComponent } from '../../../shared/dialogs/confirm-dialog/c
           <mat-slide-toggle formControlName="activo" class="rx-full">Usuario activo</mat-slide-toggle>
         }
       </form>
+
+      <div class="permisos-encabezado">
+        <p class="section-label">Permisos</p>
+        @if (personalizados()) {
+          <button mat-button type="button" (click)="restaurarRol()"><mat-icon>restart_alt</mat-icon>Usar los del rol</button>
+        }
+      </div>
+      <p class="rx-muted permisos-ayuda">Al elegir el rol se marcan sus permisos. Puede marcar o quitar módulos para esta persona.</p>
+      @if (!catalogo()) {
+        <p class="rx-muted">Cargando permisos…</p>
+      } @else {
+        <div class="permisos">
+          @for (g of grupos(); track g.grupo) {
+            <div class="permiso-fila">
+              <span class="permiso-grupo">{{ g.grupo }}</span>
+              <div class="permiso-niveles">
+                @for (p of g.permisos; track p.codigo) {
+                  <mat-checkbox [checked]="marcados().has(p.codigo)" (change)="alternar(p.codigo, $event.checked)" [title]="p.descripcion">
+                    {{ p.nivel }}
+                  </mat-checkbox>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      }
       @if (error()) { <p class="error">{{ error() }}</p> }
     </mat-dialog-content>
     <mat-dialog-actions align="end">
@@ -70,7 +98,19 @@ import { ConfirmDialogComponent } from '../../../shared/dialogs/confirm-dialog/c
       <button mat-flat-button color="primary" (click)="guardar()" [disabled]="guardando()">Guardar</button>
     </mat-dialog-actions>
   `,
-  styles: `.error { color: #c62828; font-size: 0.85rem; margin: 0.5rem 0 0; } .descripcion-rol { margin: 0.25rem 0 0.75rem; }`,
+  styles: `
+    .error { color: #c62828; font-size: 0.85rem; margin: 0.5rem 0 0; }
+    .descripcion-rol { margin: 0.25rem 0 0.75rem; }
+    .permisos-encabezado { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-top: 0.5rem; }
+    .permisos-encabezado .section-label { margin: 0; }
+    .permisos-ayuda { margin: 0.1rem 0 0.5rem; font-size: 0.82rem; }
+    .permisos { display: flex; flex-direction: column; border: 1px solid #e3e8e5; border-radius: 10px; }
+    .permiso-fila { display: grid; grid-template-columns: minmax(150px, 38%) 1fr; gap: 0.5rem; align-items: center; padding: 0.15rem 0.75rem; }
+    .permiso-fila + .permiso-fila { border-top: 1px solid #eef2ef; }
+    .permiso-grupo { font-weight: 600; font-size: 0.88rem; }
+    .permiso-niveles { display: flex; flex-wrap: wrap; column-gap: 0.5rem; }
+    @media (max-width: 560px) { .permiso-fila { grid-template-columns: 1fr; padding: 0.4rem 0.75rem; } }
+  `,
 })
 export class UsuarioDialogComponent {
   readonly data = inject<Usuario | null>(MAT_DIALOG_DATA);
@@ -95,8 +135,48 @@ export class UsuarioDialogComponent {
   private readonly rolActual = signal(this.form.controls.rol.value);
   readonly descripcionRol = computed(() => ROLES.find((r) => r.value === this.rolActual())?.descripcion ?? '');
 
+  /** Catálogo de permisos (solo se muestran los de módulos licenciados) y permisos marcados. */
+  readonly catalogo = signal<CatalogoPermisos | null>(null);
+  readonly marcados = signal<Set<Permiso>>(new Set(this.data?.permisos ?? []));
+  readonly grupos = computed(() => {
+    const c = this.catalogo();
+    if (!c) return [];
+    const mapa = new Map<string, PermisoInfo[]>();
+    for (const p of c.permisos.filter((x) => x.disponible)) {
+      mapa.set(p.grupo, [...(mapa.get(p.grupo) ?? []), p]);
+    }
+    return [...mapa.entries()].map(([grupo, permisos]) => ({ grupo, permisos }));
+  });
+  readonly personalizados = computed(() => {
+    const c = this.catalogo();
+    if (!c) return false;
+    const rol = new Set(c.porRol[this.rolActual()] ?? []);
+    const m = this.marcados();
+    return rol.size !== m.size || [...m].some((p) => !rol.has(p));
+  });
+
   constructor() {
-    this.form.controls.rol.valueChanges.subscribe((r) => this.rolActual.set(r));
+    this.usuarioService.permisos().subscribe((c) => {
+      this.catalogo.set(c);
+      if (!this.data?.permisos) this.marcados.set(new Set(c.porRol[this.form.controls.rol.value] ?? []));
+    });
+    // Al cambiar el rol se marcan los permisos de ese rol (luego se pueden ajustar)
+    this.form.controls.rol.valueChanges.subscribe((r) => {
+      this.rolActual.set(r);
+      this.restaurarRol();
+    });
+  }
+
+  alternar(p: Permiso, marcado: boolean): void {
+    const s = new Set(this.marcados());
+    if (marcado) s.add(p);
+    else s.delete(p);
+    this.marcados.set(s);
+  }
+
+  restaurarRol(): void {
+    const c = this.catalogo();
+    if (c) this.marcados.set(new Set(c.porRol[this.form.controls.rol.value] ?? []));
   }
 
   guardar(): void {
@@ -106,7 +186,9 @@ export class UsuarioDialogComponent {
       return;
     }
     const v = this.form.getRawValue();
-    const body = { ...v, password: v.password || null };
+    // Se envían todos los marcados (también los de módulos no licenciados que trae el rol); si coinciden con los del
+    // rol, el backend deja al usuario siguiendo la plantilla del rol
+    const body = { ...v, password: v.password || null, permisos: [...this.marcados()] };
     this.guardando.set(true);
     const peticion = this.data ? this.usuarioService.actualizar(this.data.id, body) : this.usuarioService.crear(body);
     peticion.subscribe({
@@ -157,7 +239,7 @@ export class PasswordTemporalDialogComponent {
     <div class="page-header row">
       <div>
         <h1>Usuarios y roles</h1>
-        <p>Cuentas del personal y el módulo al que accede cada rol.</p>
+        <p>Cuentas del personal. El rol marca los permisos por defecto y se pueden ajustar para cada persona.</p>
       </div>
       <button mat-flat-button color="primary" (click)="abrir(null)"><mat-icon>person_add</mat-icon>Nuevo usuario</button>
     </div>
@@ -183,7 +265,7 @@ export class PasswordTemporalDialogComponent {
             @for (u of usuarios(); track u.id) {
               <tr>
                 <td data-label="Usuario" class="ancho"><strong>{{ u.nombreCompleto }}</strong><span class="sub">{{ u.username }}</span></td>
-                <td data-label="Rol">{{ u.rolNombre }}</td>
+                <td data-label="Rol">{{ u.rolNombre }}@if (u.permisosPersonalizados) { <span class="sub">Permisos ajustados</span> }</td>
                 <td data-label="Correo">{{ u.email }}</td>
                 <td data-label="Último acceso" class="rx-num">{{ fecha(u.ultimoAcceso, true) }}</td>
                 <td data-label="Estado">
@@ -246,7 +328,7 @@ export class UsuariosComponent implements OnInit {
 
   abrir(usuario: Usuario | null): void {
     this.dialog
-      .open(UsuarioDialogComponent, { ...roomixDialogConfig({ width: '560px' }), data: usuario })
+      .open(UsuarioDialogComponent, { ...roomixDialogConfig({ width: '680px' }), data: usuario })
       .afterClosed()
       .subscribe((ok) => {
         if (ok) {

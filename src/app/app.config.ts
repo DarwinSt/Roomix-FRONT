@@ -1,4 +1,6 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { ApplicationConfig, inject, provideAppInitializer, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { firstValueFrom, timeout, catchError, of } from 'rxjs';
+import { ConfiguracionService } from './core/services/configuracion.service';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
@@ -22,5 +24,8 @@ export const appConfig: ApplicationConfig = {
     { provide: LOCALE_ID, useValue: 'es-ES' },
     ...ROOMIX_DATE_PROVIDERS,
     provideMobilePlatform(),
+    // Marca y módulos del hotel; si el servidor tarda, la app arranca con los datos guardados
+    provideAppInitializer(() =>
+      firstValueFrom(inject(ConfiguracionService).cargar().pipe(timeout(2500), catchError(() => of(null))))),
   ],
 };

@@ -56,7 +56,8 @@ export class HomeComponent implements OnInit {
   readonly etiquetaSync = computed(() => etiquetaUltimaActualizacion(this.ultimaActualizacion()));
   readonly primerNombre = computed(() => this.auth.usuario()?.nombreCompleto?.split(' ')[0] ?? '');
   readonly rolNombre = computed(() => etiquetaRol(this.auth.rol()));
-  readonly puedeOperar = computed(() => this.auth.tieneRol('ADMIN', 'RECEPCION'));
+  readonly puedeOperar = computed(() => this.auth.puede('RESERVAS_GESTIONAR'));
+  readonly puedeServicios = computed(() => this.auth.puede('SERVICIOS_VER'));
 
   readonly saludo = computed(() => {
     const h = new Date().getHours();

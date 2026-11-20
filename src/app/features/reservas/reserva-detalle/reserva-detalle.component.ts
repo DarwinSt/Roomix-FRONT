@@ -29,6 +29,8 @@ import { ConfirmDialogComponent } from '../../../shared/dialogs/confirm-dialog/c
 import { SolicitudDialogComponent } from '../../servicios/servicio-dialogs.component';
 
 /** Editar fechas, canal y observaciones de una reserva confirmada o en curso. */
+import { MonedaDirective } from '../../../shared/directivas/moneda.directive';
+import { ConfiguracionService } from '../../../core/services/configuracion.service';
 @Component({
   selector: 'app-editar-reserva-dialog',
   host: { class: 'roomix-dialog-shell' },
@@ -47,7 +49,16 @@ import { SolicitudDialogComponent } from '../../servicios/servicio-dialogs.compo
           @if (enCurso) { <mat-hint>El huésped ya hizo check-in</mat-hint> }
         </mat-form-field>
         <mat-form-field appearance="outline"><mat-label>Salida</mat-label><input matInput type="date" formControlName="fechaSalida" /></mat-form-field>
-        <mat-form-field appearance="outline" class="rx-full">
+        <mat-form-field appearance="outline">
+          <mat-label>Personas</mat-label>
+          <input matInput type="number" min="1" max="100" formControlName="cantidadPersonas" />
+          @if (data.capacidadSugerida && +(form.controls.cantidadPersonas.value ?? 1) > data.capacidadSugerida) {
+            <mat-hint class="aviso">Supera la capacidad sugerida ({{ data.capacidadSugerida }})</mat-hint>
+          } @else if (data.cobroPorPersona) {
+            <mat-hint>El total se recalcula por persona</mat-hint>
+          }
+        </mat-form-field>
+        <mat-form-field appearance="outline">
           <mat-label>Canal</mat-label>
           <mat-select formControlName="canal" panelClass="roomix-select-panel">
             @for (c of canales; track c.value) { <mat-option [value]="c.value">{{ c.label }}</mat-option> }
@@ -63,7 +74,7 @@ import { SolicitudDialogComponent } from '../../servicios/servicio-dialogs.compo
       <button mat-flat-button color="primary" (click)="guardar()">Guardar</button>
     </mat-dialog-actions>
   `,
-  styles: `.error { color: #c62828; font-size: 0.85rem; }`,
+  styles: `.error { color: #c62828; font-size: 0.85rem; } .aviso { color: #b26a00; }`,
 })
 export class EditarReservaDialogComponent {
   readonly data = inject<Reserva>(MAT_DIALOG_DATA);
@@ -76,6 +87,7 @@ export class EditarReservaDialogComponent {
     fechaEntrada: [this.data.fechaEntrada, Validators.required],
     fechaSalida: [this.data.fechaSalida, Validators.required],
     canal: [(this.data.canal ?? 'PRESENCIAL') as CanalReserva],
+    cantidadPersonas: [this.data.cantidadPersonas ?? 1, [Validators.min(1), Validators.max(100)]],
     observaciones: [this.data.observaciones ?? ''],
   });
 
@@ -86,7 +98,10 @@ export class EditarReservaDialogComponent {
       return;
     }
     this.service
-      .actualizar(this.data.id, { fechaEntrada: v.fechaEntrada, fechaSalida: v.fechaSalida, canal: v.canal, observaciones: v.observaciones || null })
+      .actualizar(this.data.id, {
+        fechaEntrada: v.fechaEntrada, fechaSalida: v.fechaSalida, canal: v.canal, observaciones: v.observaciones || null,
+        cantidadPersonas: v.cantidadPersonas ? Math.max(1, Math.floor(Number(v.cantidadPersonas))) : null,
+      })
       .subscribe({ next: (r) => this.ref.close(r), error: (e) => this.error.set(extractApiErrorMessage(e)) });
   }
 }
@@ -95,7 +110,7 @@ export class EditarReservaDialogComponent {
 @Component({
   selector: 'app-abono-dialog',
   host: { class: 'roomix-dialog-shell' },
-  imports: [ReactiveFormsModule, MatDialogModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSelectModule],
+  imports: [MonedaDirective, ReactiveFormsModule, MatDialogModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSelectModule],
   template: `
     <div class="dialog-accent" aria-hidden="true"></div>
     <div mat-dialog-title class="dialog-header">
@@ -106,7 +121,7 @@ export class EditarReservaDialogComponent {
       <form [formGroup]="form" class="dialog-form-grid">
         <mat-form-field appearance="outline">
           <mat-label>Valor (COP)</mat-label>
-          <input matInput type="number" min="1" step="1000" formControlName="valor" />
+          <input matInput rxMoneda formControlName="valor" />
           <mat-hint>Máximo {{ moneda(data.resumen.saldo) }}</mat-hint>
         </mat-form-field>
         <mat-form-field appearance="outline">
@@ -180,7 +195,7 @@ export class AbonoDialogComponent {
               <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="Más acciones"><mat-icon>more_vert</mat-icon></button>
               <mat-menu #menu="matMenu">
                 <button mat-menu-item (click)="editar()"><mat-icon>edit_calendar</mat-icon>Editar reserva</button>
-                @if (r.estadoReserva === 'EN_CURSO') {
+                @if (r.estadoReserva === 'EN_CURSO' && puedeServicios()) {
                   <button mat-menu-item (click)="nuevoServicio()"><mat-icon>room_service</mat-icon>Cargar servicio</button>
                 }
                 @if (r.estadoReserva === 'CONFIRMADA') {
@@ -194,6 +209,7 @@ export class AbonoDialogComponent {
 
       <!-- Encabezado del comprobante impreso -->
       <div class="solo-imprimir comprobante-cabecera">
+        @if (logoHotel(); as logo) { <img class="logo-comprobante" [src]="logo" alt="" /> }
         @if (hotel(); as h) {
           <h2>{{ h.nombre }}</h2>
           <p>NIT {{ h.nit }} · {{ h.direccion }}, {{ h.ciudad }} · {{ h.telefono }}</p>
@@ -216,7 +232,8 @@ export class AbonoDialogComponent {
             <div class="rx-dato"><span>Entrada</span><strong>{{ fecha(r.fechaEntrada) }}</strong></div>
             <div class="rx-dato"><span>Salida</span><strong>{{ fecha(r.fechaSalida) }}</strong></div>
             <div class="rx-dato"><span>Noches</span><strong>{{ r.cantidadNoches }}</strong></div>
-            <div class="rx-dato"><span>Tarifa por noche</span><strong>{{ moneda(r.tarifaNoche) }}</strong></div>
+            <div class="rx-dato"><span>Personas</span><strong>{{ r.cantidadPersonas ?? 1 }}@if (r.superaCapacidad) { <span class="sub aviso-cap">supera la capacidad sugerida ({{ r.capacidadSugerida }})</span> }</strong></div>
+            <div class="rx-dato"><span>{{ r.cobroPorPersona ? 'Tarifa por persona y noche' : 'Tarifa por noche' }}</span><strong>{{ moneda(r.tarifaNoche) }}</strong></div>
             @if (r.descuento > 0) {
               <div class="rx-dato"><span>Subtotal</span><strong>{{ moneda(r.subtotal) }}</strong></div>
               <div class="rx-dato"><span>Promoción</span><strong class="descuento">{{ r.promocionNombre }} · −{{ moneda(r.descuento) }}</strong></div>
@@ -370,6 +387,9 @@ export class AbonoDialogComponent {
     .comprobante-cabecera h2 { margin: 0; }
     .comprobante-cabecera p { margin: 0.15rem 0; font-size: 0.85rem; }
     .pie { font-size: 0.75rem; margin-top: 1rem; }
+  
+    .aviso-cap { display: block; color: #b26a00; font-weight: 400; font-size: 0.78rem; }
+    .logo-comprobante { max-height: 64px; max-width: 160px; object-fit: contain; display: block; margin-bottom: 0.4rem; }
   `,
 })
 export class ReservaDetalleComponent implements OnInit {
@@ -399,8 +419,10 @@ export class ReservaDetalleComponent implements OnInit {
   readonly servicios = signal<SolicitudServicio[]>([]);
   readonly abonos = signal<ResumenAbonos | null>(null);
   private readonly promociones = inject(PromocionService);
-  readonly puedeOperar = computed(() => this.auth.tieneRol('ADMIN', 'RECEPCION'));
-  readonly puedeFacturar = computed(() => this.auth.tieneRol('ADMIN', 'RECEPCION', 'FINANZAS'));
+  readonly puedeOperar = computed(() => this.auth.puede('RESERVAS_GESTIONAR'));
+  readonly puedeFacturar = computed(() => this.auth.puede('FACTURAS'));
+  readonly puedeServicios = computed(() => this.auth.puede('SERVICIOS_SOLICITUDES'));
+  readonly logoHotel = inject(ConfiguracionService).logoUrl;
   readonly hayPendiente = computed(() => (this.cuenta()?.lineas ?? []).some((l) => !l.facturado));
 
   private get id(): number {
@@ -425,7 +447,9 @@ export class ReservaDetalleComponent implements OnInit {
     if (this.puedeFacturar()) {
       this.facturas.cuentaReserva(this.id).subscribe({ next: (c) => this.cuenta.set(c), error: () => this.cuenta.set(null) });
     }
-    this.serviciosService.solicitudes({ reservaId: this.id }).subscribe({ next: (s) => this.servicios.set(s), error: () => this.servicios.set([]) });
+    if (this.auth.puede('SERVICIOS_VER')) {
+      this.serviciosService.solicitudes({ reservaId: this.id }).subscribe({ next: (s) => this.servicios.set(s), error: () => this.servicios.set([]) });
+    }
     this.service.abonos(this.id).subscribe({ next: (a) => this.abonos.set(a), error: () => this.abonos.set(null) });
   }
 
