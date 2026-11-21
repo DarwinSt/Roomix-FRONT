@@ -50,7 +50,7 @@
             <mat-icon>menu</mat-icon>
           </button>
         }
-        <img [src]="logoIconUrl" alt="" class="toolbar-logo" aria-hidden="true" />
+        <img [src]="logoHotel() ?? logoIconUrl" alt="" class="toolbar-logo" [class.toolbar-logo-hotel]="!!logoHotel()" aria-hidden="true" />
       </div>
       <span class="toolbar-title">{{ nombreHotel() === 'Roomix' ? 'Panel Roomix' : nombreHotel() }}</span>
       <div class="toolbar-trailing">

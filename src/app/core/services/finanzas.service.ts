@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { shareReplay } from 'rxjs';
+import { Observable, shareReplay } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   CategoriaInfo,
@@ -127,10 +127,16 @@ export class FacturaService {
 @Injectable({ providedIn: 'root' })
 export class HotelService {
   private readonly http = inject(HttpClient);
-  private readonly hotel$ = this.http.get<HotelInfo>(`${environment.apiUrl}/configuracion/hotel`).pipe(shareReplay(1));
+  private hotel$: Observable<HotelInfo> | null = null;
 
-  datos() {
+  /** Datos del hotel para documentos; se piden una vez y se vuelven a pedir cuando el administrador los cambia. */
+  datos(): Observable<HotelInfo> {
+    this.hotel$ ??= this.http.get<HotelInfo>(`${environment.apiUrl}/configuracion/hotel`).pipe(shareReplay(1));
     return this.hotel$;
+  }
+
+  invalidar(): void {
+    this.hotel$ = null;
   }
 }
 

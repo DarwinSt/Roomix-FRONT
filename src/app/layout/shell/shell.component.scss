@@ -192,6 +192,15 @@ a[mat-list-item].active {
   flex-shrink: 0;
 }
 
+// El logo del hotel puede tener cualquier proporción: se ajusta a la altura de la barra
+.toolbar-logo-hotel {
+  aspect-ratio: auto;
+  max-width: 120px;
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 8px;
+  padding: 2px 4px;
+}
+
 .shell-content {
   padding: 1.5rem 1.75rem calc(1.5rem + env(safe-area-inset-bottom));
   max-width: 1280px;

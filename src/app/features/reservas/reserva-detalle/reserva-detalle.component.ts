@@ -32,6 +32,7 @@ import { SolicitudDialogComponent } from '../../servicios/servicio-dialogs.compo
 import { MonedaDirective } from '../../../shared/directivas/moneda.directive';
 import { ConfiguracionService } from '../../../core/services/configuracion.service';
 import { VentaDialogComponent } from '../../ventas/venta-dialog.component';
+import { EncabezadoImpresionComponent } from '../../../shared/impresion/encabezado-impresion.component';
 @Component({
   selector: 'app-editar-reserva-dialog',
   host: { class: 'roomix-dialog-shell' },
@@ -171,7 +172,7 @@ export class AbonoDialogComponent {
 
 @Component({
   selector: 'app-reserva-detalle',
-  imports: [RouterLink, MatButtonModule, MatIconModule, MatMenuModule, MatProgressSpinnerModule],
+  imports: [RouterLink, MatButtonModule, MatIconModule, MatMenuModule, MatProgressSpinnerModule, EncabezadoImpresionComponent],
   template: `
     @if (cargando()) {
       <div class="rx-cargando"><mat-spinner diameter="44" /></div>
@@ -212,15 +213,8 @@ export class AbonoDialogComponent {
       </div>
 
       <!-- Encabezado del comprobante impreso -->
-      <div class="solo-imprimir comprobante-cabecera">
-        @if (logoHotel(); as logo) { <img class="logo-comprobante" [src]="logo" alt="" /> }
-        @if (hotel(); as h) {
-          <h2>{{ h.nombre }}</h2>
-          <p>NIT {{ h.nit }} · {{ h.direccion }}, {{ h.ciudad }} · {{ h.telefono }}</p>
-        }
-        <h3>Comprobante de reserva #{{ r.id }}</h3>
-        <p>Estado: {{ etiquetaEstado(r.estadoReserva) }} · Emitido {{ fecha(hoy) }}</p>
-      </div>
+      <rx-encabezado-impresion [titulo]="'Comprobante de reserva #' + r.id"
+        [subtitulo]="'Estado: ' + etiquetaEstado(r.estadoReserva) + ' · Emitido ' + fecha(hoy)" />
 
       @if (r.motivoCancelacion) {
         <div class="aviso"><mat-icon>info</mat-icon>Cancelada el {{ fecha(r.fechaHoraCancelacion, true) }}: {{ r.motivoCancelacion }}
@@ -335,7 +329,11 @@ export class AbonoDialogComponent {
           </div>
           <div class="totales">
             <div><span>Subtotal</span><strong class="rx-num">{{ moneda(c.subtotal) }}</strong></div>
-            <div><span>IVA {{ c.exentoIva ? '(exento, art. 481 E.T.)' : c.porcentajeImpuesto + ' %' }}</span><strong class="rx-num">{{ moneda(c.impuesto) }}</strong></div>
+            @if (c.exentoIva || c.porcentajeImpuesto > 0 || c.impuesto > 0) {
+              <div><span>IVA {{ c.exentoIva ? '(exento, art. 481 E.T.)' : c.porcentajeImpuesto + ' %' }}</span><strong class="rx-num">{{ moneda(c.impuesto) }}</strong></div>
+            } @else {
+              <div class="nota-iva"><span>No responsable de IVA</span></div>
+            }
             <div class="total"><span>Total</span><strong class="rx-num">{{ moneda(c.total) }}</strong></div>
             <div><span>Pagado</span><strong class="rx-num">{{ moneda(c.totalPagado) }}</strong></div>
             <div class="saldo" [class.pendiente]="c.saldo > 0"><span>Saldo</span><strong class="rx-num">{{ moneda(c.saldo) }}</strong></div>
@@ -391,8 +389,6 @@ export class AbonoDialogComponent {
     .abonos-resumen { display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; margin-bottom: 0.75rem; font-size: 0.9rem; }
     .abonos-resumen div { display: flex; flex-direction: column; }
     .abonos-resumen span { color: #5b6660; font-size: 0.8rem; }
-    .comprobante-cabecera h2 { margin: 0; }
-    .comprobante-cabecera p { margin: 0.15rem 0; font-size: 0.85rem; }
     .pie { font-size: 0.75rem; margin-top: 1rem; }
   
     .aviso-cap { display: block; color: #b26a00; font-weight: 400; font-size: 0.78rem; }

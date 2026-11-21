@@ -94,9 +94,9 @@ import { VentaDialogComponent } from './venta-dialog.component';
                   </td>
                   <td data-label="Total" class="derecha rx-num"><strong>{{ moneda(v.total) }}</strong></td>
                   <td class="derecha">
-                    @if (v.estado === 'VIGENTE') {
+                    @if (v.estado === 'VIGENTE' && puedeAnular) {
                       <button mat-button type="button" class="anular" (click)="anular(v)"><mat-icon>undo</mat-icon>Anular</button>
-                    } @else {
+                    } @else if (v.estado === 'ANULADA') {
                       <span class="rx-chip neutro">Anulada</span>
                     }
                   </td>
@@ -128,7 +128,10 @@ export class VentasComponent implements OnInit {
 
   readonly moneda = moneda;
   readonly hoy = hoyIso();
-  readonly puedeInventario = inject(AuthService).puede('INVENTARIO_GESTIONAR');
+  private readonly auth = inject(AuthService);
+  readonly puedeInventario = this.auth.puede('INVENTARIO_GESTIONAR');
+  /** Anular una venta es de administración o finanzas: quien vende no anula. */
+  readonly puedeAnular = this.auth.puede('ANULACIONES');
   readonly fecha = signal(this.hoy);
   readonly cargando = signal(true);
   readonly ventas = signal<Venta[]>([]);

@@ -17,9 +17,11 @@ import { Periodo, PeriodoSelectorComponent } from '../../shared/periodo/periodo-
 
 type Metrica = 'ocupacion' | 'ingreso';
 
+import { EncabezadoImpresionComponent } from '../../shared/impresion/encabezado-impresion.component';
 @Component({
   selector: 'app-reportes',
-  imports: [MatButtonModule, MatButtonToggleModule, MatIconModule, MatProgressSpinnerModule, GraficoComponent, BarrasHorizontalesComponent, PeriodoSelectorComponent],
+  imports: [MatButtonModule, MatButtonToggleModule, MatIconModule, MatProgressSpinnerModule, GraficoComponent, BarrasHorizontalesComponent, PeriodoSelectorComponent,
+    EncabezadoImpresionComponent],
   template: `
     <div class="page-header row">
       <div>
@@ -39,7 +41,7 @@ type Metrica = 'ocupacion' | 'ingreso';
     @if (cargando()) {
       <div class="rx-cargando"><mat-spinner diameter="44" /></div>
     } @else if (reporte(); as r) {
-      <p class="solo-imprimir">Periodo {{ fecha(r.desde) }} – {{ fecha(r.hasta) }}</p>
+      <rx-encabezado-impresion titulo="Reporte de ocupación" [subtitulo]="'Periodo ' + fecha(r.desde) + ' – ' + fecha(r.hasta)" />
       <div class="rx-kpis">
         <div class="rx-kpi"><span class="rx-kpi-etiqueta"><mat-icon>hotel</mat-icon>Ocupación</span><span class="rx-kpi-valor">{{ pct(r.ocupacionPct) }}</span>
           <span class="rx-kpi-sub">{{ r.nochesVendidas }} de {{ r.nochesDisponibles }} noches</span></div>

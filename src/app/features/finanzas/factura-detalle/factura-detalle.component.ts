@@ -102,6 +102,8 @@ export class PagoDialogComponent {
 })
 export class FacturaDetalleComponent implements OnInit {
   readonly logoHotel = inject(ConfiguracionService).logoUrl;
+  /** Factura en 0 %: si el hotel cobra IVA es una exención (extranjero no residente); si no, no es responsable de IVA. */
+  readonly cobraIva = inject(ConfiguracionService).cobraIva;
   private readonly route = inject(ActivatedRoute);
   private readonly service = inject(FacturaService);
   private readonly errorDialog = inject(ErrorDialogService);
@@ -116,7 +118,8 @@ export class FacturaDetalleComponent implements OnInit {
   readonly clase = claseEstadoFactura;
   readonly factura = signal<Factura | null>(null);
   readonly cargando = signal(true);
-  readonly puedeAnular = computed(() => this.auth.puede('FINANZAS'));
+  /** Anular es de administración o finanzas, no de quien cobra. */
+  readonly puedeAnular = computed(() => this.auth.puede('ANULACIONES') && this.auth.puede('FACTURAS'));
 
   ngOnInit(): void {
     this.cargar();

@@ -591,3 +591,8 @@
 
   mat-icon { font-size: 1.1rem; width: 1.1rem; height: 1.1rem; flex-shrink: 0; }
 }
+
+// Formularios de página usados dentro de un modal: la ayuda de un campo no debe montarse sobre la etiqueta del de abajo
+.roomix-dialog .rx-form-grid {
+  row-gap: 0.6rem;
+}

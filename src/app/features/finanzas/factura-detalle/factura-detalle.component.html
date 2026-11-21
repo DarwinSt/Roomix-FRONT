@@ -58,7 +58,13 @@
 
     <div class="totales">
       <div><span>Subtotal</span><span class="rx-num">{{ moneda(f.subtotal) }}</span></div>
-      <div><span>IVA ({{ f.porcentajeImpuesto }} %)</span><span class="rx-num">{{ moneda(f.impuesto) }}</span></div>
+      @if (f.porcentajeImpuesto > 0 || f.impuesto > 0) {
+        <div><span>IVA ({{ f.porcentajeImpuesto }} %)</span><span class="rx-num">{{ moneda(f.impuesto) }}</span></div>
+      } @else if (cobraIva()) {
+        <div><span>IVA (exento, art. 481 E.T.)</span><span class="rx-num">{{ moneda(0) }}</span></div>
+      } @else {
+        <div class="nota-iva"><span>No responsable de IVA</span></div>
+      }
       <div class="total"><span>Total</span><span class="rx-num">{{ moneda(f.total) }}</span></div>
       <div><span>Pagado</span><span class="rx-num">{{ moneda(f.totalPagado) }}</span></div>
       <div class="saldo"><span>Saldo</span><span class="rx-num">{{ moneda(f.saldo) }}</span></div>

@@ -14,6 +14,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { FinanzasService } from '../../../core/services/finanzas.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { ErrorDialogService } from '../../../core/services/error-dialog.service';
 import { roomixDialogConfig } from '../../../core/config/dialog.config';
 import {
@@ -48,6 +49,9 @@ import { GastosRecurrentesDialogComponent, PagarGastoDialogComponent } from '../
   `,
 })
 export class FinanzasPanelComponent {
+  /** Anular movimientos es de administración o finanzas (no de quien cobra). */
+  readonly puedeAnular = inject(AuthService).puede('ANULACIONES');
+
   private readonly finanzas = inject(FinanzasService);
   private readonly errorDialog = inject(ErrorDialogService);
   private readonly dialog = inject(MatDialog);

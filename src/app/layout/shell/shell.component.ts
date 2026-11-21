@@ -1,4 +1,4 @@
-import { Component, computed, inject, viewChild } from '@angular/core';
+import { Component, DestroyRef, computed, effect, inject, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -15,7 +15,8 @@ import { ROOMIX_LOGO_ICON_URL, ROOMIX_LOGO_URL } from '../../core/config/brand.c
 import { environment } from '../../../environments/environment';
 import { AuthService } from '../../core/services/auth.service';
 import { ConfiguracionService } from '../../core/services/configuracion.service';
-import { ItemNavegacion, navegacionPara } from '../../core/config/navegacion.config';
+import { ItemNavegacion, NAVEGACION, navegacionPara } from '../../core/config/navegacion.config';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { etiquetaRol } from '../../core/models/auth.model';
 
 const GRUPOS: { clave: ItemNavegacion['grupo']; titulo: string }[] = [
@@ -100,6 +101,39 @@ export class ShellComponent {
     const items = navegacionPara((p) => this.auth.puede(p));
     return GRUPOS.map((g) => ({ ...g, items: items.filter((i) => i.grupo === g.clave) })).filter((g) => g.items.length > 0);
   });
+
+  private readonly snack = inject(MatSnackBar);
+
+  /**
+   * Mantiene al día los permisos del usuario y la configuración del hotel: al entrar, al volver a la pestaña y cada
+   * 5 minutos. Si al usuario le quitaron el acceso a la pantalla en la que está, vuelve al inicio.
+   */
+  private readonly sincronizacion = (() => {
+    const revisar = (minimoMs: number) => {
+      if (document.visibilityState !== 'visible') return;
+      this.auth.revisarPerfil(minimoMs);
+      this.configuracion.refrescar(minimoMs);
+    };
+    this.auth.revisarPerfil(0);
+    const alVolver = () => revisar(60_000);
+    document.addEventListener('visibilitychange', alVolver);
+    const intervalo = setInterval(() => revisar(4 * 60_000), 5 * 60_000);
+    inject(DestroyRef).onDestroy(() => {
+      document.removeEventListener('visibilitychange', alVolver);
+      clearInterval(intervalo);
+    });
+    effect(() => {
+      this.auth.permisos();
+      const ruta = this.router.url.split('?')[0];
+      const item = NAVEGACION.filter((i) => i.permiso && (ruta === i.path || ruta.startsWith(i.path + '/')))
+        .sort((a, b) => b.path.length - a.path.length)[0];
+      if (item?.permiso && !this.auth.puede(item.permiso)) {
+        this.snack.open('Sus permisos cambiaron: ya no tiene acceso a esta sección', 'OK', { duration: 5000 });
+        void this.router.navigate(['/inicio']);
+      }
+    });
+    return true;
+  })();
 
   cerrarSesion(): void {
     this.auth.logout();

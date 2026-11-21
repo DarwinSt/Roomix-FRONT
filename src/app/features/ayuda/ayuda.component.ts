@@ -131,7 +131,7 @@ const TEMAS: Tema[] = [
       'Pulsa «Nueva venta» (o «Vender productos» en Caja), toca los productos para agregarlos y ajusta las cantidades con + y −.',
       'Elige «Cobrar ahora» y el medio de pago: el cobro entra a tu turno de caja. O «A la habitación»: queda en la cuenta del huésped alojado y se cobra con la factura en el check-out.',
       'Desde el detalle de una reserva en curso, «Cargar consumo» carga los productos directamente a esa habitación.',
-      'Cada venta descuenta el inventario. Si te equivocas, anúlala con un motivo: los productos vuelven al inventario y el cobro o el cargo se reversan.',
+      'Cada venta descuenta el inventario. Si hubo un error, la anula Administración o Finanzas con un motivo: los productos vuelven al inventario y el cobro o el cargo se reversan.',
       'Solo aparecen los artículos del inventario con precio de venta y stock disponible.',
     ],
   },
@@ -179,8 +179,10 @@ const TEMAS: Tema[] = [
     roles: ['ADMIN'],
     pasos: [
       'Al crear un usuario elige su rol (Administrador, Recepción, Housekeeping, Finanzas, Eventos o Almacén): se marcan los permisos de ese rol. Puedes marcar o quitar casillas para esa persona; «Usar los del rol» vuelve a la plantilla.',
+      'Separación de responsabilidades: anular facturas, ventas y movimientos de dinero requiere el permiso «Anulaciones», que por defecto tienen Administración y Finanzas. Si le das a alguien que cobra también el permiso de anular, el sistema te avisa.',
       'Puedes desactivar usuarios o restablecer su contraseña (se genera una clave temporal que deberán cambiar).',
       'La Auditoría registra quién hizo cada acción, cuándo, desde qué IP y con qué resultado; se puede filtrar por usuario, módulo y fecha.',
+      'En Auditoría → Anulaciones ves cada factura, venta o movimiento anulado con el valor, el motivo, quién lo registró y quién lo anuló; se resaltan los que anuló la misma persona que los registró.',
     ],
   },
   {
