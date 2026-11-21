@@ -55,6 +55,7 @@ export class ArticuloFormComponent implements OnInit {
     ubicacion: [''],
     proveedor: ['', Validators.maxLength(150)],
     precioUnitario: [null as number | null, Validators.min(0)],
+    precioVenta: [null as number | null, Validators.min(0)],
   });
 
   ngOnInit(): void {
@@ -82,6 +83,7 @@ export class ArticuloFormComponent implements OnInit {
           ubicacion: a.ubicacion ?? '',
           proveedor: a.proveedor ?? '',
           precioUnitario: a.precioUnitario,
+          precioVenta: a.precioVenta,
         });
         this.loading.set(false);
       },
@@ -109,6 +111,7 @@ export class ArticuloFormComponent implements OnInit {
       ubicacion: v.ubicacion || null,
       proveedor: v.proveedor?.trim() || null,
       precioUnitario: v.precioUnitario === null || (v.precioUnitario as unknown) === '' ? null : Number(v.precioUnitario),
+      precioVenta: v.precioVenta === null || (v.precioVenta as unknown) === '' ? null : Number(v.precioVenta),
     };
     this.saving.set(true);
     const req$ = this.id

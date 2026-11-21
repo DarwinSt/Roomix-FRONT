@@ -31,6 +31,7 @@ import { SolicitudDialogComponent } from '../../servicios/servicio-dialogs.compo
 /** Editar fechas, canal y observaciones de una reserva confirmada o en curso. */
 import { MonedaDirective } from '../../../shared/directivas/moneda.directive';
 import { ConfiguracionService } from '../../../core/services/configuracion.service';
+import { VentaDialogComponent } from '../../ventas/venta-dialog.component';
 @Component({
   selector: 'app-editar-reserva-dialog',
   host: { class: 'roomix-dialog-shell' },
@@ -195,6 +196,9 @@ export class AbonoDialogComponent {
               <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="Más acciones"><mat-icon>more_vert</mat-icon></button>
               <mat-menu #menu="matMenu">
                 <button mat-menu-item (click)="editar()"><mat-icon>edit_calendar</mat-icon>Editar reserva</button>
+                @if (r.estadoReserva === 'EN_CURSO' && puedeVender()) {
+                  <button mat-menu-item (click)="cargarConsumo()"><mat-icon>storefront</mat-icon>Cargar consumo (tienda o minibar)</button>
+                }
                 @if (r.estadoReserva === 'EN_CURSO' && puedeServicios()) {
                   <button mat-menu-item (click)="nuevoServicio()"><mat-icon>room_service</mat-icon>Cargar servicio</button>
                 }
@@ -306,6 +310,9 @@ export class AbonoDialogComponent {
           <div class="rx-card-titulo">
             <mat-icon>receipt</mat-icon>Cuenta del huésped
             <span class="spacer"></span>
+            @if (r.estadoReserva === 'EN_CURSO' && puedeVender()) {
+              <button mat-stroked-button class="no-imprimir" (click)="cargarConsumo()"><mat-icon>storefront</mat-icon>Cargar consumo</button>
+            }
             @if (puedeFacturar() && hayPendiente() && r.estadoReserva !== 'CANCELADA') {
               <button mat-stroked-button class="no-imprimir" (click)="facturar()"><mat-icon>receipt_long</mat-icon>Facturar</button>
             }
@@ -422,6 +429,7 @@ export class ReservaDetalleComponent implements OnInit {
   readonly puedeOperar = computed(() => this.auth.puede('RESERVAS_GESTIONAR'));
   readonly puedeFacturar = computed(() => this.auth.puede('FACTURAS'));
   readonly puedeServicios = computed(() => this.auth.puede('SERVICIOS_SOLICITUDES'));
+  readonly puedeVender = computed(() => this.auth.puede('VENTAS'));
   readonly logoHotel = inject(ConfiguracionService).logoUrl;
   readonly hayPendiente = computed(() => (this.cuenta()?.lineas ?? []).some((l) => !l.facturado));
 
@@ -549,6 +557,23 @@ export class ReservaDetalleComponent implements OnInit {
           },
           error: (e) => this.errorDialog.mostrarDesdeApi(e),
         });
+      });
+  }
+
+  /** Productos de la tienda o el minibar cargados a esta habitación (se cobran con la factura). */
+  cargarConsumo(): void {
+    const r = this.reserva();
+    if (!r) return;
+    this.dialog
+      .open(VentaDialogComponent, {
+        ...roomixDialogConfig({ width: '980px' }),
+        data: { reservaId: r.id, habitacion: r.habitacionNumero, huesped: r.huesped.nombreCompleto },
+      })
+      .afterClosed()
+      .subscribe((v) => {
+        if (!v) return;
+        this.snack.open(`Consumo cargado a la habitación · ${moneda(v.total)}`, 'OK', { duration: 3000 });
+        this.cargarCuenta();
       });
   }
 

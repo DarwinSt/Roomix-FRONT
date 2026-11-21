@@ -297,7 +297,7 @@ a[mat-list-item].active {
 
 .brand-hotel {
   display: block;
-  color: var(--primary-300, #1f5c3d);
+  color: var(--primary-300, var(--primary-400));
   margin-top: 0.35rem;
   font-weight: 600;
   font-size: 0.95rem;

@@ -59,9 +59,15 @@
           <input matInput formControlName="proveedor" maxlength="150" />
         </mat-form-field>
         <mat-form-field appearance="outline">
-          <mat-label>Precio unitario (COP)</mat-label>
+          <mat-label>Costo unitario (COP)</mat-label>
           <input matInput rxMoneda formControlName="precioUnitario" />
-          <mat-hint>Se usa para valorizar el inventario</mat-hint>
+          <mat-hint>Lo que le cuesta al hotel; valoriza el inventario</mat-hint>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Precio de venta al huésped (COP)</mat-label>
+          <mat-icon matPrefix>storefront</mat-icon>
+          <input matInput rxMoneda formControlName="precioVenta" placeholder="No se vende" />
+          <mat-hint>Si tiene precio, aparece en la Tienda y minibar</mat-hint>
         </mat-form-field>
         <div class="actions full">
           <a mat-button routerLink="/inventario">Cancelar</a>

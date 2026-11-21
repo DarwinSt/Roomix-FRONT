@@ -23,6 +23,7 @@ const CAJA: Permiso[] = ['CAJA_VER'];
 const USUARIOS: Permiso[] = ['USUARIOS'];
 const PROMOCIONES: Permiso[] = ['PROMOCIONES_GESTIONAR'];
 const CONFIGURACION: Permiso[] = ['CONFIGURACION'];
+const VENTAS: Permiso[] = ['VENTAS'];
 
 const con = (permisos: Permiso[]) => ({ canActivate: [permisoGuard], data: { permisos } });
 
@@ -230,6 +231,11 @@ export const routes: Routes = [
         path: 'finanzas',
         ...con(FINANZAS),
         loadComponent: () => import('./features/finanzas/finanzas-panel/finanzas-panel.component').then((m) => m.FinanzasPanelComponent),
+      },
+      {
+        path: 'ventas',
+        ...con(VENTAS),
+        loadComponent: () => import('./features/ventas/ventas.component').then((m) => m.VentasComponent),
       },
       {
         path: 'caja',

@@ -31,15 +31,6 @@ export interface ErrorDialogData {
     </mat-dialog-actions>
   `,
   styles: `
-    .error-accent {
-      background: linear-gradient(90deg, #c62828 0%, #e57373 100%);
-    }
-
-    .error-icon {
-      background: rgba(198, 40, 40, 0.12);
-      color: var(--roomix-error);
-    }
-
     .mensaje {
       margin: 0;
       line-height: 1.55;

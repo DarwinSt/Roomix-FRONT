@@ -154,7 +154,7 @@ type Vista = 'proximos' | 'pasados' | 'salones';
       box-shadow: var(--roomix-shadow); color: inherit; transition: transform 0.15s ease; }
     .evento:hover { transform: translateY(-1px); }
     .fecha { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 54px; height: 58px;
-      border-radius: 12px; background: rgba(0, 61, 77, 0.08); color: #003d4d; }
+      border-radius: 12px; background: rgba(0, 61, 77, 0.08); color: var(--roomix-toolbar-inicio); }
     .dia { font-size: 1.35rem; font-weight: 700; line-height: 1; }
     .mes { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; }
     .info { min-width: 0; }

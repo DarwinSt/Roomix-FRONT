@@ -221,7 +221,7 @@ export class UsuarioDialogComponent {
     </mat-dialog-actions>
   `,
   styles: `.clave { font-family: monospace; font-size: 1.4rem; letter-spacing: 0.12em; text-align: center; padding: 0.85rem;
-    border-radius: 10px; background: rgba(168, 224, 183, 0.3); color: var(--text-strong); user-select: all; }`,
+    border-radius: 10px; background: rgba(var(--primary-100-rgb), 0.3); color: var(--text-strong); user-select: all; }`,
 })
 export class PasswordTemporalDialogComponent {
   readonly data = inject<{ nombre: string; password: string }>(MAT_DIALOG_DATA);

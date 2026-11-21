@@ -21,6 +21,7 @@ export const NAVEGACION: ItemNavegacion[] = [
   { path: '/habitaciones', iconUrl: ROOMIX_BEDROOM_ICON_URL, label: 'Habitaciones', permiso: 'HABITACIONES_VER', grupo: 'operacion' },
   { path: '/reservas', icon: 'event_note', label: 'Reservas', permiso: 'RESERVAS_VER', grupo: 'operacion' },
   { path: '/caja', icon: 'point_of_sale', label: 'Caja', permiso: 'CAJA_VER', grupo: 'operacion' },
+  { path: '/ventas', icon: 'storefront', label: 'Tienda y minibar', permiso: 'VENTAS', grupo: 'operacion' },
   { path: '/huespedes', icon: 'person', label: 'Huéspedes', permiso: 'RESERVAS_VER', grupo: 'operacion' },
   { path: '/incidencias', icon: 'report_problem', label: 'Limpieza y mantenimiento', permiso: 'LIMPIEZA', grupo: 'operacion' },
   { path: '/servicios', icon: 'room_service', label: 'Servicios', permiso: 'SERVICIOS_VER', grupo: 'operacion' },

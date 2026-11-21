@@ -94,11 +94,11 @@
   }
 
   &.fill-alta {
-    background: linear-gradient(90deg, #73c088, #397d54);
+    background: linear-gradient(90deg, var(--primary-200), var(--primary-300));
   }
 
   &.fill-completa {
-    background: linear-gradient(90deg, #397d54, #235d3a);
+    background: linear-gradient(90deg, var(--primary-300), var(--primary-400));
   }
 }
 

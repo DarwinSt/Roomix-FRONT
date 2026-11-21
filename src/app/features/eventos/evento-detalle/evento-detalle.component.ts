@@ -85,7 +85,7 @@ import { claseEstadoEvento } from '../eventos-list/eventos-list.component';
     .resultado { display: flex; flex-direction: column; align-items: flex-start; padding: 0.5rem 0.7rem; border: 1px solid var(--bg-300);
       border-radius: 10px; background: #fff; cursor: pointer; text-align: left; font: inherit; }
     .resultado span { font-size: 0.8rem; color: var(--text-200); }
-    .resultado.sel { border-color: var(--primary-300); background: rgba(168, 224, 183, 0.25); }
+    .resultado.sel { border-color: var(--primary-300); background: rgba(var(--primary-100-rgb), 0.25); }
     .error { color: #c62828; font-size: 0.85rem; }
   `,
 })

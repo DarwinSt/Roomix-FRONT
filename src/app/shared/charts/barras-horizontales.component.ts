@@ -40,7 +40,7 @@ export interface ItemBarra {
 })
 export class BarrasHorizontalesComponent {
   readonly items = input.required<ItemBarra[]>();
-  readonly color = input('#397d54');
+  readonly color = input('var(--primary-300)');
   readonly formato = input<(v: number) => string>((v) => v.toLocaleString('es-CO'));
   readonly limite = input(8);
 

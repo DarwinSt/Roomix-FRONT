@@ -152,7 +152,7 @@
     width: 26px;
     height: 26px;
     border-radius: 50%;
-    background: var(--primary-300, #397d54);
+    background: var(--primary-300, var(--primary-300));
     color: #fff;
   }
 }
@@ -175,7 +175,7 @@
     span {
       display: block;
       height: 100%;
-      background: #397d54;
+      background: var(--primary-300);
       border-radius: 3px;
     }
   }
@@ -236,7 +236,7 @@
 
   &.hab { text-align: left; padding-left: 0.75rem; }
   &.dia { cursor: pointer; }
-  &.hoy { color: var(--primary-300, #397d54); font-weight: 700; }
+  &.hoy { color: var(--primary-300, var(--primary-300)); font-weight: 700; }
 
   strong { color: var(--text-strong); }
 }
@@ -258,7 +258,7 @@
   border-left: 1px solid #eef1ef;
   border-bottom: 1px solid #eef1ef;
 
-  &.hoy { background: rgba(57, 125, 84, 0.05); }
+  &.hoy { background: rgba(var(--primary-300-rgb), 0.05); }
 }
 
 .sem-barra {
@@ -306,7 +306,7 @@
     height: 38px;
     border-radius: 10px;
     background: rgba(0, 61, 77, 0.08);
-    color: #003d4d;
+    color: var(--roomix-toolbar-inicio);
     font-weight: 700;
   }
 
@@ -330,4 +330,4 @@
 /* Colores de estado de las barras (mismos tonos que rx-chip) */
 .sem-barra.info { background: #dce9f9; color: #1d4f8c; }
 .sem-barra.alerta { background: #fbedc6; color: #6b4f00; }
-.sem-barra.ok { background: #d9efe0; color: #1f5a35; }
+.sem-barra.ok { background: #d9efe0; color: var(--primary-400); }

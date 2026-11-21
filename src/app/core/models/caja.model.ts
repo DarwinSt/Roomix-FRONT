@@ -111,6 +111,13 @@ export const CATEGORIAS_CAJA: { codigo: CategoriaFinanciera; nombre: string; tip
   { codigo: 'OTROS_EGRESOS', nombre: 'Otros egresos', tipo: 'EGRESO' },
 ];
 
+/** Ícono de cada categoría en los modales de caja. */
+export const ICONO_CATEGORIA: Partial<Record<CategoriaFinanciera, string>> = {
+  ALOJAMIENTO: 'hotel', SERVICIOS: 'room_service', VENTA_PRODUCTOS: 'storefront', EVENTOS: 'celebration', OTROS_INGRESOS: 'add_card',
+  COMPRAS_INVENTARIO: 'inventory', MANTENIMIENTO: 'build', PROVEEDORES: 'local_shipping', SERVICIOS_PUBLICOS: 'bolt', NOMINA: 'badge',
+  MARKETING: 'campaign', ARRIENDO: 'home_work', IMPUESTOS: 'account_balance', OTROS_EGRESOS: 'more_horiz',
+};
+
 export function etiquetaTipoMovimientoTurno(t: MovimientoTurno['tipo']): string {
   return { INGRESO: 'Ingreso', EGRESO: 'Egreso', RETIRO: 'Retiro', APORTE: 'Aporte' }[t];
 }

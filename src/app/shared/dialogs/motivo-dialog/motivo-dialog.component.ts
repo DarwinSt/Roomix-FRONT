@@ -42,7 +42,7 @@ export interface MotivoDialogData {
     </mat-dialog-actions>
   `,
   styles: `
-    .header-icon.warn { background: rgba(198, 40, 40, 0.12); color: #c62828; }
+    .header-icon.warn { background: linear-gradient(135deg, #d84343 0%, #a52a2a 100%); color: #fff; box-shadow: 0 6px 14px rgba(165, 42, 42, 0.25); }
     .mensaje { margin: 0 0 0.75rem; line-height: 1.5; }
     .campo { width: 100%; }
   `,

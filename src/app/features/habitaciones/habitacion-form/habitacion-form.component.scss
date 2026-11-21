@@ -75,7 +75,7 @@
   }
 
   &:hover {
-    border-color: var(--primary-300, #397d54);
+    border-color: var(--primary-300, var(--primary-300));
   }
 
   &:active {
@@ -83,8 +83,8 @@
   }
 
   &.sel {
-    background: var(--primary-300, #397d54);
-    border-color: var(--primary-300, #397d54);
+    background: var(--primary-300, var(--primary-300));
+    border-color: var(--primary-300, var(--primary-300));
     color: #ffffff;
   }
 }
