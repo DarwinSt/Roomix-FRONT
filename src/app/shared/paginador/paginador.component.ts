@@ -55,8 +55,8 @@ import { MatIconModule } from '@angular/material/icon';
     .paginas { display: flex; align-items: center; gap: 0.15rem; margin-left: auto; }
     .num { min-width: 34px; height: 34px; padding: 0 0.4rem; border: 1px solid transparent; border-radius: 10px; background: none;
       font: inherit; color: var(--text-100); cursor: pointer; font-variant-numeric: tabular-nums; }
-    .num:hover { background: rgba(57, 125, 84, 0.08); }
-    .num.activa { background: var(--primary-300, #397d54); color: #fff; font-weight: 700; }
+    .num:hover { background: rgba(var(--primary-300-rgb), 0.08); }
+    .num.activa { background: var(--primary-300); color: #fff; font-weight: 700; }
     .elipsis { padding: 0 0.25rem; }
     @media (max-width: 600px) { .paginas { margin-left: 0; width: 100%; justify-content: center; } .tamano { display: none; } }
   `,

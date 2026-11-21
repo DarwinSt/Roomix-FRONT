@@ -33,6 +33,8 @@ export interface ArticuloInventario {
   stockBajo: boolean;
   proveedor: string | null;
   precioUnitario: number | null;
+  /** Precio al huésped; null si no se vende. */
+  precioVenta: number | null;
   /** cantidad × precio unitario */
   valorTotal: number | null;
   fechaHoraCreacion: string;
@@ -50,6 +52,7 @@ export interface ArticuloInventarioRequest {
   activo?: boolean;
   proveedor?: string | null;
   precioUnitario?: number | null;
+  precioVenta?: number | null;
 }
 
 export interface AjustarStockRequest {

@@ -24,7 +24,7 @@ export interface SerieGrafico {
 export const COLORES_SERIE = {
   ingresos: '#2a78d6',
   egresos: '#eb6834',
-  marca: '#397d54',
+  marca: 'var(--primary-300)',
 };
 
 interface Barra {
@@ -65,15 +65,15 @@ interface Barra {
 
         @if (tipo() === 'barras') {
           @for (b of barras(); track $index) {
-            <path [attr.d]="b.ruta" [attr.fill]="b.color" />
+            <path [attr.d]="b.ruta" [style.fill]="b.color" />
           }
         } @else {
           @for (l of lineas(); track l.color) {
-            <path class="linea" [attr.d]="l.ruta" [attr.stroke]="l.color" />
+            <path class="linea" [attr.d]="l.ruta" [style.stroke]="l.color" />
           }
           @if (activo() >= 0) {
             @for (s of series(); track s.nombre) {
-              <circle class="punto" [attr.cx]="xCentro(activo())" [attr.cy]="yValor(s.valores[activo()] || 0)" r="4.5" [attr.fill]="s.color" />
+              <circle class="punto" [attr.cx]="xCentro(activo())" [attr.cy]="yValor(s.valores[activo()] || 0)" r="4.5" [style.fill]="s.color" />
             }
           }
         }

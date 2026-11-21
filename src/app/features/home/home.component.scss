@@ -127,7 +127,7 @@
   justify-content: center;
   padding: 1rem 1.1rem;
   border-radius: var(--roomix-radius-lg);
-  background: linear-gradient(140deg, #003d4d, #0b5c63);
+  background: linear-gradient(140deg, var(--roomix-toolbar-inicio), #0b5c63);
   color: #fff;
 
   .etiqueta {
@@ -155,7 +155,7 @@
     div {
       height: 100%;
       border-radius: 4px;
-      background: #a8e0b7;
+      background: var(--primary-100);
     }
   }
 }
@@ -219,7 +219,7 @@
     padding: 0 0.3rem;
     border-radius: 10px;
     background: rgba(0, 61, 77, 0.08);
-    color: #003d4d;
+    color: var(--roomix-toolbar-inicio);
     font-weight: 700;
 
     &.atrasada {

@@ -9,7 +9,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { CajaService } from '../../core/services/caja.service';
-import { BILLETES, CATEGORIAS_CAJA, MONEDAS, TipoMovimientoCaja, TurnoCaja } from '../../core/models/caja.model';
+import { BILLETES, CATEGORIAS_CAJA, ICONO_CATEGORIA, MONEDAS, TipoMovimientoCaja, TurnoCaja } from '../../core/models/caja.model';
+import { AuthService } from '../../core/services/auth.service';
 import { CategoriaFinanciera, METODOS_PAGO, MetodoPago, TipoMovimiento } from '../../core/models/finanzas.model';
 import { extractApiErrorMessage } from '../../core/utils/api-error.util';
 import { moneda } from '../../core/utils/formato.util';
@@ -103,66 +104,112 @@ export class AbrirTurnoDialogComponent {
   host: { class: 'roomix-dialog-shell' },
   imports: BASE_IMPORTS,
   template: `
-    <div class="dialog-accent" aria-hidden="true"></div>
     <div mat-dialog-title class="dialog-header">
-      <div class="header-icon"><mat-icon>{{ tipo() === 'INGRESO' ? 'trending_up' : 'trending_down' }}</mat-icon></div>
-      <div class="header-text"><h2>Registrar {{ tipo() === 'INGRESO' ? 'ingreso' : 'egreso' }} en caja</h2>
-        <p>Queda en su turno y en Finanzas. Los pagos de facturas y abonos se registran desde la factura o la reserva.</p></div>
+      <div class="header-icon" [class.egreso]="tipo() === 'EGRESO'"><mat-icon>{{ tipo() === 'INGRESO' ? 'trending_up' : 'trending_down' }}</mat-icon></div>
+      <div class="header-text"><h2>Registrar {{ tipo() === 'INGRESO' ? 'un ingreso' : 'un egreso' }}</h2>
+        <p>Queda en su turno de caja y en Finanzas.</p></div>
     </div>
     <mat-dialog-content>
-      <form [formGroup]="form" class="dialog-form-grid">
-        <mat-button-toggle-group formControlName="tipo" class="full tipo">
-          <mat-button-toggle value="INGRESO"><mat-icon>trending_up</mat-icon> Ingreso</mat-button-toggle>
-          <mat-button-toggle value="EGRESO"><mat-icon>trending_down</mat-icon> Egreso</mat-button-toggle>
+      <form [formGroup]="form">
+        <mat-button-toggle-group formControlName="tipo" class="rx-segmento ancho-completo tipo" aria-label="Tipo de movimiento">
+          <mat-button-toggle value="INGRESO"><mat-icon>trending_up</mat-icon>Entra dinero</mat-button-toggle>
+          <mat-button-toggle value="EGRESO"><mat-icon>trending_down</mat-icon>Sale dinero</mat-button-toggle>
         </mat-button-toggle-group>
-        <mat-form-field appearance="outline">
-          <mat-label>Categoría</mat-label>
-          <mat-select formControlName="categoria" panelClass="roomix-select-panel">
-            @for (c of categoriasTipo(); track c.codigo) { <mat-option [value]="c.codigo">{{ c.nombre }}</mat-option> }
-          </mat-select>
+
+        @if (tipo() === 'INGRESO' && puedeVender) {
+          <button type="button" class="atajo-venta" (click)="ref.close('vender')">
+            <mat-icon class="icono">storefront</mat-icon>
+            <span><strong>¿Vendió productos de la tienda o el minibar?</strong>
+              Use «Vender productos»: descuenta el inventario y el cobro entra a esta caja.</span>
+            <mat-icon>chevron_right</mat-icon>
+          </button>
+        }
+
+        <mat-form-field appearance="outline" class="rx-monto full">
+          <mat-label>Valor</mat-label>
+          <span matTextPrefix>$&nbsp;</span>
+          <input matInput rxMoneda formControlName="valor" placeholder="0" />
         </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Valor (COP)</mat-label>
-          <input matInput rxMoneda formControlName="valor" />
-        </mat-form-field>
+
+        <span class="rx-etiqueta">Categoría</span>
+        <div class="rx-opciones compactas" role="radiogroup" aria-label="Categoría">
+          @for (c of categoriasTipo(); track c.codigo) {
+            <button type="button" class="rx-opcion" role="radio" [attr.aria-checked]="categoria() === c.codigo"
+                    [class.activa]="categoria() === c.codigo" (click)="form.controls.categoria.setValue(c.codigo)">
+              <mat-icon>{{ icono[c.codigo] ?? 'label' }}</mat-icon>{{ c.nombre }}
+            </button>
+          }
+        </div>
+
         <mat-form-field appearance="outline" class="full">
           <mat-label>Concepto</mat-label>
           <input matInput formControlName="concepto" maxlength="200"
-                 [placeholder]="tipo() === 'INGRESO' ? 'Ej. Venta de agua en recepción' : 'Ej. Compra de bombillos'" />
+                 [placeholder]="tipo() === 'INGRESO' ? 'Ej. Lavado de ropa del huésped' : 'Ej. Compra de bombillos'" />
         </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Medio de pago</mat-label>
-          <mat-select formControlName="metodoPago" panelClass="roomix-select-panel">
-            @for (m of metodos; track m.value) { <mat-option [value]="m.value">{{ m.label }}</mat-option> }
-          </mat-select>
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>{{ tipo() === 'INGRESO' ? 'Cliente (opcional)' : 'Proveedor (opcional)' }}</mat-label>
-          <input matInput formControlName="tercero" maxlength="150" />
-        </mat-form-field>
-        <mat-form-field appearance="outline" class="full">
-          <mat-label>Referencia o soporte (opcional)</mat-label>
-          <input matInput formControlName="referencia" maxlength="60" placeholder="N.º de recibo o factura" />
-        </mat-form-field>
+
+        <span class="rx-etiqueta">Medio de pago</span>
+        <div class="rx-opciones compactas" role="radiogroup" aria-label="Medio de pago">
+          @for (m of metodos; track m.value) {
+            <button type="button" class="rx-opcion" role="radio" [attr.aria-checked]="metodo() === m.value"
+                    [class.activa]="metodo() === m.value" (click)="form.controls.metodoPago.setValue(m.value)">
+              <mat-icon>{{ m.icon }}</mat-icon>{{ m.label }}
+            </button>
+          }
+        </div>
+
+        @if (!detalles()) {
+          <button type="button" class="rx-mas-detalles" (click)="detalles.set(true)">
+            <mat-icon>add</mat-icon>Agregar {{ tipo() === 'INGRESO' ? 'cliente' : 'proveedor' }} y referencia
+          </button>
+        } @else {
+          <div class="dialog-form-grid">
+            <mat-form-field appearance="outline">
+              <mat-label>{{ tipo() === 'INGRESO' ? 'Cliente' : 'Proveedor' }}</mat-label>
+              <input matInput formControlName="tercero" maxlength="150" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Referencia o soporte</mat-label>
+              <input matInput formControlName="referencia" maxlength="60" placeholder="N.º de recibo o factura" />
+            </mat-form-field>
+          </div>
+        }
       </form>
-      @if (error()) { <p class="error">{{ error() }}</p> }
+      @if (error()) { <p class="rx-error-dialogo"><mat-icon>error_outline</mat-icon>{{ error() }}</p> }
     </mat-dialog-content>
     <mat-dialog-actions align="end">
       <button mat-button mat-dialog-close>Cancelar</button>
-      <button mat-flat-button color="primary" (click)="guardar()" [disabled]="guardando()">Registrar</button>
+      <button mat-flat-button color="primary" (click)="guardar()" [disabled]="guardando()">
+        <mat-icon>check</mat-icon>Registrar {{ valor() ? moneda(valor()) : '' }}
+      </button>
     </mat-dialog-actions>
   `,
-  styles: ` .tipo { margin-bottom: 1rem; } .error { color: #c62828; font-size: 0.85rem; margin: 0; } `,
+  styles: `
+    .tipo { margin-bottom: 1rem; }
+    .header-icon.egreso { background: linear-gradient(135deg, #e07a3c 0%, #b0521c 100%); box-shadow: 0 6px 14px rgba(176, 82, 28, 0.25); }
+    .full { width: 100%; }
+    .rx-monto { margin-bottom: 0.25rem; }
+    .atajo-venta { display: flex; align-items: center; gap: 0.75rem; width: 100%; margin: 0 0 1rem; padding: 0.75rem 0.9rem; text-align: left;
+      border: 1px solid rgba(var(--primary-300-rgb), 0.25); border-radius: 14px; background: rgba(var(--primary-100-rgb), 0.25);
+      font: inherit; font-size: 0.82rem; color: var(--text-100); cursor: pointer; }
+    .atajo-venta:hover { border-color: var(--primary-300); }
+    .atajo-venta strong { display: block; color: var(--text-strong); font-size: 0.88rem; margin-bottom: 0.1rem; }
+    .atajo-venta .icono { color: var(--primary-300); }
+    .atajo-venta mat-icon:last-child { margin-left: auto; color: var(--primary-300); }
+  `,
 })
 export class MovimientoCajaDialogComponent {
   private readonly caja = inject(CajaService);
-  private readonly ref = inject(MatDialogRef<MovimientoCajaDialogComponent, boolean>);
+  readonly ref = inject(MatDialogRef<MovimientoCajaDialogComponent, boolean | 'vender'>);
   private readonly fb = inject(FormBuilder);
   private readonly tipoInicial = inject<TipoMovimiento | null>(MAT_DIALOG_DATA) ?? 'INGRESO';
 
+  readonly puedeVender = inject(AuthService).puede('VENTAS');
+  readonly moneda = moneda;
+  readonly icono = ICONO_CATEGORIA;
   readonly metodos = METODOS_PAGO;
   readonly guardando = signal(false);
   readonly error = signal<string | null>(null);
+  readonly detalles = signal(false);
   readonly form = this.fb.group({
     tipo: [this.tipoInicial as TipoMovimiento, Validators.required],
     categoria: [null as CategoriaFinanciera | null, Validators.required],
@@ -173,6 +220,9 @@ export class MovimientoCajaDialogComponent {
     referencia: [''],
   });
   readonly tipo = toSignal(this.form.controls.tipo.valueChanges, { initialValue: this.tipoInicial });
+  readonly categoria = toSignal(this.form.controls.categoria.valueChanges, { initialValue: null });
+  readonly metodo = toSignal(this.form.controls.metodoPago.valueChanges, { initialValue: 'EFECTIVO' as MetodoPago });
+  readonly valor = toSignal(this.form.controls.valor.valueChanges, { initialValue: null });
   readonly categoriasTipo = computed(() => CATEGORIAS_CAJA.filter((c) => c.tipo === this.tipo()));
 
   constructor() {
@@ -180,13 +230,16 @@ export class MovimientoCajaDialogComponent {
   }
 
   guardar(): void {
-    if (this.form.invalid) {
+    const v = this.form.getRawValue();
+    const faltan = [!v.valor || v.valor < 1 ? 'el valor' : '', !v.categoria ? 'la categoría' : '', !v.concepto?.trim() ? 'el concepto' : '']
+      .filter(Boolean);
+    if (faltan.length) {
       this.form.markAllAsTouched();
-      this.error.set('Complete categoría, valor, concepto y medio de pago.');
+      this.error.set('Falta ' + faltan.join(', ').replace(/, ([^,]*)$/, ' y $1') + '.');
       return;
     }
-    const v = this.form.getRawValue();
     this.guardando.set(true);
+    this.error.set(null);
     this.caja
       .registrarMovimiento({
         tipo: v.tipo!,
@@ -375,7 +428,7 @@ export interface CerrarTurnoData {
     .grupo-titulo { font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: #5b6660; }
     .fila { display: grid; grid-template-columns: 5.5rem 0.8rem 4.5rem 1fr; align-items: center; gap: 0.35rem; font-size: 0.9rem; }
     .fila input { width: 100%; box-sizing: border-box; padding: 0.35rem 0.4rem; border: 1px solid #c5ccc8; border-radius: 6px; font: inherit; text-align: right; }
-    .fila input:focus { outline: 2px solid #2f6b4f; border-color: transparent; }
+    .fila input:focus { outline: 2px solid var(--primary-300); border-color: transparent; }
     .den { font-weight: 600; } .por { color: #8a948f; } .sub { text-align: right; color: #5b6660; }
     .total { width: 100%; }
     .resumen { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; background: #f3f6f4; border-radius: 10px; padding: 0.6rem 0.8rem; margin-top: 0.25rem; }

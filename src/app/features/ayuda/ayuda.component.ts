@@ -84,6 +84,7 @@ const TEMAS: Tema[] = [
       'Las tareas de limpieza se crean automáticamente al hacer check-out; las de mantenimiento se reportan desde la habitación.',
       'Asigna cada tarea a una persona del personal, inicia y finaliza el trabajo; al terminar la habitación vuelve a estar disponible.',
       'Al finalizar puedes registrar los materiales gastados (jabón, papel, químicos…): se descuentan del inventario y quedan anotados en la tarea.',
+      'Las acciones del checklist de cada tipo de servicio las define el administrador en Configuración → Aseo y mantenimiento.',
     ],
   },
   {
@@ -115,9 +116,23 @@ const TEMAS: Tema[] = [
     ruta: '/inventario',
     roles: ['ADMIN', 'ALMACEN', 'HOUSEKEEPING', 'FINANZAS'],
     pasos: [
-      'Cada artículo tiene categoría, stock mínimo, proveedor y precio unitario. Los que están por debajo del mínimo aparecen como alerta.',
+      'Cada artículo tiene categoría, stock mínimo, proveedor y costo unitario. Los que están por debajo del mínimo aparecen como alerta.',
+      'Si le pones precio de venta al huésped (gaseosas, snacks, artículos de aseo…), el artículo aparece en la Tienda y minibar.',
       'Registra entradas (compras), salidas (consumo) y ajustes; cada movimiento queda en el historial. Las compras generan un egreso en Finanzas.',
       'El reporte de inventario muestra la valorización total, los artículos más usados y los movimientos del periodo.',
+    ],
+  },
+  {
+    titulo: 'Tienda y minibar',
+    icono: 'storefront',
+    ruta: '/ventas',
+    roles: ['ADMIN', 'RECEPCION'],
+    pasos: [
+      'Pulsa «Nueva venta» (o «Vender productos» en Caja), toca los productos para agregarlos y ajusta las cantidades con + y −.',
+      'Elige «Cobrar ahora» y el medio de pago: el cobro entra a tu turno de caja. O «A la habitación»: queda en la cuenta del huésped alojado y se cobra con la factura en el check-out.',
+      'Desde el detalle de una reserva en curso, «Cargar consumo» carga los productos directamente a esa habitación.',
+      'Cada venta descuenta el inventario. Si te equivocas, anúlala con un motivo: los productos vuelven al inventario y el cobro o el cargo se reversan.',
+      'Solo aparecen los artículos del inventario con precio de venta y stock disponible.',
     ],
   },
   {
@@ -128,7 +143,7 @@ const TEMAS: Tema[] = [
     pasos: [
       'Al iniciar tu turno entra a Caja y pulsa «Abrir turno»: cuenta el efectivo que recibes y regístralo como base. Si no coincide con la base que dejó el turno anterior, explica la diferencia.',
       'Sin turno abierto la recepción no puede cobrar: reservas con pago, abonos, pagos de facturas ni movimientos. El hotel tiene una sola caja, así que solo puede haber un turno abierto a la vez.',
-      'Los pagos que registras en reservas y facturas entran solos a tu turno. Desde Caja registras además otros ingresos (ventas en recepción) y egresos pagados en efectivo (compras pequeñas); quedan también en Finanzas.',
+      'Los pagos que registras en reservas y facturas entran solos a tu turno. Las ventas de la tienda o el minibar se hacen con «Vender productos» (descuentan el inventario). Desde Caja registras además otros ingresos y egresos pagados en efectivo (compras pequeñas); quedan también en Finanzas.',
       'Usa «Retiro / aporte» para sacar billetes a la caja fuerte o recibir monedas de cambio: no son ingresos ni gastos del hotel, pero cambian el efectivo en caja.',
       'Al terminar pulsa «Cerrar turno»: cuenta los billetes y monedas, el sistema calcula el efectivo esperado y la diferencia (un faltante o sobrante debe explicarse), indica la base que queda para el siguiente turno y entrega el resto.',
       'El acta del turno (con arqueo, totales por medio de pago, conteo, movimientos y espacio para firmas) se puede imprimir. Administración y finanzas consultan el historial de todos los turnos; cada recepcionista ve los suyos.',
@@ -175,6 +190,8 @@ const TEMAS: Tema[] = [
     roles: ['ADMIN'],
     pasos: [
       'Define el nombre y el logo del hotel, el NIT y los datos de contacto: aparecen en el menú, el inicio de sesión, los comprobantes y las facturas.',
+      'En Apariencia elige una paleta o los colores de tu marca y una frase de bienvenida; la vista previa muestra cómo se verá antes de aplicarlo a todos.',
+      'En Aseo y mantenimiento define las acciones del checklist de cada tipo de servicio (post check-out, huésped ausente, urgente, mantenimiento…). Aplican a los servicios nuevos.',
       'Elige si cobras el alojamiento por habitación o por persona, y si el hotel cobra IVA (y su porcentaje).',
       'Activa el correo de confirmación para que el huésped reciba los datos de su reserva al crearla (requiere que el servidor tenga el envío de correos configurado).',
       'Indica después de cuántos meses sin actividad se borran los datos personales de los huéspedes (Ley 1581); las reservas y facturas se conservan.',
@@ -198,7 +215,7 @@ import { ConfiguracionService } from '../../core/services/configuracion.service'
 import { Modulo } from '../../core/models/permisos.model';
 
 const MODULO_DE_RUTA: Record<string, Modulo | undefined> = {
-  '/caja': 'CAJA', '/servicios': 'SERVICIOS', '/eventos': 'EVENTOS', '/inventario': 'INVENTARIO', '/reportes': 'REPORTES',
+  '/caja': 'CAJA', '/servicios': 'SERVICIOS', '/eventos': 'EVENTOS', '/inventario': 'INVENTARIO', '/ventas': 'INVENTARIO', '/reportes': 'REPORTES',
 };
 
 @Component({

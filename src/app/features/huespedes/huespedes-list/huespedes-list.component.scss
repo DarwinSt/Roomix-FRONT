@@ -115,7 +115,7 @@
   }
 
   .chip-libre {
-    --mdc-chip-elevated-container-color: rgba(168, 224, 183, 0.45);
+    --mdc-chip-elevated-container-color: rgba(var(--primary-100-rgb), 0.45);
   }
 }
 

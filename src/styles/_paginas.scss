@@ -248,8 +248,8 @@
   }
 
   &.ok {
-    background: rgba(168, 224, 183, 0.5);
-    color: #1f5a35;
+    background: rgba(var(--primary-100-rgb), 0.5);
+    color: var(--primary-400);
   }
 
   &.info {
@@ -320,7 +320,7 @@
     cursor: pointer;
 
     &:hover td {
-      background: rgba(168, 224, 183, 0.12);
+      background: rgba(var(--primary-100-rgb), 0.12);
     }
   }
 
@@ -460,7 +460,7 @@
   display: grid;
   place-items: center;
   padding: calc(1.5rem + env(safe-area-inset-top)) 1rem calc(1.5rem + env(safe-area-inset-bottom));
-  background: linear-gradient(160deg, #003d4d 0%, #00785f 55%, #00c996 100%);
+  background: linear-gradient(160deg, var(--roomix-toolbar-inicio) 0%, var(--roomix-auth-medio) 55%, var(--roomix-toolbar-fin) 100%);
   box-sizing: border-box;
 
   .rx-auth-card {
@@ -540,8 +540,8 @@
     }
 
     &.ok {
-      background: rgba(168, 224, 183, 0.45);
-      color: #1f5a35;
+      background: rgba(var(--primary-100-rgb), 0.45);
+      color: var(--primary-400);
     }
 
     mat-icon {
@@ -567,7 +567,7 @@
   margin: 0.25rem 0 0.5rem;
   border: 1px dashed var(--bg-300);
   border-radius: 10px;
-  background: rgba(168, 224, 183, 0.12);
+  background: rgba(var(--primary-100-rgb), 0.12);
 
   .mdc-label {
     font-size: 0.83rem;
@@ -593,7 +593,7 @@
   cursor: pointer;
 
   &:hover {
-    background: rgba(168, 224, 183, 0.14);
+    background: rgba(var(--primary-100-rgb), 0.14);
   }
 }
 

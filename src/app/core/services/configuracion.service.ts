@@ -2,7 +2,8 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, catchError, of, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { ConfiguracionHotel, ConfiguracionPublica, ConfiguracionRequest } from '../models/configuracion.model';
+import { AparienciaRequest, ConfiguracionHotel, ConfiguracionPublica, ConfiguracionRequest } from '../models/configuracion.model';
+import { TemaService } from './tema.service';
 import { Modulo } from '../models/permisos.model';
 
 const CLAVE = 'roomix.configuracion';
@@ -16,6 +17,7 @@ const TODOS: Modulo[] = ['CAJA', 'SERVICIOS', 'EVENTOS', 'INVENTARIO', 'REPORTES
 export class ConfiguracionService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiUrl}/configuracion`;
+  private readonly tema = inject(TemaService);
   private readonly datos = signal<ConfiguracionPublica | null>(this.leer());
 
   readonly publica = this.datos.asReadonly();
@@ -26,6 +28,13 @@ export class ConfiguracionService {
   });
   readonly porPersona = computed(() => this.datos()?.modoCobro === 'POR_PERSONA');
   readonly cobraIva = computed(() => this.datos()?.cobraIva ?? true);
+  readonly eslogan = computed(() => this.datos()?.eslogan ?? null);
+
+  constructor() {
+    // Colores guardados de la visita anterior: se aplican antes de que responda el servidor (sin parpadeo)
+    const d = this.datos();
+    this.tema.aplicar(d?.colorPrimario, d?.colorAcento);
+  }
 
   /** Si aún no hay datos (primer arranque sin conexión) se asumen todos los módulos. */
   modulo(m: Modulo): boolean {
@@ -48,6 +57,17 @@ export class ConfiguracionService {
     return this.http.put<ConfiguracionHotel>(this.baseUrl, body).pipe(tap(() => this.cargar().subscribe()));
   }
 
+  /** Colores de la interfaz y frase de bienvenida del hotel. */
+  actualizarApariencia(body: AparienciaRequest) {
+    return this.http.put<ConfiguracionHotel>(`${this.baseUrl}/apariencia`, body).pipe(tap(() => this.cargar().subscribe()));
+  }
+
+  /** Vuelve a pintar la interfaz con los colores guardados (al cancelar una vista previa). */
+  restaurarTema(): void {
+    const d = this.datos();
+    this.tema.aplicar(d?.colorPrimario, d?.colorAcento);
+  }
+
   subirLogo(archivo: File) {
     const form = new FormData();
     form.append('archivo', archivo);
@@ -64,6 +84,7 @@ export class ConfiguracionService {
 
   private guardar(c: ConfiguracionPublica): void {
     this.datos.set(c);
+    this.tema.aplicar(c.colorPrimario, c.colorAcento);
     try {
       localStorage.setItem(CLAVE, JSON.stringify(c));
     } catch {

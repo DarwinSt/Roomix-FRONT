@@ -8,6 +8,9 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatTabsModule } from '@angular/material/tabs';
+import { AparienciaComponent } from './apariencia.component';
+import { ChecklistsComponent } from './checklists.component';
 import { ConfiguracionService } from '../../../core/services/configuracion.service';
 import { ErrorDialogService } from '../../../core/services/error-dialog.service';
 import { ConfiguracionHotel, ModoCobro } from '../../../core/models/configuracion.model';
@@ -17,21 +20,27 @@ import { environment } from '../../../../environments/environment';
 @Component({
   selector: 'app-configuracion',
   imports: [ReactiveFormsModule, MatButtonModule, MatButtonToggleModule, MatFormFieldModule, MatIconModule, MatInputModule,
-    MatProgressSpinnerModule, MatSlideToggleModule],
+    MatProgressSpinnerModule, MatSlideToggleModule, MatTabsModule, AparienciaComponent, ChecklistsComponent],
   template: `
     <div class="page-header row">
       <div>
         <h1>Configuración del hotel</h1>
-        <p>Nombre, logo y datos que aparecen en el sistema, los comprobantes y las facturas; impuestos y modo de cobro.</p>
+        <p>Identidad, apariencia, cobro, correo, datos personales y las acciones de aseo y mantenimiento del hotel.</p>
       </div>
-      <div class="rx-acciones">
-        <button mat-flat-button color="primary" (click)="guardar()" [disabled]="guardando() || !cfg()"><mat-icon>save</mat-icon>Guardar cambios</button>
-      </div>
+      @if (pestana() === 0 || pestana() === 2 || pestana() === 3) {
+        <div class="rx-acciones">
+          <button mat-flat-button color="primary" (click)="guardar()" [disabled]="guardando() || !cfg()"><mat-icon>save</mat-icon>Guardar cambios</button>
+        </div>
+      }
     </div>
 
     @if (!cfg()) {
       <div class="rx-cargando"><mat-spinner diameter="44" /></div>
     } @else {
+      <mat-tab-group class="pestanas" [selectedIndex]="pestana()" (selectedIndexChange)="pestana.set($event)" animationDuration="150ms"
+                     mat-stretch-tabs="false" mat-align-tabs="start">
+      <mat-tab>
+        <ng-template mat-tab-label><mat-icon>storefront</mat-icon>Hotel</ng-template>
       <form [formGroup]="form" class="secciones">
         <section class="rx-card">
           <div class="rx-card-titulo"><mat-icon>storefront</mat-icon>Identidad del hotel</div>
@@ -81,7 +90,17 @@ import { environment } from '../../../../environments/environment';
             </div>
           </div>
         </section>
+      </form>
+      </mat-tab>
 
+      <mat-tab>
+        <ng-template mat-tab-label><mat-icon>palette</mat-icon>Apariencia</ng-template>
+        <div class="secciones"><app-apariencia [cfg]="cfg()!" (guardado)="cargar($event)" /></div>
+      </mat-tab>
+
+      <mat-tab>
+        <ng-template mat-tab-label><mat-icon>payments</mat-icon>Cobro e impuestos</ng-template>
+      <form [formGroup]="form" class="secciones">
         <section class="rx-card">
           <div class="rx-card-titulo"><mat-icon>payments</mat-icon>Cobro e impuestos</div>
           <p class="etiqueta">¿Cómo cobra el alojamiento?</p>
@@ -109,7 +128,12 @@ import { environment } from '../../../../environments/environment';
             }
           </div>
         </section>
+      </form>
+      </mat-tab>
 
+      <mat-tab>
+        <ng-template mat-tab-label><mat-icon>mark_email_read</mat-icon>Correo y datos</ng-template>
+      <form [formGroup]="form" class="secciones">
         <section class="rx-card">
           <div class="rx-card-titulo"><mat-icon>mark_email_read</mat-icon>Correo y datos personales</div>
           <div class="toggles">
@@ -134,7 +158,20 @@ import { environment } from '../../../../environments/environment';
           <p class="ayuda">Se borran el nombre, el documento, el correo y el teléfono de los huéspedes sin reservas activas ni estadías en ese plazo
             (Ley 1581 de 2012). Las reservas y facturas se conservan, porque la ley tributaria obliga a guardarlas. La revisión se hace cada noche.</p>
         </section>
+      </form>
+      </mat-tab>
 
+      <mat-tab>
+        <ng-template mat-tab-label><mat-icon>cleaning_services</mat-icon>Aseo y mantenimiento</ng-template>
+        <div class="secciones">
+          <p class="intro">Defina las acciones que el personal marca en el checklist de cada tipo de servicio.</p>
+          <app-checklists />
+        </div>
+      </mat-tab>
+
+      <mat-tab>
+        <ng-template mat-tab-label><mat-icon>verified</mat-icon>Módulos</ng-template>
+      <div class="secciones">
         <section class="rx-card">
           <div class="rx-card-titulo"><mat-icon>verified</mat-icon>Módulos contratados</div>
           <ul class="modulos">
@@ -144,11 +181,15 @@ import { environment } from '../../../../environments/environment';
           </ul>
           <p class="ayuda">{{ cfg()!.clienteLicencia ? 'Licencia de ' + cfg()!.clienteLicencia + '. ' : '' }}Para agregar o quitar módulos comuníquese con el proveedor de Roomix.</p>
         </section>
-      </form>
+      </div>
+      </mat-tab>
+      </mat-tab-group>
     }
   `,
   styles: `
-    .secciones { display: flex; flex-direction: column; gap: 1rem; }
+    .secciones { display: flex; flex-direction: column; gap: 1rem; padding-top: 1rem; }
+    .pestanas mat-icon { margin-right: 0.4rem; font-size: 1.15rem; width: 1.15rem; height: 1.15rem; }
+    .intro { margin: 0; font-size: 0.9rem; color: var(--text-200); }
     .identidad { display: grid; grid-template-columns: 220px 1fr; gap: 1.5rem; align-items: start; }
     .logo { display: flex; flex-direction: column; gap: 0.5rem; align-items: flex-start; }
     .logo-marco { width: 200px; height: 140px; border: 1px dashed #c5ccc8; border-radius: 12px; display: flex; flex-direction: column;
@@ -164,7 +205,7 @@ import { environment } from '../../../../environments/environment';
     .retencion mat-form-field { width: 340px; max-width: 100%; }
     .modulos { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem; }
     .modulos li { display: flex; align-items: center; gap: 0.4rem; }
-    .modulos li mat-icon { color: #2f6b4f; }
+    .modulos li mat-icon { color: var(--primary-300); }
     .modulos li.off { color: #8a948f; }
     .modulos li.off mat-icon { color: #b0b8b4; }
     @media (max-width: 760px) { .identidad { grid-template-columns: 1fr; } }
@@ -181,6 +222,8 @@ export class ConfiguracionComponent implements OnInit {
   readonly subiendo = signal(false);
   readonly aplicando = signal(false);
   readonly logoPreview = signal<string | null>(null);
+  /** 0 Hotel · 1 Apariencia · 2 Cobro · 3 Correo y datos · 4 Aseo · 5 Módulos (el botón Guardar es de 0, 2 y 3) */
+  readonly pestana = signal(0);
 
   readonly form = this.fb.group({
     nombre: ['', Validators.required],
@@ -202,7 +245,7 @@ export class ConfiguracionComponent implements OnInit {
     this.service.detalle().subscribe({ next: (c) => this.cargar(c), error: (e) => this.errorDialog.mostrarDesdeApi(e) });
   }
 
-  private cargar(c: ConfiguracionHotel): void {
+  cargar(c: ConfiguracionHotel): void {
     this.cfg.set(c);
     this.logoPreview.set(c.tieneLogo ? `${environment.apiUrl}/configuracion/logo?v=${c.logoVersion}` : null);
     this.form.patchValue({

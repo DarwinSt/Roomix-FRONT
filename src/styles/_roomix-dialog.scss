@@ -22,10 +22,10 @@
   .mat-mdc-dialog-surface {
     overflow: hidden;
     border-radius: var(--roomix-radius-dialog) !important;
-    border: 1px solid rgba(57, 125, 84, 0.1);
+    border: 1px solid rgba(var(--primary-300-rgb), 0.1);
     box-shadow:
-      0 24px 48px rgba(35, 93, 58, 0.14),
-      0 8px 20px rgba(35, 93, 58, 0.08) !important;
+      0 24px 48px rgba(var(--primary-400-rgb), 0.14),
+      0 8px 20px rgba(var(--primary-400-rgb), 0.08) !important;
     background: var(--bg-100) !important;
     box-sizing: border-box;
 
@@ -56,14 +56,20 @@
     @media (max-width: 600px) {
       max-height: calc(100dvh - 22rem);
     }
-    padding: 0.25rem 0 0.5rem !important;
+    padding: 1.1rem 0.15rem 0.5rem !important;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(var(--primary-300-rgb), 0.35) transparent;
+
+    &::-webkit-scrollbar { width: 6px; }
+    &::-webkit-scrollbar-thumb { background: rgba(var(--primary-300-rgb), 0.35); border-radius: 999px; }
   }
 
   mat-dialog-actions {
-    padding: 1rem 0 0 !important;
-    margin: 0.75rem 0 0 !important;
+    padding: 0.9rem 0 0 !important;
+    margin: 0.5rem 0 0 !important;
     border-top: none;
     gap: 0.5rem;
+    flex-wrap: wrap;
 
     &::before {
       content: '';
@@ -136,7 +142,7 @@
     border-radius: 999px !important;
     font-weight: 600;
     letter-spacing: 0.01em;
-    border-color: rgba(57, 125, 84, 0.35) !important;
+    border-color: rgba(var(--primary-300-rgb), 0.35) !important;
   }
 }
 
@@ -145,25 +151,38 @@
   display: none;
 }
 
+// En los mensajes de error la franja del encabezado y el ícono van en rojo
 .dialog-accent.error-accent,
 .roomix-dialog-accent.error-accent {
-  display: block;
-  height: 3px;
-  margin: 0 0 1.25rem;
-  border-radius: 999px;
-  background: linear-gradient(90deg, #c62828 0%, #e57373 100%);
+  display: none;
 }
 
+.dialog-accent.error-accent + .dialog-header,
+.roomix-dialog-accent.error-accent + .roomix-dialog-header {
+  background: linear-gradient(180deg, rgba(198, 40, 40, 0.1) 0%, rgba(198, 40, 40, 0.03) 100%);
+  border-bottom-color: rgba(198, 40, 40, 0.15);
+
+  .header-icon,
+  .roomix-dialog-header-icon {
+    background: linear-gradient(135deg, #d84343 0%, #a52a2a 100%);
+    box-shadow: 0 6px 14px rgba(165, 42, 42, 0.25);
+  }
+}
+
+// !important: Material carga después sus estilos de .mat-mdc-dialog-title (display: block y un ::before de 40 px)
 .dialog-header,
 .roomix-dialog-header {
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-  padding: 0 0 0.65rem !important;
-  margin: 0 !important;
+  display: flex !important;
+  align-items: center;
+  gap: 0.9rem;
+  // La franja ocupa todo el ancho del modal: se compensa el padding de la superficie
+  margin: calc(var(--roomix-dialog-padding-y) * -1) calc(var(--roomix-dialog-padding-x) * -1) 0 !important;
+  padding: 1.15rem var(--roomix-dialog-padding-x) 1rem !important;
+  background: linear-gradient(180deg, rgba(var(--primary-100-rgb), 0.45) 0%, rgba(var(--primary-100-rgb), 0.12) 100%);
+  border-bottom: 1px solid rgba(var(--primary-300-rgb), 0.12);
 
   &::before {
-    display: none;
+    display: none !important;
   }
 }
 
@@ -172,16 +191,17 @@
   flex-shrink: 0;
   display: grid;
   place-items: center;
-  width: 2.75rem;
-  height: 2.75rem;
-  border-radius: 16px;
-  background: var(--roomix-primary-soft);
-  color: var(--primary-400);
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--primary-300) 0%, var(--primary-400) 100%);
+  color: #fff;
+  box-shadow: 0 6px 14px rgba(var(--primary-400-rgb), 0.25);
 
   mat-icon {
-    font-size: 1.45rem;
-    width: 1.45rem;
-    height: 1.45rem;
+    font-size: 1.35rem;
+    width: 1.35rem;
+    height: 1.35rem;
   }
 }
 
@@ -192,16 +212,16 @@
 
   h2 {
     margin: 0;
-    font-size: 1.2rem;
-    font-weight: 600;
+    font-size: 1.12rem;
+    font-weight: 700;
     line-height: 1.3;
     color: var(--text-strong);
-    letter-spacing: -0.02em;
+    letter-spacing: -0.015em;
   }
 
   p {
-    margin: 0.3rem 0 0;
-    font-size: 0.84rem;
+    margin: 0.2rem 0 0;
+    font-size: 0.82rem;
     line-height: 1.4;
     color: var(--text-200);
   }
@@ -224,8 +244,8 @@
   margin-bottom: 1.5rem;
   padding: 0.85rem 1rem;
   border-radius: var(--roomix-radius-field);
-  background: linear-gradient(135deg, rgba(168, 224, 183, 0.35) 0%, rgba(253, 251, 245, 0.9) 100%);
-  border: 1px solid rgba(57, 125, 84, 0.2);
+  background: linear-gradient(135deg, rgba(var(--primary-100-rgb), 0.35) 0%, rgba(253, 251, 245, 0.9) 100%);
+  border: 1px solid rgba(var(--primary-300-rgb), 0.2);
   font-size: 0.84rem;
   line-height: 1.45;
   color: var(--text-100);
@@ -266,8 +286,8 @@
   margin-top: 1.25rem;
   padding: 0.85rem 1rem;
   border-radius: var(--roomix-radius-field);
-  background: rgba(57, 125, 84, 0.07);
-  border: 1px solid rgba(57, 125, 84, 0.14);
+  background: rgba(var(--primary-300-rgb), 0.07);
+  border: 1px solid rgba(var(--primary-300-rgb), 0.14);
   font-size: 0.88rem;
   line-height: 1.45;
   color: var(--text-100);
@@ -418,7 +438,7 @@
   }
 
   &.estado-ocupado {
-    background: rgba(57, 125, 84, 0.18);
+    background: rgba(var(--primary-300-rgb), 0.18);
     color: var(--primary-400);
   }
 
@@ -426,4 +446,148 @@
     background: rgba(196, 92, 92, 0.14);
     color: #9a4040;
   }
+}
+
+// ------------------------------------------------------------------ Piezas reutilizables de los modales
+// Selector segmentado (Ingreso / Egreso, Cobrar ahora / Cargar a la habitación…)
+.roomix-dialog .mat-button-toggle-group,
+.rx-segmento.mat-button-toggle-group {
+  border: none !important;
+  border-radius: 999px !important;
+  background: rgba(var(--primary-300-rgb), 0.08);
+  padding: 4px;
+  gap: 4px;
+  width: fit-content;
+  max-width: 100%;
+
+  .mat-button-toggle {
+    border: none !important;
+    border-radius: 999px !important;
+    background: transparent;
+    color: var(--text-100);
+    font-weight: 600;
+  }
+
+  .mat-button-toggle + .mat-button-toggle { border-left: none !important; }
+
+  .mat-button-toggle-checked {
+    background: #fff;
+    color: var(--primary-400);
+    box-shadow: 0 2px 8px rgba(var(--primary-400-rgb), 0.15);
+  }
+
+  .mat-button-toggle-appearance-standard .mat-button-toggle-label-content {
+    line-height: 36px;
+    padding: 0 1rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  // El check de Material sobra: el botón activo ya se distingue
+  .mat-pseudo-checkbox { display: none !important; }
+}
+
+.rx-segmento.ancho-completo { width: 100%; .mat-button-toggle { flex: 1; } }
+
+// Opciones en tarjetas: categorías, medios de pago… (en lugar de listas desplegables)
+.rx-opciones {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.5rem;
+  margin: 0 0 1rem;
+
+  &.compactas { grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); }
+}
+
+.rx-opcion {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 46px;
+  padding: 0.5rem 0.7rem;
+  border: 1.5px solid var(--bg-200);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--text-100);
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 500;
+  text-align: left;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+
+  mat-icon { flex-shrink: 0; color: var(--primary-300); font-size: 1.25rem; width: 1.25rem; height: 1.25rem; }
+
+  &:hover { border-color: rgba(var(--primary-300-rgb), 0.45); }
+  &:focus-visible { outline: 2px solid var(--primary-300); outline-offset: 2px; }
+
+  &.activa {
+    border-color: var(--primary-300);
+    background: rgba(var(--primary-100-rgb), 0.3);
+    color: var(--primary-400);
+    font-weight: 600;
+    box-shadow: 0 0 0 3px rgba(var(--primary-300-rgb), 0.1);
+  }
+}
+
+// Etiqueta de un grupo de opciones
+.rx-etiqueta {
+  display: block;
+  margin: 0 0 0.45rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-200);
+}
+
+// Monto destacado (el dato principal de un cobro o un gasto)
+.rx-monto {
+  .mat-mdc-form-field-infix { min-height: 64px; display: flex; align-items: center; }
+  input { font-size: 1.6rem !important; font-weight: 700; letter-spacing: -0.02em; color: var(--text-strong); }
+  .mat-mdc-text-field-wrapper { background: #fff; }
+}
+
+// Total a la izquierda del pie del modal
+.rx-pie-total {
+  margin-right: auto;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+
+  span { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-200); }
+  strong { font-size: 1.35rem; font-weight: 800; color: var(--text-strong); letter-spacing: -0.02em; }
+}
+
+// Detalles opcionales que se despliegan
+.rx-mas-detalles {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border: none;
+  background: none;
+  padding: 0.25rem 0;
+  color: var(--primary-300);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  mat-icon { font-size: 1.1rem; width: 1.1rem; height: 1.1rem; }
+}
+
+.rx-error-dialogo {
+  display: flex;
+  gap: 0.4rem;
+  align-items: flex-start;
+  margin: 0.5rem 0 0;
+  padding: 0.6rem 0.75rem;
+  border-radius: 10px;
+  background: var(--roomix-error-soft);
+  color: #9a3434;
+  font-size: 0.85rem;
+
+  mat-icon { font-size: 1.1rem; width: 1.1rem; height: 1.1rem; flex-shrink: 0; }
 }

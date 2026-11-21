@@ -9,6 +9,9 @@ export interface ConfiguracionPublica {
   modulos: Modulo[];
   modoCobro: ModoCobro;
   cobraIva: boolean;
+  colorPrimario: string | null;
+  colorAcento: string | null;
+  eslogan: string | null;
 }
 
 export interface ModuloInfo {
@@ -36,6 +39,15 @@ export interface ConfiguracionHotel {
   logoVersion: number;
   clienteLicencia: string;
   modulos: ModuloInfo[];
+  colorPrimario: string | null;
+  colorAcento: string | null;
+  eslogan: string | null;
+}
+
+export interface AparienciaRequest {
+  colorPrimario: string | null;
+  colorAcento: string | null;
+  eslogan: string | null;
 }
 
 export interface ConfiguracionRequest {

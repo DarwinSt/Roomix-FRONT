@@ -26,6 +26,7 @@ import {
   MovimientoCajaDialogComponent,
   RetiroAporteDialogComponent,
 } from './caja-dialogs.component';
+import { VentaDialogComponent } from '../ventas/venta-dialog.component';
 
 /** Caja de la recepción: turno abierto con sus totales y movimientos, acciones del cajero e historial de turnos. */
 @Component({
@@ -39,10 +40,13 @@ import {
       </div>
       @if (estado()?.turnoAbierto && puedeOperar()) {
         <div class="rx-acciones">
+          @if (puedeVender()) {
+            <button mat-flat-button color="primary" (click)="vender()"><mat-icon>storefront</mat-icon>Vender productos</button>
+          }
           <button mat-stroked-button (click)="movimiento('INGRESO')"><mat-icon>trending_up</mat-icon>Ingreso</button>
           <button mat-stroked-button (click)="movimiento('EGRESO')"><mat-icon>trending_down</mat-icon>Egreso</button>
           <button mat-stroked-button (click)="retiroAporte()"><mat-icon>swap_vert</mat-icon>Retiro / aporte</button>
-          <button mat-flat-button color="primary" (click)="cerrar()"><mat-icon>lock</mat-icon>Cerrar turno</button>
+          <button mat-stroked-button (click)="cerrar()"><mat-icon>lock</mat-icon>Cerrar turno</button>
         </div>
       }
     </div>
@@ -215,7 +219,7 @@ import {
     .icono-estado { font-size: 2.4rem; width: 2.4rem; height: 2.4rem; color: #5b6660; }
     .aviso { color: #b26a00; font-size: 0.9rem; }
     .banner { display: flex; gap: 0.6rem; align-items: flex-start; background: #fff4e0; color: #6d4a00; border-radius: 10px; padding: 0.75rem 1rem; margin-bottom: 1rem; }
-    .destacado { border: 2px solid #2f6b4f; }
+    .destacado { border: 2px solid var(--primary-300); }
     .columnas { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)); gap: 1rem; }
     .enlaces { display: flex; flex-wrap: wrap; gap: 0.5rem; }
     .sub { display: block; font-size: 0.78rem; color: #5b6660; }
@@ -250,6 +254,7 @@ export class CajaComponent implements OnInit {
   readonly puedeAbrir = computed(() => this.auth.puede('CAJA_OPERAR'));
   /** El cajero opera su turno; el administrador puede registrar retiros/aportes y cerrar cualquier turno. */
   readonly puedeOperar = computed(() => !!this.estado()?.esMio || this.esAdmin());
+  readonly puedeVender = computed(() => this.auth.puede('VENTAS'));
 
   ngOnInit(): void {
     this.cargar();
@@ -297,9 +302,20 @@ export class CajaComponent implements OnInit {
 
   movimiento(tipo: TipoMovimiento): void {
     this.dialog
-      .open(MovimientoCajaDialogComponent, { ...roomixDialogConfig({ width: '520px' }), data: tipo })
+      .open(MovimientoCajaDialogComponent, { ...roomixDialogConfig({ width: '560px' }), data: tipo })
       .afterClosed()
-      .subscribe((ok) => ok && this.cargar());
+      .subscribe((r?: boolean | 'vender') => {
+        if (r === 'vender') this.vender();
+        else if (r) this.cargar();
+      });
+  }
+
+  /** Venta de productos del inventario: de contado entra a este turno. */
+  vender(): void {
+    this.dialog
+      .open(VentaDialogComponent, { ...roomixDialogConfig({ width: '980px' }), data: null })
+      .afterClosed()
+      .subscribe((v) => v && this.cargar());
   }
 
   retiroAporte(): void {

@@ -28,11 +28,11 @@ import { ConfiguracionService } from '../../../core/services/configuracion.servi
         @if (logoHotel(); as logoH) {
           <img [src]="logoH" [alt]="nombreHotel()" class="rx-auth-logo logo-hotel" />
           <h1>Bienvenido a {{ nombreHotel() }}</h1>
-          <p class="rx-auth-sub">Administración con Roomix</p>
+          <p class="rx-auth-sub">{{ eslogan() ?? 'Administración con Roomix' }}</p>
         } @else {
           <img [src]="logo" alt="Roomix" class="rx-auth-logo" />
           <h1>Bienvenido a {{ nombreHotel() === 'Roomix' ? 'Roomix' : nombreHotel() }}</h1>
-          <p class="rx-auth-sub">{{ nombreHotel() === 'Roomix' ? 'Todo tu hotel, en una sola plataforma' : 'Administración con Roomix' }}</p>
+          <p class="rx-auth-sub">{{ eslogan() ?? (nombreHotel() === 'Roomix' ? 'Todo tu hotel, en una sola plataforma' : 'Administración con Roomix') }}</p>
         }
 
         @if (expirada) {
@@ -80,6 +80,7 @@ export class LoginComponent {
   private readonly configuracion = inject(ConfiguracionService);
   readonly logoHotel = this.configuracion.logoUrl;
   readonly nombreHotel = this.configuracion.nombreHotel;
+  readonly eslogan = this.configuracion.eslogan;
   readonly cargando = signal(false);
   readonly error = signal<string | null>(null);
   readonly verPassword = signal(false);
