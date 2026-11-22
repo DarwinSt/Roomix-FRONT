@@ -32,12 +32,13 @@ import { ConfiguracionService } from '../../../core/services/configuracion.servi
 import { VentaDialogComponent } from '../../ventas/venta-dialog.component';
 import { EncabezadoImpresionComponent } from '../../../shared/impresion/encabezado-impresion.component';
 import { SelectorOpcionesComponent } from '../../../shared/formularios/selector-opciones.component';
+import { CampoFechaComponent } from '../../../shared/formularios/campo-fecha.component';
 
 /** Editar fechas, canal y observaciones de una reserva confirmada o en curso. */
 @Component({
   selector: 'app-editar-reserva-dialog',
   host: { class: 'roomix-dialog-shell' },
-  imports: [ReactiveFormsModule, MatDialogModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSelectModule],
+  imports: [CampoFechaComponent, ReactiveFormsModule, MatDialogModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSelectModule],
   template: `
     <div class="dialog-accent" aria-hidden="true"></div>
     <div mat-dialog-title class="dialog-header">
@@ -46,12 +47,9 @@ import { SelectorOpcionesComponent } from '../../../shared/formularios/selector-
     </div>
     <mat-dialog-content>
       <form [formGroup]="form" class="rx-form-grid">
-        <mat-form-field appearance="outline">
-          <mat-label>Entrada</mat-label>
-          <input matInput type="date" formControlName="fechaEntrada" [readonly]="enCurso" />
-          @if (enCurso) { <mat-hint>El huésped ya hizo check-in</mat-hint> }
-        </mat-form-field>
-        <mat-form-field appearance="outline"><mat-label>Salida</mat-label><input matInput type="date" formControlName="fechaSalida" /></mat-form-field>
+        <rx-campo-fecha etiqueta="Entrada" formControlName="fechaEntrada" [soloLectura]="enCurso" subscript="fixed"
+                        [ayuda]="enCurso ? 'El huésped ya hizo check-in' : null" />
+        <rx-campo-fecha etiqueta="Salida" formControlName="fechaSalida" subscript="fixed" />
         <mat-form-field appearance="outline">
           <mat-label>Personas</mat-label>
           <input matInput type="number" min="1" max="100" formControlName="cantidadPersonas" />

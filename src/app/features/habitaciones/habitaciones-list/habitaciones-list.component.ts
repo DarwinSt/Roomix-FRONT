@@ -9,8 +9,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatCardModule } from '@angular/material/card';
-import { MatChipsModule } from '@angular/material/chips';
+import { MatMenuModule } from '@angular/material/menu';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { roomixDialogConfig } from '../../../core/config/dialog.config';
 import { HabitacionService } from '../../../core/services/habitacion.service';
@@ -20,7 +19,6 @@ import { AuthService } from '../../../core/services/auth.service';
 import {
   ESTADOS_HABITACION,
   EstadoHabitacion,
-  etiquetaEstadoReserva,
   Habitacion,
   TIPOS_HABITACION,
   TipoHabitacion,
@@ -35,7 +33,6 @@ import {
   resumenProgresoIncidencia,
 } from '../../../core/utils/incidencia-progreso.util';
 import { forkJoin } from 'rxjs';
-import { FechaRoomixPipe } from '../../../shared/pipes/fecha-roomix.pipe';
 import {
   etiquetaMotivoInhabilitacion,
   metaEstado,
@@ -52,11 +49,13 @@ import {
   payloadCheckOut,
 } from '../../../core/utils/habitacion-acciones.util';
 import { TipoIncidencia, ContextoLimpieza } from '../../../core/models/incidencia.model';
-import { formatearFechaDisplay } from '../../../core/utils/date.util';
 import { HabitacionEstadoDialogComponent } from '../habitacion-estado-dialog/habitacion-estado-dialog.component';
 import { ConfirmDialogComponent } from '../../../shared/dialogs/confirm-dialog/confirm-dialog.component';
 import { etiquetaUltimaActualizacion, programarAutoRefresh } from '../../../core/utils/auto-refresh.util';
-import { etiquetaEstadoHabitacion, etiquetaContextoLimpieza } from '../../../core/utils/servicios-habitacion.util';
+import { etiquetaEstadoHabitacion } from '../../../core/utils/servicios-habitacion.util';
+import { desdeIso } from '../../../shared/formularios/campo-fecha.component';
+
+const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 
 type OrdenHabitacion = 'numero' | 'estado' | 'tipo' | 'actualizado-desc';
 
@@ -72,8 +71,7 @@ const OPCIONES_ORDEN: { value: OrdenHabitacion; label: string; icon: string }[] 
   imports: [
     FormsModule,
     RouterLink,
-    FechaRoomixPipe,
-    MatCardModule,
+    MatMenuModule,
     MatButtonModule,
     MatIconModule,
     MatFormFieldModule,
@@ -82,7 +80,6 @@ const OPCIONES_ORDEN: { value: OrdenHabitacion; label: string; icon: string }[] 
     MatSnackBarModule,
     MatTooltipModule,
     MatProgressSpinnerModule,
-    MatChipsModule,
     MatDialogModule,
   ],
   templateUrl: './habitaciones-list.component.html',
@@ -111,11 +108,11 @@ export class HabitacionesListComponent implements OnInit {
   readonly incidenciasPorHabitacion = signal<Map<number, Incidencia[]>>(new Map());
   readonly busqueda = signal('');
   readonly filtroEstado = signal<EstadoHabitacion | ''>('');
-  readonly tarjetaExpandidaId = signal<number | null>(null);
   readonly ultimaActualizacion = signal<Date | null>(null);
-
-  filtroTipo: TipoHabitacion | '' = '';
-  orden: OrdenHabitacion = 'numero';
+  // Señales (antes eran campos simples y la lista no siempre se refrescaba al cambiarlos)
+  readonly filtroTipo = signal<TipoHabitacion | ''>('');
+  readonly orden = signal<OrdenHabitacion>('numero');
+  readonly hayFiltros = computed(() => !!this.busqueda().trim() || !!this.filtroEstado() || !!this.filtroTipo());
 
   readonly resumenEstados = computed(() =>
     ESTADOS_HABITACION.map((e) => ({
@@ -134,8 +131,9 @@ export class HabitacionesListComponent implements OnInit {
       list = list.filter((h) => h.estado === estado);
     }
 
-    if (this.filtroTipo) {
-      list = list.filter((h) => h.tipoHabitacion === this.filtroTipo);
+    const tipo = this.filtroTipo();
+    if (tipo) {
+      list = list.filter((h) => h.tipoHabitacion === tipo);
     }
 
     if (q) {
@@ -150,8 +148,9 @@ export class HabitacionesListComponent implements OnInit {
       );
     }
 
+    const orden = this.orden();
     return [...list].sort((a, b) => {
-      switch (this.orden) {
+      switch (orden) {
         case 'estado':
           return a.estado.localeCompare(b.estado) || a.numero.localeCompare(b.numero);
         case 'tipo':
@@ -216,12 +215,15 @@ export class HabitacionesListComponent implements OnInit {
   limpiarFiltros(): void {
     this.busqueda.set('');
     this.filtroEstado.set('');
-    this.filtroTipo = '';
-    this.orden = 'numero';
+    this.filtroTipo.set('');
   }
 
-  toggleDetalle(id: number): void {
-    this.tarjetaExpandidaId.update((actual) => (actual === id ? null : id));
+  verDetalle(h: Habitacion): void {
+    void this.router.navigate(['/habitaciones', h.id]);
+  }
+
+  urlFoto(h: Habitacion): string {
+    return this.habitacionService.urlFoto(h.id, h.fotoIds[0]);
   }
 
   abrirCambioEstado(h: Habitacion): void {
@@ -239,6 +241,40 @@ export class HabitacionesListComponent implements OnInit {
 
   acciones(h: Habitacion): AccionRapida[] {
     return accionesRapidasDisponibles(h).filter((a) => a.tipo !== 'SOLICITAR_SERVICIO' || this.auth.puede('SERVICIOS_SOLICITUDES'));
+  }
+
+  /** La acción que más se usa en cada estado va a la vista; las demás, al menú. */
+  accionPrincipal(h: Habitacion): AccionRapida | null {
+    const preferida = { LIBRE: 'RESERVAR', RESERVADO: 'CHECK_IN', OCUPADO: 'CHECK_OUT', INHABILITADO: null }[h.estado];
+    return this.acciones(h).find((a) => a.tipo === preferida) ?? null;
+  }
+
+  accionesSecundarias(h: Habitacion): AccionRapida[] {
+    const principal = this.accionPrincipal(h);
+    return this.acciones(h).filter((a) => a !== principal && a.tipo !== principal?.tipo);
+  }
+
+  /** "2026-11-21" → "21 nov" (sin desfase por zona horaria). */
+  diaMes(iso: string): string {
+    const f = desdeIso(iso);
+    return f ? `${f.getDate()} ${MESES[f.getMonth()]}` : '—';
+  }
+
+  noches(h: Habitacion): string {
+    return h.cantidadNoches === 1 ? '1 noche' : `${h.cantidadNoches ?? 0} noches`;
+  }
+
+  /** «Sale hoy», «Llega mañana»… para lo que requiere atención pronto. */
+  aviso(iso: string, verbo: 'Sale' | 'Llega'): string | null {
+    const f = desdeIso(iso);
+    if (!f) return null;
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    const dias = Math.round((f.getTime() - hoy.getTime()) / 86_400_000);
+    if (dias === 0) return `${verbo} hoy`;
+    if (dias === 1) return `${verbo} mañana`;
+    if (dias < 0 && verbo === 'Sale') return 'Salida vencida';
+    return null;
   }
 
   trackAccion = trackAccionRapida;
@@ -358,21 +394,6 @@ export class HabitacionesListComponent implements OnInit {
     return TIPOS_HABITACION.find((t) => t.value === tipo)?.label ?? tipo;
   }
 
-  etiquetaTipoFiltro(valor: TipoHabitacion | ''): string {
-    if (!valor) return 'Todos los tipos';
-    return this.etiquetaTipo(valor);
-  }
-
-  etiquetaOrden(valor: OrdenHabitacion): string {
-    return OPCIONES_ORDEN.find((o) => o.value === valor)?.label ?? valor;
-  }
-
-  etiquetaReserva = etiquetaEstadoReserva;
-  formatearFecha = formatearFechaDisplay;
-
-  muestraIncidencias(h: Habitacion): boolean {
-    return this.incidenciasDe(h).length > 0;
-  }
 
   abrirCrearIncidencia(
     h: Habitacion,
@@ -401,5 +422,4 @@ export class HabitacionesListComponent implements OnInit {
   resumenInc = resumenProgresoIncidencia;
   nivelInc = nivelProgresoIncidencia;
   etiquetaInc = etiquetaEstadoIncidencia;
-  etiquetaContextoLimp = etiquetaContextoLimpieza;
 }

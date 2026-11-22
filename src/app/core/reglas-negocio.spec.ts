@@ -1,5 +1,6 @@
 import { iconoCategoria, iconoProducto } from './models/venta.model';
 import { unidadEnTexto } from '../features/inventario/articulo-form/articulo-form.component';
+import { desdeIso } from '../shared/formularios/campo-fecha.component';
 import { PERMISOS_POR_ROL } from './models/permisos.model';
 import { NAVEGACION, navegacionPara } from './config/navegacion.config';
 import { Rol } from './models/auth.model';
@@ -61,6 +62,19 @@ describe('Reglas de negocio del frontend', () => {
       const iconos = categorias.map(iconoCategoria);
       expect(iconos).not.toContain('inventory_2');
       expect(new Set(iconos).size).toBe(categorias.length);
+    });
+  });
+
+  describe('Fechas (formato colombiano en los campos)', () => {
+    it('lee "aaaa-mm-dd" como fecha local, sin correrse un día por la zona horaria', () => {
+      const f = desdeIso('2026-11-22')!;
+      expect([f.getFullYear(), f.getMonth(), f.getDate()]).toEqual([2026, 10, 22]);
+    });
+
+    it('devuelve null si el texto no es una fecha', () => {
+      expect(desdeIso('')).toBeNull();
+      expect(desdeIso(null)).toBeNull();
+      expect(desdeIso('22/11/2026')).toBeNull();
     });
   });
 

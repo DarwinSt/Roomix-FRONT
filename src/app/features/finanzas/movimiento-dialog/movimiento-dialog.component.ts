@@ -15,12 +15,13 @@ import { hoyIso, moneda } from '../../../core/utils/formato.util';
 import { ICONO_CATEGORIA } from '../../../core/models/caja.model';
 import { SelectorOpcionesComponent } from '../../../shared/formularios/selector-opciones.component';
 import { MonedaDirective } from '../../../shared/directivas/moneda.directive';
+import { CampoFechaComponent } from '../../../shared/formularios/campo-fecha.component';
 
 /** Registro manual de un ingreso o egreso (nómina, servicios públicos, proveedores...). */
 @Component({
   selector: 'app-movimiento-dialog',
   host: { class: 'roomix-dialog-shell' },
-  imports: [MonedaDirective, ReactiveFormsModule, MatDialogModule, MatButtonModule, MatButtonToggleModule, MatCheckboxModule, MatFormFieldModule,
+  imports: [CampoFechaComponent, MonedaDirective, ReactiveFormsModule, MatDialogModule, MatButtonModule, MatButtonToggleModule, MatCheckboxModule, MatFormFieldModule,
     MatIconModule, MatInputModule, SelectorOpcionesComponent],
   template: `
     <div mat-dialog-title class="dialog-header">
@@ -49,10 +50,7 @@ import { MonedaDirective } from '../../../shared/directivas/moneda.directive';
           <mat-checkbox formControlName="pendiente" class="por-pagar">Queda por pagar (todavía no sale el dinero)</mat-checkbox>
           @if (esPendiente()) { <p class="por-pagar-ayuda">No cuenta en los totales hasta que registre su pago. La fecha es el vencimiento.</p> }
         }
-        <mat-form-field appearance="outline" class="fecha">
-          <mat-label>{{ esPendiente() ? 'Fecha de vencimiento' : 'Fecha' }}</mat-label>
-          <input matInput type="date" formControlName="fecha" />
-        </mat-form-field>
+        <rx-campo-fecha class="fecha" [etiqueta]="esPendiente() ? 'Fecha de vencimiento' : 'Fecha'" formControlName="fecha" subscript="fixed" />
         @if (!esPendiente()) {
           <rx-selector-opciones formControlName="metodoPago" [opciones]="metodos" etiqueta="Medio de pago" />
         }

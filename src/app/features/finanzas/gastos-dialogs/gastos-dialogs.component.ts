@@ -25,12 +25,13 @@ import { fechaCorta, hoyIso, moneda } from '../../../core/utils/formato.util';
 import { ICONO_CATEGORIA } from '../../../core/models/caja.model';
 import { SelectorOpcionesComponent } from '../../../shared/formularios/selector-opciones.component';
 import { MonedaDirective } from '../../../shared/directivas/moneda.directive';
+import { CampoFechaComponent } from '../../../shared/formularios/campo-fecha.component';
 
 /** Confirmar el pago de un egreso que estaba «por pagar». */
 @Component({
   selector: 'app-pagar-gasto-dialog',
   host: { class: 'roomix-dialog-shell' },
-  imports: [MonedaDirective, ReactiveFormsModule, MatDialogModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule,
+  imports: [CampoFechaComponent, MonedaDirective, ReactiveFormsModule, MatDialogModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule,
     SelectorOpcionesComponent],
   template: `
     <div class="dialog-accent" aria-hidden="true"></div>
@@ -45,10 +46,7 @@ import { MonedaDirective } from '../../../shared/directivas/moneda.directive';
           <span matTextPrefix>$&nbsp;</span>
           <input matInput rxMoneda formControlName="valor" />
         </mat-form-field>
-        <mat-form-field appearance="outline" class="fecha">
-          <mat-label>Fecha del pago</mat-label>
-          <input matInput type="date" formControlName="fecha" />
-        </mat-form-field>
+        <rx-campo-fecha class="fecha" etiqueta="Fecha del pago" formControlName="fecha" subscript="fixed" />
         <rx-selector-opciones formControlName="metodoPago" [opciones]="metodos" etiqueta="Medio de pago" />
         <mat-form-field appearance="outline" class="rx-campo-completo">
           <mat-label>Referencia / soporte (opcional)</mat-label>

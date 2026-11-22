@@ -9,6 +9,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { Anulacion, AuditoriaService } from '../../../core/services/modulos.service';
 import { ErrorDialogService } from '../../../core/services/error-dialog.service';
 import { fechaCorta, hoyIso, isoFecha, moneda, sumarDias } from '../../../core/utils/formato.util';
+import { CampoFechaComponent } from '../../../shared/formularios/campo-fecha.component';
 
 const TIPOS: Record<string, string> = { FACTURA: 'Factura', VENTA: 'Venta', INGRESO: 'Ingreso', EGRESO: 'Egreso' };
 
@@ -18,17 +19,11 @@ const TIPOS: Record<string, string> = { FACTURA: 'Factura', VENTA: 'Venta', INGR
  */
 @Component({
   selector: 'app-anulaciones',
-  imports: [FormsModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule, MatProgressSpinnerModule, MatSlideToggleModule],
+  imports: [CampoFechaComponent, FormsModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule, MatProgressSpinnerModule, MatSlideToggleModule],
   template: `
     <div class="rx-toolbar">
-      <mat-form-field appearance="outline">
-        <mat-label>Desde</mat-label>
-        <input matInput type="date" [(ngModel)]="desde" (change)="cargar()" />
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Hasta</mat-label>
-        <input matInput type="date" [(ngModel)]="hasta" (change)="cargar()" />
-      </mat-form-field>
+      <rx-campo-fecha etiqueta="Desde" [ngModel]="desde" (ngModelChange)="desde = $event; cargar()" />
+      <rx-campo-fecha etiqueta="Hasta" [ngModel]="hasta" (ngModelChange)="hasta = $event; cargar()" />
       <mat-slide-toggle [ngModel]="soloPropias()" (ngModelChange)="soloPropias.set($event)">Solo las que anuló quien las registró</mat-slide-toggle>
     </div>
 
