@@ -98,7 +98,12 @@ export function iconoCategoria(categoria: string): string {
   if (/aliment|snack|comida|mecato|cafeter/.test(c)) return 'restaurant';
   if (/aseo|higiene|amenid|amenit|baño|tocador/.test(c)) return 'soap';
   if (/limpieza|químic|quimic/.test(c)) return 'cleaning_services';
-  if (/lencer|blanco|textil|toalla/.test(c)) return 'dry_cleaning';
+  if (/lencer|blanc|textil|toalla|ropa/.test(c)) return 'dry_cleaning';
+  if (/mantenim|herramient|repuest|ferreter/.test(c)) return 'build';
+  if (/mobiliar|mueble/.test(c)) return 'chair';
+  if (/piscina|\bspa\b/.test(c)) return 'pool';
+  if (/tecnolog|electr|c[oó]mputo/.test(c)) return 'devices';
+  if (/papeler|oficina/.test(c)) return 'description';
   if (/farmac|botiqu|salud/.test(c)) return 'medication';
   if (/recuerdo|souvenir|artesan|regalo/.test(c)) return 'redeem';
   return 'inventory_2';
