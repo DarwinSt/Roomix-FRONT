@@ -69,6 +69,8 @@ export class ArticuloFormComponent implements OnInit {
     }
   }
 
+  private version: number | null = null;
+
   private cargar(id: number): void {
     this.loading.set(true);
     this.inventarioService.obtenerArticulo(id).subscribe({
@@ -85,6 +87,7 @@ export class ArticuloFormComponent implements OnInit {
           precioUnitario: a.precioUnitario,
           precioVenta: a.precioVenta,
         });
+        this.version = a.version;
         this.loading.set(false);
       },
       error: (err) => {
@@ -112,6 +115,8 @@ export class ArticuloFormComponent implements OnInit {
       proveedor: v.proveedor?.trim() || null,
       precioUnitario: v.precioUnitario === null || (v.precioUnitario as unknown) === '' ? null : Number(v.precioUnitario),
       precioVenta: v.precioVenta === null || (v.precioVenta as unknown) === '' ? null : Number(v.precioVenta),
+      // Versión con la que se abrió: si alguien vendió o gastó mientras tanto, el servidor avisa en vez de pisar el stock
+      version: this.version,
     };
     this.saving.set(true);
     const req$ = this.id

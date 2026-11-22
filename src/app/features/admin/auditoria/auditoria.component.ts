@@ -6,6 +6,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTabsModule } from '@angular/material/tabs';
+import { AnulacionesComponent } from './anulaciones.component';
 import { AuditoriaService } from '../../../core/services/modulos.service';
 import { ErrorDialogService } from '../../../core/services/error-dialog.service';
 import { RegistroAuditoria } from '../../../core/models/dashboard.model';
@@ -13,19 +15,23 @@ import { descargarCsv, fechaCorta, hoyIso, isoFecha, sumarDias } from '../../../
 
 @Component({
   selector: 'app-auditoria',
-  imports: [FormsModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSelectModule, MatProgressSpinnerModule],
+  imports: [FormsModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSelectModule, MatProgressSpinnerModule,
+    MatTabsModule, AnulacionesComponent],
   template: `
     <div class="page-header row">
       <div>
         <h1>Auditoría</h1>
-        <p>Registro de inicios de sesión y de toda operación que modifica datos: quién, qué, cuándo y desde dónde.</p>
+        <p>Inicios de sesión y operaciones que modifican datos (quién, qué, cuándo y desde dónde), y las anulaciones para revisión.</p>
       </div>
       <button mat-stroked-button (click)="exportar()" [disabled]="registros().length === 0">
         <mat-icon>download</mat-icon>Exportar CSV
       </button>
     </div>
 
-    <div class="rx-toolbar">
+    <mat-tab-group mat-stretch-tabs="false" mat-align-tabs="start" animationDuration="150ms">
+    <mat-tab>
+      <ng-template mat-tab-label><mat-icon class="icono-tab">history</mat-icon>Registro de acciones</ng-template>
+    <div class="rx-toolbar pestana">
       <mat-form-field appearance="outline">
         <mat-label>Usuario</mat-label>
         <input matInput [(ngModel)]="usuario" (keyup.enter)="buscar(0)" />
@@ -95,9 +101,17 @@ import { descargarCsv, fechaCorta, hoyIso, isoFecha, sumarDias } from '../../../
         </div>
       </div>
     }
+    </mat-tab>
+    <mat-tab>
+      <ng-template mat-tab-label><mat-icon class="icono-tab">block</mat-icon>Anulaciones</ng-template>
+      <div class="pestana"><app-anulaciones /></div>
+    </mat-tab>
+    </mat-tab-group>
   `,
   styles: `
     .detalle-mobile { display: none; font-size: 0.78rem; color: var(--text-200); }
+    .pestana { padding-top: 1rem; }
+    .icono-tab { margin-right: 0.4rem; font-size: 1.15rem; width: 1.15rem; height: 1.15rem; }
     @media (max-width: 720px) { .detalle-mobile { display: block; } }
   `,
 })

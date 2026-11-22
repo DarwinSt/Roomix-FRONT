@@ -163,6 +163,13 @@
               @if (a.precioUnitario) { · {{ moneda(a.precioUnitario) }} c/u · valor {{ moneda(a.valorTotal) }} }
             </p>
           }
+          @if (a.precioVenta) {
+            <p class="detalle venta">
+              <mat-icon>storefront</mat-icon>
+              Se vende a {{ moneda(a.precioVenta) }}
+              @if (margen(a); as m) { · margen {{ m }} % }
+            </p>
+          }
           @if (a.ubicacion) {
             <p class="detalle">
               <mat-icon>place</mat-icon>

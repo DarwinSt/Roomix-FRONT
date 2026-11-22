@@ -90,6 +90,11 @@ import { ConfirmDialogComponent } from '../../../shared/dialogs/confirm-dialog/c
             </div>
           }
         </div>
+        @if (cobraYAnula()) {
+          <p class="aviso-separacion"><mat-icon>gpp_maybe</mat-icon>
+            <span>Esta persona cobra y también puede anular cobros. Para separar responsabilidades, deje las anulaciones a
+              administración o finanzas.</span></p>
+        }
       }
       @if (error()) { <p class="error">{{ error() }}</p> }
     </mat-dialog-content>
@@ -110,6 +115,9 @@ import { ConfirmDialogComponent } from '../../../shared/dialogs/confirm-dialog/c
     .permiso-grupo { font-weight: 600; font-size: 0.88rem; }
     .permiso-niveles { display: flex; flex-wrap: wrap; column-gap: 0.5rem; }
     @media (max-width: 560px) { .permiso-fila { grid-template-columns: 1fr; padding: 0.4rem 0.75rem; } }
+    .aviso-separacion { display: flex; gap: 0.5rem; align-items: flex-start; margin: 0.75rem 0 0; padding: 0.65rem 0.8rem; border-radius: 10px;
+      background: rgba(245, 196, 85, 0.18); border: 1px solid rgba(212, 160, 23, 0.3); color: #5c4a12; font-size: 0.84rem; }
+    .aviso-separacion mat-icon { flex-shrink: 0; color: #b07d00; }
   `,
 })
 export class UsuarioDialogComponent {
@@ -147,6 +155,13 @@ export class UsuarioDialogComponent {
     }
     return [...mapa.entries()].map(([grupo, permisos]) => ({ grupo, permisos }));
   });
+  /** Quien registra cobros (caja, ventas, abonos o pagos) no debería poder anularlos (salvo el administrador). */
+  readonly cobraYAnula = computed(() => {
+    const m = this.marcados();
+    return this.rolActual() !== 'ADMIN' && m.has('ANULACIONES')
+      && (['CAJA_OPERAR', 'VENTAS', 'RESERVAS_GESTIONAR', 'FACTURAS'] as Permiso[]).some((p) => m.has(p));
+  });
+
   readonly personalizados = computed(() => {
     const c = this.catalogo();
     if (!c) return false;

@@ -497,7 +497,7 @@
   gap: 0.5rem;
   margin: 0 0 1rem;
 
-  &.compactas { grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); }
+  &.compactas { grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); }
 }
 
 .rx-opcion {
@@ -515,6 +515,8 @@
   font-weight: 500;
   text-align: left;
   line-height: 1.2;
+  overflow-wrap: anywhere;
+  hyphens: auto;
   cursor: pointer;
   transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
 
@@ -590,4 +592,41 @@
   font-size: 0.85rem;
 
   mat-icon { font-size: 1.1rem; width: 1.1rem; height: 1.1rem; flex-shrink: 0; }
+}
+
+// Formularios de página usados dentro de un modal: la ayuda de un campo no debe montarse sobre la etiqueta del de abajo
+.roomix-dialog .rx-form-grid {
+  row-gap: 0.6rem;
+}
+
+// Atajos de valor (todo el saldo, la mitad…) debajo del monto
+.rx-atajos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: -0.1rem 0 1rem;
+}
+
+.rx-chip-boton {
+  border: 1px solid rgba(var(--primary-300-rgb), 0.3);
+  background: rgba(var(--primary-100-rgb), 0.2);
+  color: var(--primary-400);
+  border-radius: 999px;
+  padding: 0.3rem 0.8rem;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover { border-color: var(--primary-300); }
+}
+
+// Ícono del encabezado para salidas de dinero
+.header-icon.egreso {
+  background: linear-gradient(135deg, #e07a3c 0%, #b0521c 100%);
+  box-shadow: 0 6px 14px rgba(176, 82, 28, 0.25);
+}
+
+.rx-campo-completo {
+  width: 100%;
 }

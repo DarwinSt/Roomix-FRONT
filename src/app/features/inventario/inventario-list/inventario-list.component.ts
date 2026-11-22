@@ -216,6 +216,8 @@ export class InventarioListComponent implements OnInit {
         ubicacion: a.ubicacion,
         proveedor: a.proveedor,
         precioUnitario: a.precioUnitario,
+        precioVenta: a.precioVenta,
+        version: a.version,
         activo: true,
       })
       .subscribe({
@@ -225,6 +227,12 @@ export class InventarioListComponent implements OnInit {
         },
         error: (err) => this.errorDialog.mostrarDesdeApi(err),
       });
+  }
+
+  /** Margen sobre el precio de venta, si se conoce el costo. */
+  margen(a: ArticuloInventario): number | null {
+    if (!a.precioVenta || !a.precioUnitario) return null;
+    return Math.round(((a.precioVenta - a.precioUnitario) / a.precioVenta) * 100);
   }
 
   nivel(a: ArticuloInventario): NivelStock {

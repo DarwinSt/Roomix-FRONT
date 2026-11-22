@@ -22,13 +22,16 @@ import {
 } from '../../../core/models/finanzas.model';
 import { extractApiErrorMessage } from '../../../core/utils/api-error.util';
 import { fechaCorta, hoyIso, moneda } from '../../../core/utils/formato.util';
+import { ICONO_CATEGORIA } from '../../../core/models/caja.model';
+import { SelectorOpcionesComponent } from '../../../shared/formularios/selector-opciones.component';
+import { MonedaDirective } from '../../../shared/directivas/moneda.directive';
 
 /** Confirmar el pago de un egreso que estaba «por pagar». */
-import { MonedaDirective } from '../../../shared/directivas/moneda.directive';
 @Component({
   selector: 'app-pagar-gasto-dialog',
   host: { class: 'roomix-dialog-shell' },
-  imports: [MonedaDirective, ReactiveFormsModule, MatDialogModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSelectModule],
+  imports: [MonedaDirective, ReactiveFormsModule, MatDialogModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule,
+    SelectorOpcionesComponent],
   template: `
     <div class="dialog-accent" aria-hidden="true"></div>
     <div mat-dialog-title class="dialog-header">
@@ -36,34 +39,30 @@ import { MonedaDirective } from '../../../shared/directivas/moneda.directive';
       <div class="header-text"><h2>Registrar pago</h2><p>{{ data.concepto }} · vence {{ fecha(data.fechaVencimiento) }}</p></div>
     </div>
     <mat-dialog-content>
-      <form [formGroup]="form" class="dialog-form-grid">
-        <mat-form-field appearance="outline">
-          <mat-label>Valor pagado (COP)</mat-label>
+      <form [formGroup]="form">
+        <mat-form-field appearance="outline" class="rx-monto rx-campo-completo">
+          <mat-label>Valor pagado</mat-label>
+          <span matTextPrefix>$&nbsp;</span>
           <input matInput rxMoneda formControlName="valor" />
         </mat-form-field>
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" class="fecha">
           <mat-label>Fecha del pago</mat-label>
           <input matInput type="date" formControlName="fecha" />
         </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Método de pago</mat-label>
-          <mat-select formControlName="metodoPago" panelClass="roomix-select-panel">
-            @for (m of metodos; track m.value) { <mat-option [value]="m.value">{{ m.label }}</mat-option> }
-          </mat-select>
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Referencia / soporte</mat-label>
+        <rx-selector-opciones formControlName="metodoPago" [opciones]="metodos" etiqueta="Medio de pago" />
+        <mat-form-field appearance="outline" class="rx-campo-completo">
+          <mat-label>Referencia / soporte (opcional)</mat-label>
           <input matInput formControlName="referencia" maxlength="60" />
         </mat-form-field>
       </form>
-      @if (error()) { <p class="error">{{ error() }}</p> }
+      @if (error()) { <p class="rx-error-dialogo"><mat-icon>error_outline</mat-icon>{{ error() }}</p> }
     </mat-dialog-content>
     <mat-dialog-actions align="end">
       <button mat-button mat-dialog-close>Cancelar</button>
-      <button mat-flat-button color="primary" (click)="guardar()">Confirmar pago</button>
+      <button mat-flat-button color="primary" (click)="guardar()"><mat-icon>task_alt</mat-icon>Confirmar pago</button>
     </mat-dialog-actions>
   `,
-  styles: `.error { color: #c62828; font-size: 0.85rem; }`,
+  styles: `.fecha { width: 220px; max-width: 100%; }`,
 })
 export class PagarGastoDialogComponent {
   readonly data = inject<MovimientoFinanciero>(MAT_DIALOG_DATA);
@@ -91,7 +90,8 @@ export class PagarGastoDialogComponent {
 @Component({
   selector: 'app-gasto-recurrente-form-dialog',
   host: { class: 'roomix-dialog-shell' },
-  imports: [MonedaDirective, ReactiveFormsModule, MatDialogModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSelectModule, MatSlideToggleModule],
+  imports: [MonedaDirective, ReactiveFormsModule, MatDialogModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule,
+    MatSlideToggleModule, SelectorOpcionesComponent],
   template: `
     <div class="dialog-accent" aria-hidden="true"></div>
     <div mat-dialog-title class="dialog-header">
@@ -99,47 +99,38 @@ export class PagarGastoDialogComponent {
       <div class="header-text"><h2>{{ data ? 'Editar gasto recurrente' : 'Nuevo gasto recurrente' }}</h2><p>Cada mes se genera un egreso «por pagar» con vencimiento el día indicado.</p></div>
     </div>
     <mat-dialog-content>
-      <form [formGroup]="form" class="dialog-form-grid">
-        <mat-form-field appearance="outline" class="full">
+      <form [formGroup]="form">
+        <mat-form-field appearance="outline" class="rx-campo-completo">
           <mat-label>Concepto</mat-label>
           <input matInput formControlName="concepto" maxlength="200" placeholder="Ej. Arriendo del local, nómina quincenal, energía" />
         </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Categoría</mat-label>
-          <mat-select formControlName="categoria" panelClass="roomix-select-panel">
-            @for (c of categoriasEgreso(); track c.codigo) { <mat-option [value]="c.codigo">{{ c.nombre }}</mat-option> }
-          </mat-select>
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Valor mensual (COP)</mat-label>
-          <input matInput rxMoneda formControlName="valor" />
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Día de vencimiento</mat-label>
-          <input matInput type="number" min="1" max="28" formControlName="diaVencimiento" />
-          <mat-hint>Del 1 al 28</mat-hint>
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Medio de pago</mat-label>
-          <mat-select formControlName="metodoPago" panelClass="roomix-select-panel">
-            <mat-option [value]="null">—</mat-option>
-            @for (m of metodos; track m.value) { <mat-option [value]="m.value">{{ m.label }}</mat-option> }
-          </mat-select>
-        </mat-form-field>
-        <mat-form-field appearance="outline" class="full">
+        <rx-selector-opciones formControlName="categoria" [opciones]="opcionesCategoria()" etiqueta="Categoría" />
+        <div class="dialog-form-grid">
+          <mat-form-field appearance="outline" class="rx-monto">
+            <mat-label>Valor mensual</mat-label>
+            <span matTextPrefix>$&nbsp;</span>
+            <input matInput rxMoneda formControlName="valor" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Día de vencimiento</mat-label>
+            <input matInput type="number" min="1" max="28" formControlName="diaVencimiento" />
+            <mat-hint>Del 1 al 28 de cada mes</mat-hint>
+          </mat-form-field>
+        </div>
+        <rx-selector-opciones formControlName="metodoPago" [opciones]="metodos" etiqueta="Medio de pago habitual (opcional)" />
+        <mat-form-field appearance="outline" class="rx-campo-completo">
           <mat-label>Proveedor / tercero</mat-label>
           <input matInput formControlName="tercero" maxlength="150" />
         </mat-form-field>
-        @if (data) { <mat-slide-toggle formControlName="activo" class="full">Activo (genera el egreso cada mes)</mat-slide-toggle> }
+        @if (data) { <mat-slide-toggle formControlName="activo">Activo (genera el egreso cada mes)</mat-slide-toggle> }
       </form>
-      @if (error()) { <p class="error">{{ error() }}</p> }
+      @if (error()) { <p class="rx-error-dialogo"><mat-icon>error_outline</mat-icon>{{ error() }}</p> }
     </mat-dialog-content>
     <mat-dialog-actions align="end">
       <button mat-button mat-dialog-close>Cancelar</button>
-      <button mat-flat-button color="primary" (click)="guardar()">Guardar</button>
+      <button mat-flat-button color="primary" (click)="guardar()"><mat-icon>check</mat-icon>Guardar</button>
     </mat-dialog-actions>
   `,
-  styles: `.error { color: #c62828; font-size: 0.85rem; }`,
 })
 export class GastoRecurrenteFormDialogComponent {
   readonly data = inject<GastoRecurrente | null>(MAT_DIALOG_DATA);
@@ -149,6 +140,8 @@ export class GastoRecurrenteFormDialogComponent {
   readonly error = signal<string | null>(null);
   private readonly categorias = toSignal(this.finanzas.categorias(), { initialValue: [] });
   readonly categoriasEgreso = computed(() => this.categorias().filter((c) => c.tipo === 'EGRESO'));
+  readonly opcionesCategoria = computed(() => this.categoriasEgreso()
+    .map((c) => ({ value: c.codigo, label: c.nombre, icon: ICONO_CATEGORIA[c.codigo] ?? 'label' })));
   readonly form = inject(FormBuilder).group({
     concepto: [this.data?.concepto ?? '', Validators.required],
     categoria: [(this.data?.categoria ?? null) as CategoriaFinanciera | null, Validators.required],

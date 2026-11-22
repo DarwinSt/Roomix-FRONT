@@ -7,11 +7,12 @@ import { CajaService } from '../../core/services/caja.service';
 import { ErrorDialogService } from '../../core/services/error-dialog.service';
 import { DetalleTurno, claseTipoMovimientoTurno, etiquetaTipoMovimientoTurno } from '../../core/models/caja.model';
 import { fechaCorta, moneda } from '../../core/utils/formato.util';
+import { EncabezadoImpresionComponent } from '../../shared/impresion/encabezado-impresion.component';
 
 /** Acta del turno de caja: resumen, arqueo, conteo, movimientos y firmas de entrega (imprimible). */
 @Component({
   selector: 'app-turno-detalle',
-  imports: [RouterLink, MatButtonModule, MatIconModule, MatProgressSpinnerModule],
+  imports: [RouterLink, MatButtonModule, MatIconModule, MatProgressSpinnerModule, EncabezadoImpresionComponent],
   template: `
     @if (!detalle()) {
       <div class="rx-cargando"><mat-spinner diameter="44" /></div>
@@ -27,7 +28,8 @@ import { fechaCorta, moneda } from '../../core/utils/formato.util';
           <button mat-flat-button color="primary" (click)="imprimir()"><mat-icon>print</mat-icon>Imprimir / PDF</button>
         </div>
       </div>
-      <h1 class="solo-imprimir">Acta de cierre de caja — Turno #{{ t.id }}</h1>
+      <rx-encabezado-impresion [titulo]="'Acta de caja — Turno #' + t.id"
+        [subtitulo]="t.estado === 'ABIERTO' ? 'Turno abierto · impreso ' + fecha(ahora, true) : 'Cerrado ' + fecha(t.fechaHoraCierre!, true)" />
 
       <section class="rx-card">
         <div class="rx-card-titulo"><mat-icon>badge</mat-icon>Turno</div>
@@ -140,6 +142,8 @@ import { fechaCorta, moneda } from '../../core/utils/formato.util';
     tr.anulado td { text-decoration: line-through; color: #8a948f; }
     .firmas { margin-top: 3rem; display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; }
     .firmas div { border-top: 1px solid #333; padding-top: 0.4rem; font-size: 0.9rem; }
+    /* En la hoja las tablas van una debajo de otra: lado a lado no caben */
+    @media print { .columnas { grid-template-columns: 1fr; } .arqueo { max-width: none; } }
   `,
 })
 export class TurnoDetalleComponent implements OnInit {
@@ -152,6 +156,7 @@ export class TurnoDetalleComponent implements OnInit {
   readonly etiquetaTipo = etiquetaTipoMovimientoTurno;
   readonly claseTipo = claseTipoMovimientoTurno;
   readonly detalle = signal<DetalleTurno | null>(null);
+  readonly ahora = new Date().toISOString();
 
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));

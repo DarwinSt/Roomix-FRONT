@@ -1,0 +1,35 @@
+name: CI
+
+# Corre las pruebas y la compilación de producción en cada subida de una rama de trabajo y en cada pull request,
+# para saber antes de publicar si algo se rompió.
+on:
+  push:
+    branches:
+      - 'feature/**'
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  pruebas-y-compilacion:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v4
+
+      - name: Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Pruebas unitarias
+        run: npx ng test --watch=false
+
+      - name: Compilación de producción
+        run: npx ng build

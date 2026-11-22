@@ -131,8 +131,10 @@ const TEMAS: Tema[] = [
       'Pulsa «Nueva venta» (o «Vender productos» en Caja), toca los productos para agregarlos y ajusta las cantidades con + y −.',
       'Elige «Cobrar ahora» y el medio de pago: el cobro entra a tu turno de caja. O «A la habitación»: queda en la cuenta del huésped alojado y se cobra con la factura en el check-out.',
       'Desde el detalle de una reserva en curso, «Cargar consumo» carga los productos directamente a esa habitación.',
-      'Cada venta descuenta el inventario. Si te equivocas, anúlala con un motivo: los productos vuelven al inventario y el cobro o el cargo se reversan.',
+      'Cada venta descuenta el inventario. Si hubo un error, la anula Administración o Finanzas con un motivo: los productos vuelven al inventario y el cobro o el cargo se reversan.',
       'Solo aparecen los artículos del inventario con precio de venta y stock disponible.',
+      'Cada venta tiene su ticket para entregar al huésped (botón del recibo en la lista, o «Imprimir ticket» al terminar la venta). Sirve para impresoras de recibos de 80 mm.',
+      'En Reportes, la sección Tienda y minibar muestra qué se vendió, cuánto costó y cuánto dejó cada producto en el periodo.',
     ],
   },
   {
@@ -179,8 +181,10 @@ const TEMAS: Tema[] = [
     roles: ['ADMIN'],
     pasos: [
       'Al crear un usuario elige su rol (Administrador, Recepción, Housekeeping, Finanzas, Eventos o Almacén): se marcan los permisos de ese rol. Puedes marcar o quitar casillas para esa persona; «Usar los del rol» vuelve a la plantilla.',
+      'Separación de responsabilidades: anular facturas, ventas y movimientos de dinero requiere el permiso «Anulaciones», que por defecto tienen Administración y Finanzas. Si le das a alguien que cobra también el permiso de anular, el sistema te avisa.',
       'Puedes desactivar usuarios o restablecer su contraseña (se genera una clave temporal que deberán cambiar).',
       'La Auditoría registra quién hizo cada acción, cuándo, desde qué IP y con qué resultado; se puede filtrar por usuario, módulo y fecha.',
+      'En Auditoría → Anulaciones ves cada factura, venta o movimiento anulado con el valor, el motivo, quién lo registró y quién lo anuló; se resaltan los que anuló la misma persona que los registró.',
     ],
   },
   {
@@ -190,10 +194,11 @@ const TEMAS: Tema[] = [
     roles: ['ADMIN'],
     pasos: [
       'Define el nombre y el logo del hotel, el NIT y los datos de contacto: aparecen en el menú, el inicio de sesión, los comprobantes y las facturas.',
+      'Elige cómo se ve el logo: Original (como viene), Ícono (cuadrado de esquinas redondeadas) o Avatar (círculo). Con «Quitar el fondo» el fondo liso del logo se vuelve transparente; si no te gusta, «Volver al original».',
       'En Apariencia elige una paleta o los colores de tu marca y una frase de bienvenida; la vista previa muestra cómo se verá antes de aplicarlo a todos.',
       'En Aseo y mantenimiento define las acciones del checklist de cada tipo de servicio (post check-out, huésped ausente, urgente, mantenimiento…). Aplican a los servicios nuevos.',
       'Elige si cobras el alojamiento por habitación o por persona, y si el hotel cobra IVA (y su porcentaje).',
-      'Activa el correo de confirmación para que el huésped reciba los datos de su reserva al crearla (requiere que el servidor tenga el envío de correos configurado).',
+      'Activa el correo al huésped: recibe la confirmación al crear la reserva y un aviso si cambian las fechas o las personas o si se cancela (requiere que el servidor tenga el envío de correos configurado). En el detalle de la reserva ves si el correo salió y puedes reenviarlo.',
       'Indica después de cuántos meses sin actividad se borran los datos personales de los huéspedes (Ley 1581); las reservas y facturas se conservan.',
       'Los módulos contratados se ven al final; para agregar o quitar módulos comunícate con el proveedor de Roomix.',
     ],

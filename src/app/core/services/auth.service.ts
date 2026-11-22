@@ -78,6 +78,18 @@ export class AuthService {
     this.router.navigate(['/login'], { queryParams: motivo ? { motivo } : {} });
   }
 
+  private ultimaRevision = 0;
+
+  /**
+   * Vuelve a leer el perfil (rol, permisos, estado) si pasó al menos `minimoMs` desde la última vez. Así el menú refleja
+   * los permisos que el administrador cambió sin que la persona tenga que volver a iniciar sesión.
+   */
+  revisarPerfil(minimoMs = 60_000): void {
+    if (!this.estaAutenticado() || Date.now() - this.ultimaRevision < minimoMs) return;
+    this.ultimaRevision = Date.now();
+    this.recargarPerfil().subscribe({ error: () => undefined });
+  }
+
   recargarPerfil(): Observable<Usuario> {
     return this.http.get<Usuario>(`${this.baseUrl}/me`).pipe(
       tap((usuario) => {

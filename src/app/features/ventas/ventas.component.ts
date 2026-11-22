@@ -1,6 +1,6 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -34,9 +34,9 @@ import { VentaDialogComponent } from './venta-dialog.component';
 
     <div class="rx-kpis">
       <div class="rx-kpi">
-        <span class="rx-kpi-etiqueta"><mat-icon>payments</mat-icon>Cobrado</span>
+        <span class="rx-kpi-etiqueta"><mat-icon>payments</mat-icon>De contado</span>
         <span class="rx-kpi-valor">{{ moneda(totales().contado) }}</span>
-        <span class="rx-kpi-sub">Entró a la caja</span>
+        <span class="rx-kpi-sub">Efectivo, tarjeta o transferencia</span>
       </div>
       <div class="rx-kpi">
         <span class="rx-kpi-etiqueta"><mat-icon>bed</mat-icon>A habitaciones</span>
@@ -93,10 +93,11 @@ import { VentaDialogComponent } from './venta-dialog.component';
                     }
                   </td>
                   <td data-label="Total" class="derecha rx-num"><strong>{{ moneda(v.total) }}</strong></td>
-                  <td class="derecha">
-                    @if (v.estado === 'VIGENTE') {
+                  <td class="derecha acciones">
+                    <a mat-icon-button [routerLink]="['/ventas', v.id, 'ticket']" aria-label="Ver ticket" title="Ticket"><mat-icon>receipt</mat-icon></a>
+                    @if (v.estado === 'VIGENTE' && puedeAnular) {
                       <button mat-button type="button" class="anular" (click)="anular(v)"><mat-icon>undo</mat-icon>Anular</button>
-                    } @else {
+                    } @else if (v.estado === 'ANULADA') {
                       <span class="rx-chip neutro">Anulada</span>
                     }
                   </td>
@@ -118,6 +119,7 @@ import { VentaDialogComponent } from './venta-dialog.component';
     tr.anulada td { color: var(--text-200); }
     tr.anulada .rx-num strong { text-decoration: line-through; }
     .anular { color: #a52a2a; }
+    .acciones { white-space: nowrap; }
   `,
 })
 export class VentasComponent implements OnInit {
@@ -125,10 +127,14 @@ export class VentasComponent implements OnInit {
   private readonly dialog = inject(MatDialog);
   private readonly snack = inject(MatSnackBar);
   private readonly errorDialog = inject(ErrorDialogService);
+  private readonly router = inject(Router);
 
   readonly moneda = moneda;
   readonly hoy = hoyIso();
-  readonly puedeInventario = inject(AuthService).puede('INVENTARIO_GESTIONAR');
+  private readonly auth = inject(AuthService);
+  readonly puedeInventario = this.auth.puede('INVENTARIO_GESTIONAR');
+  /** Anular una venta es de administración o finanzas: quien vende no anula. */
+  readonly puedeAnular = this.auth.puede('ANULACIONES');
   readonly fecha = signal(this.hoy);
   readonly cargando = signal(true);
   readonly ventas = signal<Venta[]>([]);
@@ -173,8 +179,11 @@ export class VentasComponent implements OnInit {
       .afterClosed()
       .subscribe((v?: Venta | null) => {
         if (!v) return;
-        this.snack.open(v.modo === 'CONTADO' ? `Venta #${v.id} cobrada · ${moneda(v.total)}` : `Venta #${v.id} cargada a la habitación ${v.habitacion}`,
-          'OK', { duration: 3500 });
+        this.snack
+          .open(v.modo === 'CONTADO' ? `Venta #${v.id} cobrada · ${moneda(v.total)}` : `Venta #${v.id} cargada a la habitación ${v.habitacion}`,
+            'Imprimir ticket', { duration: 6000 })
+          .onAction()
+          .subscribe(() => this.router.navigate(['/ventas', v.id, 'ticket'], { queryParams: { imprimir: 1 } }));
         this.fecha.set(this.hoy);
         this.cargar();
       });

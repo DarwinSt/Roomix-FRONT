@@ -405,18 +405,56 @@
     background: #ffffff !important;
   }
 
+  // La barra superior tiene una regla con !important más específica en styles.scss: se repite el selector completo
   mat-sidenav,
   .mat-drawer,
+  .mat-drawer-backdrop,
   mat-toolbar,
   .shell-toolbar,
+  mat-toolbar.mat-primary.shell-toolbar,
   .no-imprimir,
   .mat-mdc-dialog-container {
     display: none !important;
   }
 
+  // El contenido vive en un área con scroll propio: al imprimir se suelta para que salgan todas las hojas
+  html,
+  body,
+  .mat-drawer-container,
+  .mat-sidenav-container,
+  .mat-drawer-content,
+  .mat-sidenav-content {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    position: static !important;
+    display: block !important;
+  }
+
   .mat-drawer-content,
   .mat-sidenav-content {
     margin-left: 0 !important;
+  }
+
+  .rx-tabla-wrap {
+    overflow: visible !important;
+  }
+
+  .rx-tabla tr,
+  .rx-dato {
+    break-inside: avoid;
+  }
+
+  .rx-card-titulo,
+  h1,
+  h2,
+  h3 {
+    break-after: avoid;
+  }
+
+  img {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 
   .shell-content {
@@ -630,4 +668,35 @@ mat-card.resumen-card {
 
 .visor-foto-fondo {
   background: rgba(0, 0, 0, 0.85);
+}
+
+// Factura o cuenta de un hotel que no cobra IVA
+.nota-iva span {
+  font-size: 0.82rem;
+  font-style: italic;
+  color: var(--text-200);
+}
+
+// ---------------------------------------------------------------- Forma del logo del hotel (directiva rxLogoHotel)
+// El logo va completo dentro de un recuadro blanco: ícono con esquinas redondeadas o avatar circular.
+img.rx-logo-icono,
+img.rx-logo-avatar {
+  aspect-ratio: 1 / 1 !important;
+  object-fit: contain !important;
+  max-width: none !important;
+  max-height: none !important;
+  padding: 8%;
+  box-sizing: border-box;
+  background: #ffffff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.14);
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+img.rx-logo-icono {
+  border-radius: 22%;
+}
+
+img.rx-logo-avatar {
+  border-radius: 50%;
 }

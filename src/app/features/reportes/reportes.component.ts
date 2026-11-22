@@ -14,12 +14,17 @@ import { descargarCsv, fechaCorta, moneda, porcentaje } from '../../core/utils/f
 import { COLORES_SERIE, GraficoComponent } from '../../shared/charts/grafico.component';
 import { BarrasHorizontalesComponent, ItemBarra } from '../../shared/charts/barras-horizontales.component';
 import { Periodo, PeriodoSelectorComponent } from '../../shared/periodo/periodo-selector.component';
+import { EncabezadoImpresionComponent } from '../../shared/impresion/encabezado-impresion.component';
+import { VentaService } from '../../core/services/venta.service';
+import { ConfiguracionService } from '../../core/services/configuracion.service';
+import { ReporteVentas } from '../../core/models/venta.model';
 
 type Metrica = 'ocupacion' | 'ingreso';
 
 @Component({
   selector: 'app-reportes',
-  imports: [MatButtonModule, MatButtonToggleModule, MatIconModule, MatProgressSpinnerModule, GraficoComponent, BarrasHorizontalesComponent, PeriodoSelectorComponent],
+  imports: [MatButtonModule, MatButtonToggleModule, MatIconModule, MatProgressSpinnerModule, GraficoComponent, BarrasHorizontalesComponent, PeriodoSelectorComponent,
+    EncabezadoImpresionComponent],
   template: `
     <div class="page-header row">
       <div>
@@ -39,7 +44,7 @@ type Metrica = 'ocupacion' | 'ingreso';
     @if (cargando()) {
       <div class="rx-cargando"><mat-spinner diameter="44" /></div>
     } @else if (reporte(); as r) {
-      <p class="solo-imprimir">Periodo {{ fecha(r.desde) }} – {{ fecha(r.hasta) }}</p>
+      <rx-encabezado-impresion titulo="Reporte de ocupación" [subtitulo]="'Periodo ' + fecha(r.desde) + ' – ' + fecha(r.hasta)" />
       <div class="rx-kpis">
         <div class="rx-kpi"><span class="rx-kpi-etiqueta"><mat-icon>hotel</mat-icon>Ocupación</span><span class="rx-kpi-valor">{{ pct(r.ocupacionPct) }}</span>
           <span class="rx-kpi-sub">{{ r.nochesVendidas }} de {{ r.nochesDisponibles }} noches</span></div>
@@ -86,6 +91,44 @@ type Metrica = 'ocupacion' | 'ingreso';
         </section>
       </div>
 
+      @if (ventas(); as vt) {
+        <section class="rx-card">
+          <div class="rx-card-titulo"><mat-icon>storefront</mat-icon>Tienda y minibar</div>
+          @if (vt.ventas === 0) {
+            <p class="rx-muted">No hubo ventas de productos en el periodo.</p>
+          } @else {
+            <div class="rx-kpis compactos">
+              <div class="rx-kpi"><span class="rx-kpi-etiqueta">Ventas</span><span class="rx-kpi-valor">{{ moneda(vt.ingresos) }}</span>
+                <span class="rx-kpi-sub">{{ vt.ventas }} {{ vt.ventas === 1 ? 'venta' : 'ventas' }} · {{ vt.unidades }} {{ vt.unidades === 1 ? 'producto' : 'productos' }}</span></div>
+              <div class="rx-kpi"><span class="rx-kpi-etiqueta">De contado / a habitaciones</span>
+                <span class="rx-kpi-valor">{{ moneda(vt.contado) }} / {{ moneda(vt.cargadoHabitaciones) }}</span></div>
+              <div class="rx-kpi"><span class="rx-kpi-etiqueta">Costo</span><span class="rx-kpi-valor">{{ moneda(vt.costo) }}</span></div>
+              <div class="rx-kpi"><span class="rx-kpi-etiqueta">Margen</span><span class="rx-kpi-valor">{{ moneda(vt.margen) }}</span>
+                <span class="rx-kpi-sub">{{ vt.ingresos > 0 ? pctFmt((vt.margen / vt.ingresos) * 100) : '—' }} de las ventas</span></div>
+            </div>
+            @if (!vt.costosCompletos) {
+              <p class="rx-muted aviso-costo"><mat-icon>info</mat-icon>Algunos productos no tienen costo registrado: su margen se muestra como si el costo fuera $0.</p>
+            }
+            <div class="rx-tabla-wrap">
+              <table class="rx-tabla">
+                <thead><tr><th>Producto</th><th class="derecha">Unidades</th><th class="derecha">Ventas</th><th class="derecha">Costo</th><th class="derecha">Margen</th></tr></thead>
+                <tbody>
+                  @for (p of vt.productos; track p.articuloId) {
+                    <tr>
+                      <td data-label="Producto" class="ancho">{{ p.nombre }}@if (!p.costoConocido) { <span class="rx-chip alerta">sin costo</span> }</td>
+                      <td data-label="Unidades" class="derecha">{{ p.unidades }}</td>
+                      <td data-label="Ventas" class="derecha rx-num">{{ moneda(p.ingresos) }}</td>
+                      <td data-label="Costo" class="derecha rx-num">{{ moneda(p.costo) }}</td>
+                      <td data-label="Margen" class="derecha rx-num"><strong>{{ moneda(p.margen) }}</strong></td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </section>
+      }
+
       @if (eventos(); as ev) {
         <section class="rx-card">
           <div class="rx-card-titulo"><mat-icon>celebration</mat-icon>Eventos del periodo</div>
@@ -126,6 +169,8 @@ type Metrica = 'ocupacion' | 'ingreso';
     .spacer { flex: 1; }
     .compactos { margin-bottom: 0.75rem; }
     .estados { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.75rem; }
+    .aviso-costo { display: flex; gap: 0.4rem; align-items: center; font-size: 0.82rem; margin: 0 0 0.75rem; }
+    .aviso-costo mat-icon { font-size: 1.05rem; width: 1.05rem; height: 1.05rem; }
   `,
 })
 export class ReportesComponent {
@@ -133,6 +178,7 @@ export class ReportesComponent {
   private readonly eventosService = inject(EventoService);
   private readonly errorDialog = inject(ErrorDialogService);
   private readonly auth = inject(AuthService);
+  private readonly configuracion = inject(ConfiguracionService);
 
   readonly moneda = moneda;
   readonly fecha = fechaCorta;
@@ -145,6 +191,8 @@ export class ReportesComponent {
   readonly cargando = signal(true);
   readonly reporte = signal<ReporteOcupacion | null>(null);
   readonly eventos = signal<ReporteEventos | null>(null);
+  readonly ventas = signal<ReporteVentas | null>(null);
+  private readonly ventaService = inject(VentaService);
   readonly metrica = signal<Metrica>('ocupacion');
   private periodo: Periodo | null = null;
 
@@ -160,13 +208,17 @@ export class ReportesComponent {
     this.periodo = p;
     this.cargando.set(true);
     const verEventos = this.auth.puede('EVENTOS_VER');
+    // La tienda depende del inventario: solo si el hotel tiene ese módulo
+    const verVentas = this.configuracion.modulo('INVENTARIO');
     forkJoin({
       ocupacion: this.reportes.ocupacion(p.desde, p.hasta),
       ...(verEventos ? { eventos: this.eventosService.reporte(p.desde, p.hasta) } : {}),
+      ...(verVentas ? { ventas: this.ventaService.reporte(p.desde, p.hasta) } : {}),
     }).subscribe({
-      next: (r: { ocupacion: ReporteOcupacion; eventos?: ReporteEventos }) => {
+      next: (r: { ocupacion: ReporteOcupacion; eventos?: ReporteEventos; ventas?: ReporteVentas }) => {
         this.reporte.set(r.ocupacion);
         this.eventos.set(r.eventos ?? null);
+        this.ventas.set(r.ventas ?? null);
         this.cargando.set(false);
       },
       error: (e) => {
@@ -208,6 +260,11 @@ export class ReportesComponent {
       ...r.porProcedencia.map((g) => ['Procedencia', g.nombre, g.cantidad]),
       ...r.serviciosMasVendidos.map((g) => ['Servicio', g.nombre, g.valor]),
     ];
+    const vt = this.ventas();
+    if (vt) {
+      filas.push(['Tienda y minibar', 'Ventas', vt.ingresos], ['Tienda y minibar', 'Costo', vt.costo], ['Tienda y minibar', 'Margen', vt.margen]);
+      vt.productos.forEach((p) => filas.push(['Tienda: ' + p.nombre, 'Unidades / ventas / margen', `${p.unidades} / ${p.ingresos} / ${p.margen}`]));
+    }
     descargarCsv(`reporte-${this.periodo?.desde}-${this.periodo?.hasta}.csv`, ['Sección', 'Concepto', 'Valor'], filas);
   }
 }

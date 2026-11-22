@@ -1,5 +1,4 @@
 import { ApplicationConfig, inject, provideAppInitializer, provideBrowserGlobalErrorListeners } from '@angular/core';
-import { firstValueFrom, timeout, catchError, of } from 'rxjs';
 import { ConfiguracionService } from './core/services/configuracion.service';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
@@ -25,7 +24,6 @@ export const appConfig: ApplicationConfig = {
     ...ROOMIX_DATE_PROVIDERS,
     provideMobilePlatform(),
     // Marca y módulos del hotel; si el servidor tarda, la app arranca con los datos guardados
-    provideAppInitializer(() =>
-      firstValueFrom(inject(ConfiguracionService).cargar().pipe(timeout(2500), catchError(() => of(null))))),
+    provideAppInitializer(() => inject(ConfiguracionService).cargarAlIniciar()),
   ],
 };

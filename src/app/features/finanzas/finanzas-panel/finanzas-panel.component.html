@@ -176,7 +176,7 @@
                   @if (m.pendiente) {
                     <button mat-icon-button (click)="pagar(m)" matTooltip="Registrar pago" aria-label="Registrar pago"><mat-icon>task_alt</mat-icon></button>
                   }
-                  @if (!m.automatico || m.gastoRecurrenteId) {
+                  @if ((!m.automatico || m.gastoRecurrenteId) && puedeAnular) {
                     <button mat-icon-button (click)="anular(m)" matTooltip="Anular" aria-label="Anular movimiento"><mat-icon>block</mat-icon></button>
                   }
                 }

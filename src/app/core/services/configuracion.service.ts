@@ -2,8 +2,9 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, catchError, of, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { AparienciaRequest, ConfiguracionHotel, ConfiguracionPublica, ConfiguracionRequest } from '../models/configuracion.model';
+import { AparienciaRequest, ConfiguracionHotel, ConfiguracionPublica, ConfiguracionRequest, LogoForma } from '../models/configuracion.model';
 import { TemaService } from './tema.service';
+import { HotelService } from './finanzas.service';
 import { Modulo } from '../models/permisos.model';
 
 const CLAVE = 'roomix.configuracion';
@@ -18,6 +19,7 @@ export class ConfiguracionService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiUrl}/configuracion`;
   private readonly tema = inject(TemaService);
+  private readonly hotel = inject(HotelService);
   private readonly datos = signal<ConfiguracionPublica | null>(this.leer());
 
   readonly publica = this.datos.asReadonly();
@@ -29,6 +31,7 @@ export class ConfiguracionService {
   readonly porPersona = computed(() => this.datos()?.modoCobro === 'POR_PERSONA');
   readonly cobraIva = computed(() => this.datos()?.cobraIva ?? true);
   readonly eslogan = computed(() => this.datos()?.eslogan ?? null);
+  readonly formaLogo = computed<LogoForma>(() => this.datos()?.logoForma ?? 'ORIGINAL');
 
   constructor() {
     // Colores guardados de la visita anterior: se aplican antes de que responda el servidor (sin parpadeo)
@@ -40,6 +43,32 @@ export class ConfiguracionService {
   modulo(m: Modulo): boolean {
     const d = this.datos();
     return d ? d.modulos.includes(m) : TODOS.includes(m);
+  }
+
+  private ultimaCarga = 0;
+
+  /**
+   * Al abrir la app se espera la configuración como máximo 2,5 s para no demorar la pantalla, pero la petición sigue:
+   * si el servidor tarda (Railway al despertar), los datos llegan después y se aplican igual.
+   */
+  cargarAlIniciar(): Promise<void> {
+    return new Promise<void>((resolve) => {
+      const limite = setTimeout(resolve, 2500);
+      this.refrescar(0, () => {
+        clearTimeout(limite);
+        resolve();
+      });
+    });
+  }
+
+  /** Vuelve a pedir la configuración si pasó al menos `minimoMs` desde la última vez (al volver a la pestaña, etc.). */
+  refrescar(minimoMs = 60_000, alTerminar?: () => void): void {
+    if (Date.now() - this.ultimaCarga < minimoMs) {
+      alTerminar?.();
+      return;
+    }
+    this.ultimaCarga = Date.now();
+    this.cargar().subscribe({ next: () => alTerminar?.(), error: () => alTerminar?.() });
   }
 
   cargar(): Observable<ConfiguracionPublica | null> {
@@ -68,10 +97,22 @@ export class ConfiguracionService {
     this.tema.aplicar(d?.colorPrimario, d?.colorAcento);
   }
 
-  subirLogo(archivo: File) {
+  /** Sube el logo; `sinFondo` indica que es la versión sin fondo del actual (se guarda el original para volver a él). */
+  subirLogo(archivo: File, sinFondo = false) {
     const form = new FormData();
     form.append('archivo', archivo);
-    return this.http.post<ConfiguracionHotel>(`${this.baseUrl}/logo`, form).pipe(tap(() => this.cargar().subscribe()));
+    return this.http
+      .post<ConfiguracionHotel>(`${this.baseUrl}/logo`, form, { params: sinFondo ? { sinFondo: 'true' } : {} })
+      .pipe(tap(() => this.cargar().subscribe()));
+  }
+
+  /** Vuelve al logo como se subió (deshace «quitar el fondo»). */
+  restaurarLogo() {
+    return this.http.post<ConfiguracionHotel>(`${this.baseUrl}/logo/restaurar`, {}).pipe(tap(() => this.cargar().subscribe()));
+  }
+
+  cambiarFormaLogo(forma: LogoForma) {
+    return this.http.put<ConfiguracionHotel>(`${this.baseUrl}/logo/forma`, { forma }).pipe(tap(() => this.cargar().subscribe()));
   }
 
   eliminarLogo() {
@@ -83,6 +124,8 @@ export class ConfiguracionService {
   }
 
   private guardar(c: ConfiguracionPublica): void {
+    // Cambió algo del hotel (nombre, NIT, logo…): los datos para facturas y comprobantes se vuelven a pedir
+    if (this.datos()?.logoVersion !== c.logoVersion) this.hotel.invalidar();
     this.datos.set(c);
     this.tema.aplicar(c.colorPrimario, c.colorAcento);
     try {

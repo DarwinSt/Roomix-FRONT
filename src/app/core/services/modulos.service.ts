@@ -86,6 +86,24 @@ export class AuditoriaService {
   modulos() {
     return this.http.get<string[]>(`${environment.apiUrl}/auditoria/modulos`);
   }
+
+  anulaciones(desde?: string, hasta?: string) {
+    return this.http.get<Anulacion[]>(`${environment.apiUrl}/auditoria/anulaciones`, { params: params({ desde, hasta }) });
+  }
+}
+
+/** Factura, venta o movimiento de dinero anulado, para revisión. */
+export interface Anulacion {
+  tipo: string;
+  id: number;
+  referencia: string;
+  descripcion: string | null;
+  valor: number;
+  motivo: string | null;
+  registradoPor: string | null;
+  anuladoPor: string | null;
+  fechaHora: string;
+  mismaPersona: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
