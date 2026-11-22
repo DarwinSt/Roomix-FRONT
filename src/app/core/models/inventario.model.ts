@@ -35,6 +35,8 @@ export interface ArticuloInventario {
   precioUnitario: number | null;
   /** Precio al huésped; null si no se vende. */
   precioVenta: number | null;
+  /** Versión del registro, para no pisar cambios de otra persona al guardar. */
+  version: number;
   /** cantidad × precio unitario */
   valorTotal: number | null;
   fechaHoraCreacion: string;
@@ -53,6 +55,7 @@ export interface ArticuloInventarioRequest {
   proveedor?: string | null;
   precioUnitario?: number | null;
   precioVenta?: number | null;
+  version?: number | null;
 }
 
 export interface AjustarStockRequest {

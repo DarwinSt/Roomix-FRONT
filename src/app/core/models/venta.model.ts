@@ -57,6 +57,30 @@ export interface VentaRequest {
   referencia: string | null;
 }
 
+export interface ProductoReporte {
+  articuloId: number;
+  nombre: string;
+  unidades: number;
+  ingresos: number;
+  costo: number;
+  margen: number;
+  costoConocido: boolean;
+}
+
+export interface ReporteVentas {
+  desde: string;
+  hasta: string;
+  ventas: number;
+  unidades: number;
+  ingresos: number;
+  contado: number;
+  cargadoHabitaciones: number;
+  costo: number;
+  margen: number;
+  costosCompletos: boolean;
+  productos: ProductoReporte[];
+}
+
 /** Ícono del producto según su nombre o, si no se reconoce, su categoría del inventario. */
 export function iconoProducto(nombre: string, categoria: string): string {
   const n = nombre.toLowerCase();

@@ -37,6 +37,10 @@ export interface Reserva {
   cobroPorPersona?: boolean;
   capacidadSugerida?: number | null;
   superaCapacidad?: boolean;
+  /** Último correo al huésped: ENVIADO, FALLIDO o SIN_CORREO (null: no se ha enviado). */
+  correoEstado?: 'ENVIADO' | 'FALLIDO' | 'SIN_CORREO' | null;
+  correoTipo?: 'CONFIRMACION' | 'MODIFICACION' | 'CANCELACION' | null;
+  correoFechaHora?: string | null;
 }
 
 export type CanalReserva = 'PRESENCIAL' | 'TELEFONO' | 'CORREO' | 'WHATSAPP' | 'SITIO_WEB' | 'AGENCIA';

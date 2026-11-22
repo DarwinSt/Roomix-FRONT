@@ -133,6 +133,8 @@ const TEMAS: Tema[] = [
       'Desde el detalle de una reserva en curso, «Cargar consumo» carga los productos directamente a esa habitación.',
       'Cada venta descuenta el inventario. Si hubo un error, la anula Administración o Finanzas con un motivo: los productos vuelven al inventario y el cobro o el cargo se reversan.',
       'Solo aparecen los artículos del inventario con precio de venta y stock disponible.',
+      'Cada venta tiene su ticket para entregar al huésped (botón del recibo en la lista, o «Imprimir ticket» al terminar la venta). Sirve para impresoras de recibos de 80 mm.',
+      'En Reportes, la sección Tienda y minibar muestra qué se vendió, cuánto costó y cuánto dejó cada producto en el periodo.',
     ],
   },
   {
@@ -195,7 +197,7 @@ const TEMAS: Tema[] = [
       'En Apariencia elige una paleta o los colores de tu marca y una frase de bienvenida; la vista previa muestra cómo se verá antes de aplicarlo a todos.',
       'En Aseo y mantenimiento define las acciones del checklist de cada tipo de servicio (post check-out, huésped ausente, urgente, mantenimiento…). Aplican a los servicios nuevos.',
       'Elige si cobras el alojamiento por habitación o por persona, y si el hotel cobra IVA (y su porcentaje).',
-      'Activa el correo de confirmación para que el huésped reciba los datos de su reserva al crearla (requiere que el servidor tenga el envío de correos configurado).',
+      'Activa el correo al huésped: recibe la confirmación al crear la reserva y un aviso si cambian las fechas o las personas o si se cancela (requiere que el servidor tenga el envío de correos configurado). En el detalle de la reserva ves si el correo salió y puedes reenviarlo.',
       'Indica después de cuántos meses sin actividad se borran los datos personales de los huéspedes (Ley 1581); las reservas y facturas se conservan.',
       'Los módulos contratados se ven al final; para agregar o quitar módulos comunícate con el proveedor de Roomix.',
     ],

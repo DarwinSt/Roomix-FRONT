@@ -33,6 +33,7 @@ import { MonedaDirective } from '../../../shared/directivas/moneda.directive';
 import { ConfiguracionService } from '../../../core/services/configuracion.service';
 import { VentaDialogComponent } from '../../ventas/venta-dialog.component';
 import { EncabezadoImpresionComponent } from '../../../shared/impresion/encabezado-impresion.component';
+import { SelectorOpcionesComponent } from '../../../shared/formularios/selector-opciones.component';
 @Component({
   selector: 'app-editar-reserva-dialog',
   host: { class: 'roomix-dialog-shell' },
@@ -112,7 +113,8 @@ export class EditarReservaDialogComponent {
 @Component({
   selector: 'app-abono-dialog',
   host: { class: 'roomix-dialog-shell' },
-  imports: [MonedaDirective, ReactiveFormsModule, MatDialogModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSelectModule],
+  imports: [MonedaDirective, ReactiveFormsModule, MatDialogModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule,
+    SelectorOpcionesComponent],
   template: `
     <div class="dialog-accent" aria-hidden="true"></div>
     <div mat-dialog-title class="dialog-header">
@@ -120,31 +122,34 @@ export class EditarReservaDialogComponent {
       <div class="header-text"><h2>Registrar abono</h2><p>Reserva #{{ data.reserva.id }} · saldo {{ moneda(data.resumen.saldo) }}</p></div>
     </div>
     <mat-dialog-content>
-      <form [formGroup]="form" class="dialog-form-grid">
-        <mat-form-field appearance="outline">
-          <mat-label>Valor (COP)</mat-label>
+      <form [formGroup]="form">
+        <mat-form-field appearance="outline" class="rx-monto rx-campo-completo">
+          <mat-label>Valor del abono</mat-label>
+          <span matTextPrefix>$&nbsp;</span>
           <input matInput rxMoneda formControlName="valor" />
           <mat-hint>Máximo {{ moneda(data.resumen.saldo) }}</mat-hint>
         </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Medio de pago</mat-label>
-          <mat-select formControlName="metodo" panelClass="roomix-select-panel">
-            @for (m of metodos; track m.value) { <mat-option [value]="m.value">{{ m.label }}</mat-option> }
-          </mat-select>
-        </mat-form-field>
-        <mat-form-field appearance="outline" class="full">
-          <mat-label>Referencia (opcional)</mat-label>
-          <input matInput formControlName="referencia" maxlength="80" />
-        </mat-form-field>
+        <div class="rx-atajos">
+          <button type="button" class="rx-chip-boton" (click)="form.controls.valor.setValue(data.resumen.saldo)">Todo el saldo</button>
+          @if (mitad > 0 && mitad < data.resumen.saldo) {
+            <button type="button" class="rx-chip-boton" (click)="form.controls.valor.setValue(mitad)">La mitad · {{ moneda(mitad) }}</button>
+          }
+        </div>
+        <rx-selector-opciones formControlName="metodo" [opciones]="metodos" etiqueta="Medio de pago" />
+        @if (metodo() !== 'EFECTIVO') {
+          <mat-form-field appearance="outline" class="rx-campo-completo">
+            <mat-label>Referencia (aprobación o comprobante)</mat-label>
+            <input matInput formControlName="referencia" maxlength="80" />
+          </mat-form-field>
+        }
       </form>
-      @if (error()) { <p class="error">{{ error() }}</p> }
+      @if (error()) { <p class="rx-error-dialogo"><mat-icon>error_outline</mat-icon>{{ error() }}</p> }
     </mat-dialog-content>
     <mat-dialog-actions align="end">
       <button mat-button mat-dialog-close>Cancelar</button>
-      <button mat-flat-button color="primary" (click)="guardar()">Registrar abono</button>
+      <button mat-flat-button color="primary" (click)="guardar()"><mat-icon>check</mat-icon>Registrar {{ valor() ? moneda(valor()) : 'abono' }}</button>
     </mat-dialog-actions>
   `,
-  styles: `.error { color: #c62828; font-size: 0.85rem; }`,
 })
 export class AbonoDialogComponent {
   readonly data = inject<{ reserva: Reserva; resumen: ResumenAbonos }>(MAT_DIALOG_DATA);
@@ -158,6 +163,9 @@ export class AbonoDialogComponent {
     metodo: ['EFECTIVO' as MetodoPago, Validators.required],
     referencia: [''],
   });
+  readonly mitad = Math.round(this.data.resumen.saldo / 2);
+  readonly metodo = toSignal(this.form.controls.metodo.valueChanges, { initialValue: 'EFECTIVO' as MetodoPago | null });
+  readonly valor = toSignal(this.form.controls.valor.valueChanges, { initialValue: this.data.resumen.saldo as number | null });
 
   guardar(): void {
     const v = this.form.getRawValue();
@@ -251,6 +259,23 @@ export class AbonoDialogComponent {
             <div class="rx-dato"><span>Nombre</span><strong><a [routerLink]="['/huespedes', r.huesped.id]">{{ r.huesped.nombreCompleto }}</a></strong></div>
             <div class="rx-dato"><span>Documento</span><strong>{{ r.huesped.tipoDocumento }} {{ r.huesped.numeroDocumento }}</strong></div>
             <div class="rx-dato"><span>Correo</span><strong>{{ r.huesped.email }}</strong></div>
+            <div class="rx-dato correo-reserva no-imprimir">
+              <span>Correo al huésped</span>
+              <strong>
+                @switch (r.correoEstado) {
+                  @case ('ENVIADO') { <span class="rx-chip ok">{{ tipoCorreo(r.correoTipo) }} enviado</span> }
+                  @case ('FALLIDO') { <span class="rx-chip critico">No se pudo enviar</span> }
+                  @case ('SIN_CORREO') { <span class="rx-chip neutro">Sin correo válido</span> }
+                  @default { <span class="rx-chip neutro">No enviado</span> }
+                }
+                @if (r.correoFechaHora) { <span class="sub-correo">{{ fecha(r.correoFechaHora, true) }}</span> }
+                @if (puedeOperar() && r.correoEstado !== 'SIN_CORREO') {
+                  <button mat-button type="button" class="reenviar" (click)="reenviarCorreo()" [disabled]="enviandoCorreo()">
+                    <mat-icon>forward_to_inbox</mat-icon>{{ r.correoEstado === 'ENVIADO' ? 'Reenviar' : 'Enviar' }}
+                  </button>
+                }
+              </strong>
+            </div>
             <div class="rx-dato"><span>Teléfono</span><strong>{{ r.huesped.telefono }}</strong></div>
           </div>
         </section>
@@ -392,6 +417,9 @@ export class AbonoDialogComponent {
     .pie { font-size: 0.75rem; margin-top: 1rem; }
   
     .aviso-cap { display: block; color: #b26a00; font-weight: 400; font-size: 0.78rem; }
+    .correo-reserva strong { display: flex; align-items: center; flex-wrap: wrap; gap: 0.4rem; }
+    .sub-correo { font-size: 0.75rem; font-weight: 400; color: var(--text-200); }
+    .reenviar { min-height: 30px; }
     .logo-comprobante { max-height: 64px; max-width: 160px; object-fit: contain; display: block; margin-bottom: 0.4rem; }
   `,
 })
@@ -426,6 +454,7 @@ export class ReservaDetalleComponent implements OnInit {
   readonly puedeFacturar = computed(() => this.auth.puede('FACTURAS'));
   readonly puedeServicios = computed(() => this.auth.puede('SERVICIOS_SOLICITUDES'));
   readonly puedeVender = computed(() => this.auth.puede('VENTAS'));
+  readonly enviandoCorreo = signal(false);
   readonly logoHotel = inject(ConfiguracionService).logoUrl;
   readonly hayPendiente = computed(() => (this.cuenta()?.lineas ?? []).some((l) => !l.facturado));
 
@@ -554,6 +583,27 @@ export class ReservaDetalleComponent implements OnInit {
           error: (e) => this.errorDialog.mostrarDesdeApi(e),
         });
       });
+  }
+
+  tipoCorreo(t: Reserva['correoTipo']): string {
+    return t === 'MODIFICACION' ? 'Cambio' : t === 'CANCELACION' ? 'Cancelación' : 'Confirmación';
+  }
+
+  /** Reenvía al huésped la confirmación (o el aviso de cancelación) y muestra el resultado. */
+  reenviarCorreo(): void {
+    this.enviandoCorreo.set(true);
+    this.service.reenviarCorreo(this.id).subscribe({
+      next: (r) => {
+        this.enviandoCorreo.set(false);
+        this.reserva.set(r);
+        this.snack.open(r.correoEstado === 'ENVIADO' ? 'Correo enviado al huésped' : 'No se pudo enviar el correo; revise la dirección o intente más tarde',
+          'OK', { duration: 4000 });
+      },
+      error: (e) => {
+        this.enviandoCorreo.set(false);
+        this.errorDialog.mostrarDesdeApi(e);
+      },
+    });
   }
 
   /** Productos de la tienda o el minibar cargados a esta habitación (se cobran con la factura). */

@@ -103,6 +103,11 @@ export class ReservaService {
   }
 
   /** Subtotal, descuento, IVA y abono mínimo con la misma regla que aplica el backend al confirmar. */
+  /** Reenvía al huésped el correo de la reserva (confirmación o cancelación). */
+  reenviarCorreo(id: number) {
+    return this.http.post<Reserva>(`${this.baseUrl}/${id}/correo`, {});
+  }
+
   cotizacion(q: { habitacionId: number; fechaEntrada: string; fechaSalida: string; promocionId?: number | null; canal?: CanalReserva | null; huespedId?: number | null; cantidadPersonas?: number | null }) {
     let params = new HttpParams().set('habitacionId', q.habitacionId).set('fechaEntrada', q.fechaEntrada).set('fechaSalida', q.fechaSalida);
     if (q.promocionId != null) params = params.set('promocionId', q.promocionId);

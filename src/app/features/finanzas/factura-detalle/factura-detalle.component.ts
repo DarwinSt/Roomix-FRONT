@@ -23,43 +23,44 @@ import { claseEstadoFactura } from '../facturas-list/facturas-list.component';
 /** Registro de un pago (total o abono) sobre una factura. */
 import { MonedaDirective } from '../../../shared/directivas/moneda.directive';
 import { ConfiguracionService } from '../../../core/services/configuracion.service';
+import { SelectorOpcionesComponent } from '../../../shared/formularios/selector-opciones.component';
 @Component({
   selector: 'app-pago-dialog',
   host: { class: 'roomix-dialog-shell' },
-  imports: [MonedaDirective, ReactiveFormsModule, MatDialogModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSelectModule],
+  imports: [MonedaDirective, ReactiveFormsModule, MatDialogModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule,
+    SelectorOpcionesComponent],
   template: `
     <div class="dialog-accent" aria-hidden="true"></div>
     <div mat-dialog-title class="dialog-header">
       <div class="header-icon"><mat-icon>payments</mat-icon></div>
-      <div class="header-text"><h2>Registrar pago · {{ data.numero }}</h2></div>
+      <div class="header-text"><h2>Registrar pago</h2><p>Factura {{ data.numero }} · saldo {{ moneda(data.saldo) }}</p></div>
     </div>
     <mat-dialog-content>
-      <p class="saldo">Saldo pendiente: <strong>{{ moneda(data.saldo) }}</strong></p>
-      <form [formGroup]="form" class="rx-form-grid">
-        <mat-form-field appearance="outline">
-          <mat-label>Valor</mat-label>
+      <form [formGroup]="form">
+        <mat-form-field appearance="outline" class="rx-monto rx-campo-completo">
+          <mat-label>Valor del pago</mat-label>
+          <span matTextPrefix>$&nbsp;</span>
           <input matInput rxMoneda formControlName="valor" />
-          <mat-hint>Puede ser un abono parcial</mat-hint>
+          <mat-hint>Puede ser un pago parcial</mat-hint>
         </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Método</mat-label>
-          <mat-select formControlName="metodo" panelClass="roomix-select-panel">
-            @for (m of metodos; track m.value) { <mat-option [value]="m.value">{{ m.label }}</mat-option> }
-          </mat-select>
-        </mat-form-field>
-        <mat-form-field appearance="outline" class="rx-full">
-          <mat-label>Referencia (aprobación, comprobante)</mat-label>
-          <input matInput formControlName="referencia" maxlength="80" />
-        </mat-form-field>
+        <div class="rx-atajos">
+          <button type="button" class="rx-chip-boton" (click)="form.controls.valor.setValue(data.saldo)">Todo el saldo</button>
+        </div>
+        <rx-selector-opciones formControlName="metodo" [opciones]="metodos" etiqueta="Medio de pago" />
+        @if (metodo() !== 'EFECTIVO') {
+          <mat-form-field appearance="outline" class="rx-campo-completo">
+            <mat-label>Referencia (aprobación, comprobante)</mat-label>
+            <input matInput formControlName="referencia" maxlength="80" />
+          </mat-form-field>
+        }
       </form>
-      @if (error()) { <p class="error">{{ error() }}</p> }
+      @if (error()) { <p class="rx-error-dialogo"><mat-icon>error_outline</mat-icon>{{ error() }}</p> }
     </mat-dialog-content>
     <mat-dialog-actions align="end">
       <button mat-button mat-dialog-close>Cancelar</button>
-      <button mat-flat-button color="primary" (click)="guardar()" [disabled]="guardando()">Registrar pago</button>
+      <button mat-flat-button color="primary" (click)="guardar()" [disabled]="guardando()"><mat-icon>check</mat-icon>Registrar {{ valor() ? moneda(valor()) : 'pago' }}</button>
     </mat-dialog-actions>
   `,
-  styles: `.saldo { margin: 0 0 1rem; } .error { color: #c62828; font-size: 0.85rem; margin: 0; }`,
 })
 export class PagoDialogComponent {
   readonly data = inject<{ id: number; numero: string; saldo: number }>(MAT_DIALOG_DATA);
@@ -75,6 +76,8 @@ export class PagoDialogComponent {
     metodo: ['TARJETA_CREDITO' as MetodoPago, Validators.required],
     referencia: [''],
   });
+  readonly metodo = toSignal(this.form.controls.metodo.valueChanges, { initialValue: 'TARJETA_CREDITO' as MetodoPago | null });
+  readonly valor = toSignal(this.form.controls.valor.valueChanges, { initialValue: Number(this.data.saldo) as number | null });
 
   guardar(): void {
     if (this.form.invalid) {
