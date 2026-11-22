@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { CampoFechaComponent } from '../formularios/campo-fecha.component';
 import { hoyIso, isoFecha, sumarDias } from '../../core/utils/formato.util';
 
 export interface Periodo {
@@ -15,9 +16,9 @@ type Opcion = 'mes' | 'mes-anterior' | '7' | '30' | '90' | 'anio' | 'personaliza
 /** Selector de periodo (rango de fechas) para reportes y finanzas, en una sola fila. */
 @Component({
   selector: 'rx-periodo',
-  imports: [FormsModule, MatFormFieldModule, MatInputModule, MatSelectModule],
+  imports: [FormsModule, MatFormFieldModule, MatInputModule, MatSelectModule, CampoFechaComponent],
   template: `
-    <mat-form-field appearance="outline">
+    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="periodo">
       <mat-label>Periodo</mat-label>
       <mat-select [(ngModel)]="opcion" (selectionChange)="aplicar()" panelClass="roomix-select-panel">
         <mat-option value="mes">Este mes</mat-option>
@@ -30,17 +31,11 @@ type Opcion = 'mes' | 'mes-anterior' | '7' | '30' | '90' | 'anio' | 'personaliza
       </mat-select>
     </mat-form-field>
     @if (opcion === 'personalizado') {
-      <mat-form-field appearance="outline">
-        <mat-label>Desde</mat-label>
-        <input matInput type="date" [(ngModel)]="desde" (change)="emitir()" />
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Hasta</mat-label>
-        <input matInput type="date" [(ngModel)]="hasta" (change)="emitir()" />
-      </mat-form-field>
+      <rx-campo-fecha class="fecha" etiqueta="Desde" [max]="hasta" [ngModel]="desde" (ngModelChange)="desde = $event; emitir()" />
+      <rx-campo-fecha class="fecha" etiqueta="Hasta" [min]="desde" [ngModel]="hasta" (ngModelChange)="hasta = $event; emitir()" />
     }
   `,
-  styles: `:host { display: contents; }`,
+  styles: `:host { display: contents; } .fecha { flex: 1 1 170px; max-width: 220px; }`,
 })
 export class PeriodoSelectorComponent implements OnInit {
   readonly inicial = input<Opcion>('mes');

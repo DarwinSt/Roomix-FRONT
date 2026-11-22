@@ -50,6 +50,23 @@ html {
       outline-variant: #e0e0e0,
     )
   );
+
+  // Calendario blanco y redondeado, como los diálogos (si no, toma el verde claro de la superficie)
+  @include mat.datepicker-overrides(
+    (
+      calendar-container-background-color: #ffffff,
+      calendar-container-shape: 16px,
+      calendar-container-elevation-shadow: 0 12px 32px rgba(0, 0, 0, 0.16),
+    )
+  );
+
+  // Menús desplegables (⋮) blancos y redondeados
+  @include mat.menu-overrides(
+    (
+      container-color: #ffffff,
+      container-shape: 12px,
+    )
+  );
 }
 
 html,

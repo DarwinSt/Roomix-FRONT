@@ -1,310 +1,188 @@
 <div class="page-header row">
   <div>
     <h1>Habitaciones</h1>
-    <p>Vista interactiva del estado operativo de cada habitación.</p>
-    @if (etiquetaSync()) {
-      <p class="sync-hint">
-        <mat-icon>sync</mat-icon>
-        {{ etiquetaSync() }}
-      </p>
-    }
+    <p>Estado de cada habitación y lo que hay que hacer con ella.
+      @if (etiquetaSync()) { <span class="sync"><mat-icon>sync</mat-icon>{{ etiquetaSync() }}</span> }
+    </p>
   </div>
   <div class="rx-acciones">
-    <a mat-stroked-button routerLink="/habitaciones/plano">
-      <mat-icon>grid_view</mat-icon>
-      Plano por piso
-    </a>
+    <a mat-stroked-button routerLink="/habitaciones/plano"><mat-icon>grid_view</mat-icon>Plano por piso</a>
     @if (esAdmin()) {
-      <a mat-flat-button color="primary" routerLink="/habitaciones/nueva">
-        <mat-icon>add</mat-icon>
-        Nueva habitación
-      </a>
+      <a mat-flat-button color="primary" routerLink="/habitaciones/nueva"><mat-icon>add</mat-icon>Nueva habitación</a>
     }
   </div>
 </div>
 
-@if (!loading()) {
-  <div class="resumen-estados">
+@if (!loading() && habitaciones().length) {
+  <!-- Resumen por estado: también filtra -->
+  <div class="estados" role="group" aria-label="Filtrar por estado">
     @for (e of resumenEstados(); track e.value) {
-      <button
-        type="button"
-        class="estado-chip"
-        [class]="e.cssClass"
-        [class.activo]="filtroEstado() === e.value"
-        (click)="filtrarPorEstado(e.value)"
-        [matTooltip]="filtroEstado() === e.value ? 'Quitar filtro' : 'Filtrar por ' + e.label"
-      >
-        <mat-icon>{{ e.icon }}</mat-icon>
-        <span class="chip-valor">{{ e.count }}</span>
-        <span class="chip-etiqueta">{{ e.label }}</span>
+      <button type="button" class="estado" [class]="e.cssClass" [class.activo]="filtroEstado() === e.value"
+              [attr.aria-pressed]="filtroEstado() === e.value" (click)="filtrarPorEstado(e.value)">
+        <span class="icono"><mat-icon>{{ e.icon }}</mat-icon></span>
+        <span class="cifra">{{ e.count }}</span>
+        <span class="nombre">{{ e.label }}</span>
       </button>
     }
+  </div>
+
+  <!-- Filtros en una sola fila -->
+  <div class="filtros">
+    <mat-form-field appearance="outline" class="busqueda" subscriptSizing="dynamic">
+      <mat-icon matPrefix>search</mat-icon>
+      <input matInput [ngModel]="busqueda()" (ngModelChange)="busqueda.set($event)" placeholder="Buscar por número, huésped o característica"
+             aria-label="Buscar habitación" />
+      @if (busqueda()) {
+        <button mat-icon-button matSuffix type="button" (click)="busqueda.set('')" aria-label="Limpiar búsqueda"><mat-icon>close</mat-icon></button>
+      }
+    </mat-form-field>
+    <mat-form-field appearance="outline" class="selector" subscriptSizing="dynamic">
+      <mat-label>Tipo</mat-label>
+      <mat-select panelClass="roomix-select-panel" [value]="filtroTipo()" (valueChange)="filtroTipo.set($event)">
+        <mat-option value="">Todos</mat-option>
+        @for (t of tipos; track t.value) { <mat-option [value]="t.value">{{ t.label }}</mat-option> }
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="outline" class="selector" subscriptSizing="dynamic">
+      <mat-label>Ordenar por</mat-label>
+      <mat-select panelClass="roomix-select-panel" [value]="orden()" (valueChange)="orden.set($event)">
+        @for (o of opcionesOrden; track o.value) { <mat-option [value]="o.value">{{ o.label }}</mat-option> }
+      </mat-select>
+    </mat-form-field>
+    <div class="botones-filtro">
+      @if (hayFiltros()) {
+        <button mat-button type="button" (click)="limpiarFiltros()"><mat-icon>filter_alt_off</mat-icon>Quitar filtros</button>
+      }
+      <button mat-icon-button type="button" (click)="cargar(true)" matTooltip="Actualizar" aria-label="Actualizar"><mat-icon>refresh</mat-icon></button>
+    </div>
   </div>
 }
 
-<div class="panel-filtros">
-  <mat-form-field appearance="outline" class="busqueda">
-    <mat-label>Buscar habitación</mat-label>
-    <mat-icon matPrefix>search</mat-icon>
-    <input
-      matInput
-      [ngModel]="busqueda()"
-      (ngModelChange)="busqueda.set($event)"
-      placeholder="Número, huésped, tipo, descripción…"
-    />
-    @if (busqueda()) {
-      <button mat-icon-button matSuffix type="button" (click)="busqueda.set('')" aria-label="Limpiar">
-        <mat-icon>close</mat-icon>
-      </button>
-    }
-  </mat-form-field>
-
-  <mat-form-field appearance="outline" class="tipo">
-    <mat-label>Tipo</mat-label>
-    <mat-select panelClass="roomix-select-panel" [(value)]="filtroTipo">
-      <mat-select-trigger>{{ etiquetaTipoFiltro(filtroTipo) }}</mat-select-trigger>
-      <mat-option value="">Todos los tipos</mat-option>
-      @for (t of tipos; track t.value) {
-        <mat-option [value]="t.value">
-          <span class="roomix-option">
-            <mat-icon fontIcon="king_bed"></mat-icon>
-            <span class="roomix-option-label">{{ t.label }}</span>
-          </span>
-        </mat-option>
-      }
-    </mat-select>
-  </mat-form-field>
-
-  <mat-form-field appearance="outline" class="orden">
-    <mat-label>Ordenar por</mat-label>
-    <mat-select panelClass="roomix-select-panel" [(value)]="orden">
-      <mat-select-trigger>{{ etiquetaOrden(orden) }}</mat-select-trigger>
-      @for (o of opcionesOrden; track o.value) {
-        <mat-option [value]="o.value">
-          <span class="roomix-option">
-            <mat-icon [fontIcon]="o.icon"></mat-icon>
-            <span class="roomix-option-label">{{ o.label }}</span>
-          </span>
-        </mat-option>
-      }
-    </mat-select>
-  </mat-form-field>
-
-  <button mat-stroked-button (click)="cargar(true)">
-    <mat-icon>refresh</mat-icon>
-    Actualizar
-  </button>
-  <button mat-button (click)="limpiarFiltros()">
-    <mat-icon>filter_alt_off</mat-icon>
-    Limpiar
-  </button>
-</div>
-
 @if (loading()) {
-  <div class="loading"><mat-spinner diameter="48" /></div>
+  <div class="rx-cargando"><mat-spinner diameter="44" /></div>
 } @else if (habitaciones().length === 0) {
-  <div class="empty-state">
+  <div class="vacio">
     <mat-icon>hotel</mat-icon>
-    <h2>Sin habitaciones</h2>
-    <p>Crea la primera habitación para empezar a gestionar reservas y estados.</p>
+    <h2>Aún no hay habitaciones</h2>
+    <p>Cree la primera habitación para empezar a recibir reservas.</p>
     @if (esAdmin()) {
-      <a mat-flat-button color="primary" routerLink="/habitaciones/nueva">Crear habitación</a>
+      <a mat-flat-button color="primary" routerLink="/habitaciones/nueva"><mat-icon>add</mat-icon>Crear habitación</a>
     }
   </div>
 } @else if (totalVisible() === 0) {
-  <div class="empty-state">
+  <div class="vacio">
     <mat-icon>search_off</mat-icon>
-    <h2>Sin resultados</h2>
-    <p>No hay habitaciones que coincidan con los filtros aplicados.</p>
-    <button mat-stroked-button (click)="limpiarFiltros()">Limpiar filtros</button>
+    <h2>Ninguna habitación coincide</h2>
+    <p>Pruebe con otra búsqueda o quite los filtros.</p>
+    <button mat-stroked-button (click)="limpiarFiltros()"><mat-icon>filter_alt_off</mat-icon>Quitar filtros</button>
   </div>
 } @else {
-  <p class="contador">{{ totalVisible() }} habitación(es) visible(s)</p>
+  @if (hayFiltros()) {
+    <p class="contador">{{ totalVisible() }} de {{ habitaciones().length }} habitaciones</p>
+  }
 
-  <div class="habitaciones-grid">
-    @for (h of habitacionesVisibles(); track h.id; let i = $index) {
-      <mat-card
-        class="habitacion-card"
-        [class]="meta(h.estado).fondoClass"
-        [class.expandida]="tarjetaExpandidaId() === h.id"
-        [style.animation-delay]="i * 45 + 'ms'"
-        (click)="toggleDetalle(h.id)"
-      >
-        <mat-card-header>
-          <div class="card-titulo">
-            <mat-card-title>Habitación {{ h.numero }}</mat-card-title>
-            <mat-card-subtitle>
-              {{ etiquetaTipo(h.tipoHabitacion) }}
-              @if (h.precioNoche != null) {
-                · {{ formatearMoneda(h.precioNoche) }}/noche
-              }
-            </mat-card-subtitle>
-          </div>
-          <div class="estado-badge compacto" [class]="meta(h.estado).cssClass">
-            <mat-icon>{{ meta(h.estado).icon }}</mat-icon>
-            <span>{{ etiqueta(h) }}</span>
-          </div>
-        </mat-card-header>
-
-        <mat-card-content>
-          <p class="descripcion">{{ h.descripcion }}</p>
-
-          @if (h.huesped) {
-            <p class="detalle huesped-compacto">
-              <mat-icon>person</mat-icon>
-              {{ h.huesped.nombreCompleto }}
-            </p>
-          }
-
-          @if (h.fechaEntrada && h.fechaSalida) {
-            <p class="detalle reserva-compacta">
-              <mat-icon>event</mat-icon>
-              {{ formatearFecha(h.fechaEntrada) }} → {{ formatearFecha(h.fechaSalida) }}
-              · {{ h.cantidadNoches }} noche(s)
-            </p>
-          }
-
-          @if (etiquetaMotivo(h); as motivo) {
-            <p class="detalle motivo">
-              <mat-icon>info</mat-icon>
-              {{ motivo }}
-            </p>
-          }
-
-          @if (muestraIncidencias(h)) {
-            <div class="incidencias-block" (click)="$event.stopPropagation()">
-              <div class="incidencias-block-header">
-                <span>Servicios activos</span>
-              </div>
-              @for (inc of incidenciasDe(h); track inc.id) {
-                <div class="incidencia-item">
-                  <div class="incidencia-header">
-                    <span class="incidencia-titulo">{{ inc.titulo }}</span>
-                    <a mat-button [routerLink]="['/incidencias', inc.id]">Gestionar</a>
-                  </div>
-                  <p class="incidencia-resumen">
-                    {{ resumenInc(inc) }} · {{ etiquetaInc(inc.estado) }}
-                    @if (inc.tipo === 'LIMPIEZA' && inc.contextoLimpieza) {
-                      · {{ etiquetaContextoLimp(inc.contextoLimpieza) }}
-                    }
-                  </p>
-                  <div class="incidencia-bar">
-                    <div
-                      class="incidencia-fill"
-                      [class]="'fill-' + nivelInc(progresoInc(inc))"
-                      [style.width.%]="progresoInc(inc)"
-                    ></div>
-                  </div>
-                  <span class="incidencia-pct">{{ progresoInc(inc) }}%</span>
-                </div>
-              }
-            </div>
-          }
-
-          @if (h.caracteristicas.length) {
-            <mat-chip-set class="chips-caracteristicas">
-              @for (c of h.caracteristicas; track c) {
-                <mat-chip>{{ c }}</mat-chip>
-              }
-            </mat-chip-set>
-          }
-
-          @if (tarjetaExpandidaId() === h.id) {
-            <div class="detalles-extra">
-              @if (h.huesped) {
-                <p class="detalle seccion-titulo">Huésped</p>
-                <p class="detalle">
-                  <mat-icon>person</mat-icon>
-                  {{ h.huesped.nombreCompleto }}
-                </p>
-                <p class="detalle muted">
-                  <mat-icon>badge</mat-icon>
-                  {{ h.huesped.numeroDocumento }} · {{ h.huesped.email }} · {{ h.huesped.telefono }}
-                </p>
-              }
-              @if (h.fechaEntrada && h.fechaSalida) {
-                <p class="detalle seccion-titulo">Reserva planificada</p>
-                <p class="detalle">
-                  <mat-icon>event</mat-icon>
-                  Entrada: {{ formatearFecha(h.fechaEntrada) }} · Salida: {{ formatearFecha(h.fechaSalida) }}
-                </p>
-                <p class="detalle">
-                  <mat-icon>nights_stay</mat-icon>
-                  {{ h.cantidadNoches }} noche(s) · {{ etiquetaReserva(h.estadoReserva) }}
-                </p>
-              }
-              @if (h.horaRealCheckIn) {
-                <p class="detalle seccion-titulo">Hospedaje real</p>
-                <p class="detalle">
-                  <mat-icon>login</mat-icon>
-                  Check-in real: {{ h.horaRealCheckIn | fechaRoomix }}
-                </p>
-              }
-              @if (h.horaRealCheckOut) {
-                <p class="detalle">
-                  <mat-icon>logout</mat-icon>
-                  Check-out real: {{ h.horaRealCheckOut | fechaRoomix }}
-                </p>
-              }
-              <p class="detalle muted">
-                <mat-icon>update</mat-icon>
-                Actualizado: {{ h.fechaHoraUltimaActualizacion | fechaRoomix }}
-              </p>
-            </div>
+  <div class="rejilla">
+    @for (h of habitacionesVisibles(); track h.id) {
+      <article class="tarjeta" [class]="'borde-' + meta(h.estado).cssClass" (click)="verDetalle(h)">
+        <!-- Encabezado: número o foto, tipo, precio y estado -->
+        <header>
+          @if (h.fotoIds.length) {
+            <img class="miniatura" [src]="urlFoto(h)" alt="" loading="lazy" />
           } @else {
-            <p class="ver-mas">
-              <mat-icon>expand_more</mat-icon>
-              Toca para ver detalles
-            </p>
+            <span class="miniatura numero" [class]="meta(h.estado).cssClass"><mat-icon>bed</mat-icon></span>
           }
+          <div class="titulo">
+            <h3>Habitación {{ h.numero }}</h3>
+            <span class="tipo">{{ etiquetaTipo(h.tipoHabitacion) }}@if (h.piso !== null) { · Piso {{ h.piso }} }</span>
+          </div>
+        </header>
 
-          @if (puedeOperar() && acciones(h).length) {
-            <div class="acciones-rapidas" (click)="$event.stopPropagation()">
-              <span class="acciones-label">Acciones rápidas</span>
-              <div class="acciones-botones">
-                @for (acc of acciones(h); track trackAccion(acc)) {
-                  <button
-                    mat-stroked-button
-                    type="button"
-                    class="btn-rapido"
-                    [class]="acc.cssClass"
-                    (click)="accionRapida(h, acc, $event)"
-                    [matTooltip]="acc.hint"
-                  >
-                    <mat-icon>{{ acc.icon }}</mat-icon>
-                    {{ acc.label }}
-                  </button>
-                }
-              </div>
+        <!-- Precio, capacidad y estado en una línea -->
+        <div class="datos">
+          @if (h.precioNoche !== null) { <span class="precio"><strong>{{ formatearMoneda(h.precioNoche) }}</strong> / noche</span> }
+          @if (h.capacidad) { <span matTooltip="Capacidad sugerida"><mat-icon>group</mat-icon>{{ h.capacidad }}</span> }
+          @if (h.camas) { <span [matTooltip]="h.camas === 1 ? '1 cama' : h.camas + ' camas'"><mat-icon>king_bed</mat-icon>{{ h.camas }}</span> }
+          <span class="estado-pill" [class]="meta(h.estado).cssClass"><mat-icon>{{ meta(h.estado).icon }}</mat-icon>{{ etiqueta(h) }}</span>
+        </div>
+
+        <!-- Lo que pasa ahora en la habitación -->
+        @switch (h.estado) {
+          @case ('OCUPADO') {
+            <div class="contexto ocupado">
+              <span class="persona"><mat-icon>person</mat-icon>{{ h.huesped?.nombreCompleto ?? 'Huésped' }}</span>
+              @if (h.fechaEntrada && h.fechaSalida) {
+                <span class="fechas">{{ diaMes(h.fechaEntrada) }} → {{ diaMes(h.fechaSalida) }} · {{ noches(h) }}</span>
+                @if (aviso(h.fechaSalida, 'Sale'); as a) { <span class="marca">{{ a }}</span> }
+              }
             </div>
           }
-        </mat-card-content>
+          @case ('RESERVADO') {
+            <div class="contexto reservado">
+              <span class="persona"><mat-icon>person</mat-icon>{{ h.huesped?.nombreCompleto ?? 'Reserva sin huésped' }}</span>
+              @if (h.fechaEntrada && h.fechaSalida) {
+                <span class="fechas">{{ diaMes(h.fechaEntrada) }} → {{ diaMes(h.fechaSalida) }} · {{ noches(h) }}</span>
+                @if (aviso(h.fechaEntrada, 'Llega'); as a) { <span class="marca">{{ a }}</span> }
+              }
+            </div>
+          }
+          @case ('INHABILITADO') {
+            <div class="contexto inhabilitado" (click)="$event.stopPropagation()">
+              @if (etiquetaMotivo(h); as motivo) { <span class="persona"><mat-icon>info</mat-icon>{{ motivo }}</span> }
+              @for (inc of incidenciasDe(h); track inc.id) {
+                <a class="servicio" [routerLink]="['/incidencias', inc.id]">
+                  <span class="servicio-fila"><span>{{ inc.titulo }}</span><strong>{{ progresoInc(inc) }}%</strong></span>
+                  <span class="barra"><span [class]="'nivel-' + nivelInc(progresoInc(inc))" [style.width.%]="progresoInc(inc)"></span></span>
+                  <span class="servicio-sub">{{ resumenInc(inc) }} · {{ etiquetaInc(inc.estado) }}</span>
+                </a>
+              }
+            </div>
+          }
+          @default {
+            <div class="contexto libre"><span class="persona"><mat-icon>check_circle</mat-icon>Lista para recibir huéspedes</span></div>
+          }
+        }
 
-        <mat-card-actions align="end" (click)="$event.stopPropagation()">
-          <a mat-button [routerLink]="['/habitaciones', h.id]">
-            <mat-icon>visibility</mat-icon>
-            Detalle
+        @if (h.estado !== 'INHABILITADO' && incidenciasDe(h).length) {
+          <a class="servicios-activos" [routerLink]="['/incidencias', incidenciasDe(h)[0].id]" (click)="$event.stopPropagation()">
+            <mat-icon>room_service</mat-icon>{{ incidenciasDe(h).length === 1 ? '1 servicio en curso' : incidenciasDe(h).length + ' servicios en curso' }}
           </a>
-          @if (puedeOperar() && puedeCambiarEstado(h)) {
-            <button mat-button type="button" (click)="abrirCambioEstado(h)">
-              <mat-icon>swap_horiz</mat-icon>
-              Cambiar estado
+        }
+
+        @if (h.caracteristicas.length) {
+          <div class="etiquetas">
+            @for (c of h.caracteristicas.slice(0, 3); track c) { <span>{{ c }}</span> }
+            @if (h.caracteristicas.length > 3) {
+              <span class="mas" [matTooltip]="h.caracteristicas.slice(3).join(', ')">+{{ h.caracteristicas.length - 3 }}</span>
+            }
+          </div>
+        }
+
+        <!-- Una acción principal a la vista y el resto en el menú -->
+        <footer (click)="$event.stopPropagation()">
+          @if (puedeOperar() && accionPrincipal(h); as acc) {
+            <button mat-flat-button class="principal" [class]="'accion-' + acc.tipo" type="button" (click)="accionRapida(h, acc, $event)"
+                    [matTooltip]="acc.hint">
+              <mat-icon>{{ acc.icon }}</mat-icon>{{ acc.label }}
             </button>
           }
+          <a mat-button [routerLink]="['/habitaciones', h.id]">Ver detalle</a>
           @if (puedeOperar()) {
-            <a mat-icon-button [routerLink]="['/habitaciones', h.id, 'editar']" matTooltip="Editar">
-              <mat-icon>edit</mat-icon>
-            </a>
+            <button mat-icon-button type="button" class="mas-acciones" [matMenuTriggerFor]="menu" aria-label="Más acciones"><mat-icon>more_vert</mat-icon></button>
+            <mat-menu #menu="matMenu" xPosition="before">
+              @for (acc of accionesSecundarias(h); track trackAccion(acc)) {
+                <button mat-menu-item (click)="accionRapida(h, acc, $event)"><mat-icon>{{ acc.icon }}</mat-icon>{{ acc.label }}</button>
+              }
+              @if (puedeCambiarEstado(h)) {
+                <button mat-menu-item (click)="abrirCambioEstado(h)"><mat-icon>swap_horiz</mat-icon>Cambiar estado</button>
+              }
+              <a mat-menu-item [routerLink]="['/habitaciones', h.id, 'editar']"><mat-icon>edit</mat-icon>Editar habitación</a>
+              @if (esAdmin()) {
+                <button mat-menu-item class="peligro" (click)="eliminar(h, $event)"><mat-icon>delete</mat-icon>Eliminar</button>
+              }
+            </mat-menu>
           }
-          @if (esAdmin()) {
-            <button mat-icon-button color="warn" (click)="eliminar(h, $event)" matTooltip="Eliminar">
-              <mat-icon>delete</mat-icon>
-            </button>
-          }
-        </mat-card-actions>
-      </mat-card>
+        </footer>
+      </article>
     }
   </div>
 }
-
-

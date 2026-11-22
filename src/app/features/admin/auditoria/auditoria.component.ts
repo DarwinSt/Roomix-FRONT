@@ -12,10 +12,11 @@ import { AuditoriaService } from '../../../core/services/modulos.service';
 import { ErrorDialogService } from '../../../core/services/error-dialog.service';
 import { RegistroAuditoria } from '../../../core/models/dashboard.model';
 import { descargarCsv, fechaCorta, hoyIso, isoFecha, sumarDias } from '../../../core/utils/formato.util';
+import { CampoFechaComponent } from '../../../shared/formularios/campo-fecha.component';
 
 @Component({
   selector: 'app-auditoria',
-  imports: [FormsModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSelectModule, MatProgressSpinnerModule,
+  imports: [CampoFechaComponent, FormsModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSelectModule, MatProgressSpinnerModule,
     MatTabsModule, AnulacionesComponent],
   template: `
     <div class="page-header row">
@@ -50,14 +51,8 @@ import { descargarCsv, fechaCorta, hoyIso, isoFecha, sumarDias } from '../../../
           @for (a of acciones; track a) { <mat-option [value]="a">{{ a }}</mat-option> }
         </mat-select>
       </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Desde</mat-label>
-        <input matInput type="date" [(ngModel)]="desde" (change)="buscar(0)" />
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Hasta</mat-label>
-        <input matInput type="date" [(ngModel)]="hasta" (change)="buscar(0)" />
-      </mat-form-field>
+      <rx-campo-fecha etiqueta="Desde" [ngModel]="desde" (ngModelChange)="desde = $event; buscar(0)" />
+      <rx-campo-fecha etiqueta="Hasta" [ngModel]="hasta" (ngModelChange)="hasta = $event; buscar(0)" />
       <div class="rx-toolbar-acciones">
         <button mat-flat-button color="primary" (click)="buscar(0)"><mat-icon>search</mat-icon>Buscar</button>
       </div>

@@ -16,11 +16,12 @@ import { Venta } from '../../core/models/venta.model';
 import { hoyIso, moneda } from '../../core/utils/formato.util';
 import { MotivoDialogComponent } from '../../shared/dialogs/motivo-dialog/motivo-dialog.component';
 import { VentaDialogComponent } from './venta-dialog.component';
+import { CampoFechaComponent } from '../../shared/formularios/campo-fecha.component';
 
 /** Tienda y minibar: ventas del día (de contado y cargadas a habitaciones), nueva venta y anulación. */
 @Component({
   selector: 'app-ventas',
-  imports: [FormsModule, RouterLink, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule, MatProgressSpinnerModule],
+  imports: [CampoFechaComponent, FormsModule, RouterLink, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule, MatProgressSpinnerModule],
   template: `
     <div class="page-header row">
       <div>
@@ -53,10 +54,7 @@ import { VentaDialogComponent } from './venta-dialog.component';
     <section class="rx-card">
       <div class="encabezado">
         <div class="rx-card-titulo"><mat-icon>history</mat-icon>Ventas del día</div>
-        <mat-form-field appearance="outline" class="fecha" subscriptSizing="dynamic">
-          <mat-label>Fecha</mat-label>
-          <input matInput type="date" [max]="hoy" [ngModel]="fecha()" (ngModelChange)="cambiarFecha($event)" />
-        </mat-form-field>
+        <rx-campo-fecha class="fecha" etiqueta="Fecha" [max]="hoy" [ngModel]="fecha()" (ngModelChange)="cambiarFecha($event)" />
       </div>
 
       @if (cargando()) {

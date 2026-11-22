@@ -11,6 +11,7 @@ import { FacturaService } from '../../../core/services/finanzas.service';
 import { ErrorDialogService } from '../../../core/services/error-dialog.service';
 import { ESTADOS_FACTURA, EstadoFactura, Factura, etiquetaEstadoFactura } from '../../../core/models/finanzas.model';
 import { descargarCsv, fechaCorta, moneda } from '../../../core/utils/formato.util';
+import { CampoFechaComponent } from '../../../shared/formularios/campo-fecha.component';
 
 export function claseEstadoFactura(e: EstadoFactura): string {
   return { PENDIENTE: 'alerta', PAGADA_PARCIAL: 'info', PAGADA: 'ok', ANULADA: 'critico' }[e];
@@ -18,7 +19,7 @@ export function claseEstadoFactura(e: EstadoFactura): string {
 
 @Component({
   selector: 'app-facturas-list',
-  imports: [FormsModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule, MatProgressSpinnerModule, MatSelectModule],
+  imports: [CampoFechaComponent, FormsModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule, MatProgressSpinnerModule, MatSelectModule],
   template: `
     <div class="page-header row">
       <div>
@@ -41,14 +42,8 @@ export function claseEstadoFactura(e: EstadoFactura): string {
         <mat-icon matPrefix>search</mat-icon>
         <input matInput [(ngModel)]="texto" (keyup.enter)="cargar(0)" />
       </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Desde</mat-label>
-        <input matInput type="date" [(ngModel)]="desde" (change)="cargar(0)" />
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Hasta</mat-label>
-        <input matInput type="date" [(ngModel)]="hasta" (change)="cargar(0)" />
-      </mat-form-field>
+      <rx-campo-fecha etiqueta="Desde" [ngModel]="desde" (ngModelChange)="desde = $event; cargar(0)" />
+      <rx-campo-fecha etiqueta="Hasta" [ngModel]="hasta" (ngModelChange)="hasta = $event; cargar(0)" />
     </div>
 
     @if (cargando()) {
