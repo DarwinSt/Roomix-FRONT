@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
@@ -13,14 +13,18 @@ import { AparienciaComponent } from './apariencia.component';
 import { ChecklistsComponent } from './checklists.component';
 import { ConfiguracionService } from '../../../core/services/configuracion.service';
 import { ErrorDialogService } from '../../../core/services/error-dialog.service';
-import { ConfiguracionHotel, ModoCobro } from '../../../core/models/configuracion.model';
+import { ConfiguracionHotel, LogoForma, ModoCobro } from '../../../core/models/configuracion.model';
 import { environment } from '../../../../environments/environment';
+import { LogoHotelDirective } from '../../../shared/directivas/logo-hotel.directive';
+import { MatDialog } from '@angular/material/dialog';
+import { roomixDialogConfig } from '../../../core/config/dialog.config';
+import { LogoFondoDialogComponent } from './logo-fondo-dialog.component';
 
 /** Datos, marca y opciones del hotel; módulos contratados en la licencia (solo lectura). */
 @Component({
   selector: 'app-configuracion',
   imports: [ReactiveFormsModule, MatButtonModule, MatButtonToggleModule, MatFormFieldModule, MatIconModule, MatInputModule,
-    MatProgressSpinnerModule, MatSlideToggleModule, MatTabsModule, AparienciaComponent, ChecklistsComponent],
+    MatProgressSpinnerModule, MatSlideToggleModule, MatTabsModule, AparienciaComponent, ChecklistsComponent, LogoHotelDirective],
   template: `
     <div class="page-header row">
       <div>
@@ -47,13 +51,29 @@ import { environment } from '../../../../environments/environment';
           <div class="identidad">
             <div class="logo">
               <div class="logo-marco">
-                @if (logoPreview(); as src) { <img [src]="src" alt="Logo del hotel" /> }
+                @if (logoPreview(); as src) { <img [src]="src" alt="Logo del hotel" [rxLogoHotel]="104" [rxLogoForma]="forma()" /> }
                 @else { <mat-icon>image</mat-icon><span>Sin logo</span> }
               </div>
               <input #archivo type="file" accept="image/png,image/jpeg,image/webp" hidden (change)="subirLogo($any($event.target).files)" />
               <button mat-stroked-button type="button" (click)="archivo.click()" [disabled]="subiendo()"><mat-icon>upload</mat-icon>{{ cfg()!.tieneLogo ? 'Cambiar logo' : 'Subir logo' }}</button>
               @if (cfg()!.tieneLogo) {
                 <button mat-button type="button" (click)="quitarLogo()" [disabled]="subiendo()"><mat-icon>delete</mat-icon>Quitar</button>
+              }
+              @if (cfg()!.tieneLogo) {
+                <span class="rx-etiqueta forma-titulo">Forma del logo</span>
+                <div class="formas" role="radiogroup" aria-label="Forma del logo">
+                  @for (f of formas; track f.value) {
+                    <button type="button" class="forma" role="radio" [attr.aria-checked]="forma() === f.value" [class.activa]="forma() === f.value"
+                            [disabled]="subiendo()" (click)="cambiarForma(f.value)">
+                      <img [src]="logoPreview()" alt="" [rxLogoHotel]="38" [rxLogoForma]="f.value" />
+                      <span>{{ f.label }}</span>
+                    </button>
+                  }
+                </div>
+                <button mat-stroked-button type="button" (click)="quitarFondo()" [disabled]="subiendo()"><mat-icon>auto_fix_high</mat-icon>Quitar el fondo</button>
+                @if (cfg()!.logoSinFondo) {
+                  <button mat-button type="button" (click)="restaurarLogo()" [disabled]="subiendo()"><mat-icon>undo</mat-icon>Volver al original</button>
+                }
               }
               <p class="ayuda">PNG, JPG o WebP de máximo 1 MB. Se muestra en el menú, el inicio de sesión, los comprobantes y las facturas.</p>
             </div>
@@ -195,6 +215,16 @@ import { environment } from '../../../../environments/environment';
     .logo-marco { width: 200px; height: 140px; border: 1px dashed #c5ccc8; border-radius: 12px; display: flex; flex-direction: column;
       align-items: center; justify-content: center; color: #8a948f; background: #fafcfb; overflow: hidden; }
     .logo-marco img { max-width: 100%; max-height: 100%; object-fit: contain; }
+    /* Cuadrícula de fondo: deja ver si el logo tiene partes transparentes */
+    .logo-marco { background-color: #fff; background-image: linear-gradient(45deg, #eee 25%, transparent 25%), linear-gradient(-45deg, #eee 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #eee 75%), linear-gradient(-45deg, transparent 75%, #eee 75%);
+      background-size: 14px 14px; background-position: 0 0, 0 7px, 7px -7px, -7px 0; }
+    .forma-titulo { margin: 0.5rem 0 0; }
+    .formas { display: flex; gap: 0.4rem; }
+    .forma { display: flex; flex-direction: column; align-items: center; gap: 0.25rem; padding: 0.4rem 0.45rem; min-width: 60px;
+      border: 1.5px solid var(--bg-200); border-radius: 12px; background: #fff; font: inherit; font-size: 0.72rem; cursor: pointer; color: var(--text-100); }
+    .forma img:not(.rx-logo-icono):not(.rx-logo-avatar) { height: 38px; max-width: 54px; object-fit: contain; }
+    .forma.activa { border-color: var(--primary-300); background: rgba(var(--primary-100-rgb), 0.3); color: var(--primary-400); font-weight: 600; }
     .ayuda { font-size: 0.82rem; color: #5b6660; margin: 0.25rem 0 0; }
     .etiqueta { margin: 0 0 0.5rem; font-weight: 600; }
     .modo { flex-wrap: wrap; }
@@ -224,6 +254,13 @@ export class ConfiguracionComponent implements OnInit {
   readonly logoPreview = signal<string | null>(null);
   /** 0 Hotel · 1 Apariencia · 2 Cobro · 3 Correo y datos · 4 Aseo · 5 Módulos (el botón Guardar es de 0, 2 y 3) */
   readonly pestana = signal(0);
+  readonly formas: { value: LogoForma; label: string }[] = [
+    { value: 'ORIGINAL', label: 'Original' },
+    { value: 'ICONO', label: 'Ícono' },
+    { value: 'AVATAR', label: 'Avatar' },
+  ];
+  readonly forma = computed<LogoForma>(() => this.cfg()?.logoForma ?? 'ORIGINAL');
+  private readonly dialog = inject(MatDialog);
 
   readonly form = this.fb.group({
     nombre: ['', Validators.required],
@@ -301,6 +338,50 @@ export class ConfiguracionComponent implements OnInit {
       next: (c) => {
         this.subiendo.set(false);
         this.cargar(c);
+      },
+      error: (e) => {
+        this.subiendo.set(false);
+        this.errorDialog.mostrarDesdeApi(e);
+      },
+    });
+  }
+
+  cambiarForma(forma: LogoForma): void {
+    if (forma === this.forma()) return;
+    this.subiendo.set(true);
+    this.service.cambiarFormaLogo(forma).subscribe({
+      next: (c) => {
+        this.subiendo.set(false);
+        this.cargar(c);
+      },
+      error: (e) => {
+        this.subiendo.set(false);
+        this.errorDialog.mostrarDesdeApi(e);
+      },
+    });
+  }
+
+  /** Abre el editor que quita el fondo; al guardar, el logo nuevo se ve de inmediato. */
+  quitarFondo(): void {
+    const url = this.logoPreview();
+    if (!url) return;
+    this.dialog
+      .open(LogoFondoDialogComponent, { ...roomixDialogConfig({ width: '640px' }), data: { url } })
+      .afterClosed()
+      .subscribe((ok) => {
+        if (!ok) return;
+        this.snack.open('Logo sin fondo guardado. Puede volver al original cuando quiera.', 'Cerrar', { duration: 4000 });
+        this.service.detalle().subscribe((c) => this.cargar(c));
+      });
+  }
+
+  restaurarLogo(): void {
+    this.subiendo.set(true);
+    this.service.restaurarLogo().subscribe({
+      next: (c) => {
+        this.subiendo.set(false);
+        this.cargar(c);
+        this.snack.open('Se restauró el logo original', 'Cerrar', { duration: 3000 });
       },
       error: (e) => {
         this.subiendo.set(false);

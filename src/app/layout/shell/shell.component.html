@@ -7,7 +7,7 @@
   >
     <a class="brand" routerLink="/" [attr.aria-label]="nombreHotel() + ' — Inicio'">
       @if (logoHotel(); as logo) {
-        <img [src]="logo" [alt]="nombreHotel()" class="brand-logo brand-logo-hotel" />
+        <img [src]="logo" [alt]="nombreHotel()" class="brand-logo brand-logo-hotel" [rxLogoHotel]="60" />
         <span class="brand-hotel">{{ nombreHotel() }}</span>
       } @else {
         <img [src]="logoUrl" alt="Roomix" class="brand-logo" />
@@ -50,7 +50,8 @@
             <mat-icon>menu</mat-icon>
           </button>
         }
-        <img [src]="logoHotel() ?? logoIconUrl" alt="" class="toolbar-logo" [class.toolbar-logo-hotel]="!!logoHotel()" aria-hidden="true" />
+        <img [src]="logoHotel() ?? logoIconUrl" alt="" class="toolbar-logo" [class.toolbar-logo-hotel]="!!logoHotel() && formaLogo() === 'ORIGINAL'"
+             [rxLogoHotel]="38" [rxLogoForma]="logoHotel() ? null : 'ORIGINAL'" aria-hidden="true" />
       </div>
       <span class="toolbar-title">{{ nombreHotel() === 'Roomix' ? 'Panel Roomix' : nombreHotel() }}</span>
       <div class="toolbar-trailing">

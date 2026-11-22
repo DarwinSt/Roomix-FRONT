@@ -14,9 +14,9 @@ import { extractApiErrorMessage } from '../../../core/utils/api-error.util';
 import { hoyIso, moneda } from '../../../core/utils/formato.util';
 import { ICONO_CATEGORIA } from '../../../core/models/caja.model';
 import { SelectorOpcionesComponent } from '../../../shared/formularios/selector-opciones.component';
+import { MonedaDirective } from '../../../shared/directivas/moneda.directive';
 
 /** Registro manual de un ingreso o egreso (nómina, servicios públicos, proveedores...). */
-import { MonedaDirective } from '../../../shared/directivas/moneda.directive';
 @Component({
   selector: 'app-movimiento-dialog',
   host: { class: 'roomix-dialog-shell' },

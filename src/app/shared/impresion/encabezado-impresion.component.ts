@@ -2,6 +2,7 @@ import { Component, computed, inject, input } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ConfiguracionService } from '../../core/services/configuracion.service';
 import { HotelService } from '../../core/services/finanzas.service';
+import { LogoHotelDirective } from '../../shared/directivas/logo-hotel.directive';
 
 /**
  * Encabezado de los documentos impresos (acta de caja, comprobante, reportes): logo, nombre y datos del hotel a la
@@ -10,9 +11,10 @@ import { HotelService } from '../../core/services/finanzas.service';
 @Component({
   selector: 'rx-encabezado-impresion',
   host: { class: 'solo-imprimir rx-encabezado-impresion' },
+  imports: [LogoHotelDirective],
   template: `
     <div class="hotel">
-      @if (logo(); as src) { <img [src]="src" [alt]="nombre()" /> }
+      @if (logo(); as src) { <img [src]="src" [alt]="nombre()" [rxLogoHotel]="60" /> }
       <div class="datos">
         <strong>{{ nombre() }}</strong>
         @if (hotel(); as h) {

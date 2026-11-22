@@ -14,13 +14,13 @@ import { descargarCsv, fechaCorta, moneda, porcentaje } from '../../core/utils/f
 import { COLORES_SERIE, GraficoComponent } from '../../shared/charts/grafico.component';
 import { BarrasHorizontalesComponent, ItemBarra } from '../../shared/charts/barras-horizontales.component';
 import { Periodo, PeriodoSelectorComponent } from '../../shared/periodo/periodo-selector.component';
-
-type Metrica = 'ocupacion' | 'ingreso';
-
 import { EncabezadoImpresionComponent } from '../../shared/impresion/encabezado-impresion.component';
 import { VentaService } from '../../core/services/venta.service';
 import { ConfiguracionService } from '../../core/services/configuracion.service';
 import { ReporteVentas } from '../../core/models/venta.model';
+
+type Metrica = 'ocupacion' | 'ingreso';
+
 @Component({
   selector: 'app-reportes',
   imports: [MatButtonModule, MatButtonToggleModule, MatIconModule, MatProgressSpinnerModule, GraficoComponent, BarrasHorizontalesComponent, PeriodoSelectorComponent,

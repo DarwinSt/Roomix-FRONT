@@ -19,11 +19,12 @@ import { extractApiErrorMessage } from '../../../core/utils/api-error.util';
 import { fechaCorta, moneda } from '../../../core/utils/formato.util';
 import { MotivoDialogComponent } from '../../../shared/dialogs/motivo-dialog/motivo-dialog.component';
 import { claseEstadoFactura } from '../facturas-list/facturas-list.component';
-
-/** Registro de un pago (total o abono) sobre una factura. */
 import { MonedaDirective } from '../../../shared/directivas/moneda.directive';
 import { ConfiguracionService } from '../../../core/services/configuracion.service';
 import { SelectorOpcionesComponent } from '../../../shared/formularios/selector-opciones.component';
+import { LogoHotelDirective } from '../../../shared/directivas/logo-hotel.directive';
+
+/** Registro de un pago (total o abono) sobre una factura. */
 @Component({
   selector: 'app-pago-dialog',
   host: { class: 'roomix-dialog-shell' },
@@ -99,7 +100,7 @@ export class PagoDialogComponent {
 
 @Component({
   selector: 'app-factura-detalle',
-  imports: [RouterLink, MatButtonModule, MatIconModule, MatProgressSpinnerModule],
+  imports: [RouterLink, MatButtonModule, MatIconModule, MatProgressSpinnerModule, LogoHotelDirective],
   templateUrl: './factura-detalle.component.html',
   styleUrl: './factura-detalle.component.scss',
 })

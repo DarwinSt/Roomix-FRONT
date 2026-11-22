@@ -194,6 +194,7 @@ const TEMAS: Tema[] = [
     roles: ['ADMIN'],
     pasos: [
       'Define el nombre y el logo del hotel, el NIT y los datos de contacto: aparecen en el menú, el inicio de sesión, los comprobantes y las facturas.',
+      'Elige cómo se ve el logo: Original (como viene), Ícono (cuadrado de esquinas redondeadas) o Avatar (círculo). Con «Quitar el fondo» el fondo liso del logo se vuelve transparente; si no te gusta, «Volver al original».',
       'En Apariencia elige una paleta o los colores de tu marca y una frase de bienvenida; la vista previa muestra cómo se verá antes de aplicarlo a todos.',
       'En Aseo y mantenimiento define las acciones del checklist de cada tipo de servicio (post check-out, huésped ausente, urgente, mantenimiento…). Aplican a los servicios nuevos.',
       'Elige si cobras el alojamiento por habitación o por persona, y si el hotel cobra IVA (y su porcentaje).',

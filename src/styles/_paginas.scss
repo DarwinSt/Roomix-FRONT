@@ -676,3 +676,27 @@ mat-card.resumen-card {
   font-style: italic;
   color: var(--text-200);
 }
+
+// ---------------------------------------------------------------- Forma del logo del hotel (directiva rxLogoHotel)
+// El logo va completo dentro de un recuadro blanco: ícono con esquinas redondeadas o avatar circular.
+img.rx-logo-icono,
+img.rx-logo-avatar {
+  aspect-ratio: 1 / 1 !important;
+  object-fit: contain !important;
+  max-width: none !important;
+  max-height: none !important;
+  padding: 8%;
+  box-sizing: border-box;
+  background: #ffffff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.14);
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+img.rx-logo-icono {
+  border-radius: 22%;
+}
+
+img.rx-logo-avatar {
+  border-radius: 50%;
+}

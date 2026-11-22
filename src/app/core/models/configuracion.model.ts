@@ -2,6 +2,9 @@ import { Modulo } from './permisos.model';
 
 export type ModoCobro = 'POR_HABITACION' | 'POR_PERSONA';
 
+/** Cómo se muestra el logo: como viene, ícono (esquinas redondeadas) o avatar (círculo). */
+export type LogoForma = 'ORIGINAL' | 'ICONO' | 'AVATAR';
+
 export interface ConfiguracionPublica {
   nombre: string;
   tieneLogo: boolean;
@@ -12,6 +15,7 @@ export interface ConfiguracionPublica {
   colorPrimario: string | null;
   colorAcento: string | null;
   eslogan: string | null;
+  logoForma: LogoForma | null;
 }
 
 export interface ModuloInfo {
@@ -42,6 +46,9 @@ export interface ConfiguracionHotel {
   colorPrimario: string | null;
   colorAcento: string | null;
   eslogan: string | null;
+  logoForma: LogoForma;
+  /** El logo actual es una versión sin fondo: se puede volver al original. */
+  logoSinFondo: boolean;
 }
 
 export interface AparienciaRequest {

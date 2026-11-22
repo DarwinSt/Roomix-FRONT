@@ -27,13 +27,13 @@ import { fechaCorta, hoyIso, moneda } from '../../../core/utils/formato.util';
 import { MotivoDialogComponent } from '../../../shared/dialogs/motivo-dialog/motivo-dialog.component';
 import { ConfirmDialogComponent } from '../../../shared/dialogs/confirm-dialog/confirm-dialog.component';
 import { SolicitudDialogComponent } from '../../servicios/servicio-dialogs.component';
-
-/** Editar fechas, canal y observaciones de una reserva confirmada o en curso. */
 import { MonedaDirective } from '../../../shared/directivas/moneda.directive';
 import { ConfiguracionService } from '../../../core/services/configuracion.service';
 import { VentaDialogComponent } from '../../ventas/venta-dialog.component';
 import { EncabezadoImpresionComponent } from '../../../shared/impresion/encabezado-impresion.component';
 import { SelectorOpcionesComponent } from '../../../shared/formularios/selector-opciones.component';
+
+/** Editar fechas, canal y observaciones de una reserva confirmada o en curso. */
 @Component({
   selector: 'app-editar-reserva-dialog',
   host: { class: 'roomix-dialog-shell' },

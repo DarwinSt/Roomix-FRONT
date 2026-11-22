@@ -10,6 +10,7 @@ import { HotelService } from '../../core/services/finanzas.service';
 import { ErrorDialogService } from '../../core/services/error-dialog.service';
 import { Venta } from '../../core/models/venta.model';
 import { fechaCorta, moneda } from '../../core/utils/formato.util';
+import { LogoHotelDirective } from '../../shared/directivas/logo-hotel.directive';
 
 /**
  * Ticket de una venta de la tienda o el minibar para entregar al huésped. Es angosto a propósito: sale bien en una
@@ -17,7 +18,7 @@ import { fechaCorta, moneda } from '../../core/utils/formato.util';
  */
 @Component({
   selector: 'app-ticket-venta',
-  imports: [RouterLink, MatButtonModule, MatIconModule, MatProgressSpinnerModule],
+  imports: [RouterLink, MatButtonModule, MatIconModule, MatProgressSpinnerModule, LogoHotelDirective],
   template: `
     <div class="page-header row no-imprimir">
       <div>
@@ -35,7 +36,7 @@ import { fechaCorta, moneda } from '../../core/utils/formato.util';
     } @else if (venta(); as v) {
       <article class="ticket" [class.anulada]="v.estado === 'ANULADA'">
         <header>
-          @if (logo(); as src) { <img [src]="src" [alt]="nombre()" /> }
+          @if (logo(); as src) { <img [src]="src" [alt]="nombre()" [rxLogoHotel]="56" /> }
           <strong class="hotel">{{ nombre() }}</strong>
           @if (hotel(); as h) {
             @if (h.nit) { <span>NIT {{ h.nit }}</span> }

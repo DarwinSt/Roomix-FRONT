@@ -11,6 +11,7 @@ import { extractApiErrorMessage } from '../../../core/utils/api-error.util';
 import { ROOMIX_LOGO_URL } from '../../../core/config/brand.config';
 
 import { ConfiguracionService } from '../../../core/services/configuracion.service';
+import { LogoHotelDirective } from '../../../shared/directivas/logo-hotel.directive';
 @Component({
   selector: 'app-login',
   imports: [
@@ -21,12 +22,13 @@ import { ConfiguracionService } from '../../../core/services/configuracion.servi
     MatIconModule,
     MatInputModule,
     MatProgressSpinnerModule,
+  LogoHotelDirective,
   ],
   template: `
     <div class="rx-auth">
       <div class="rx-auth-card">
         @if (logoHotel(); as logoH) {
-          <img [src]="logoH" [alt]="nombreHotel()" class="rx-auth-logo logo-hotel" />
+          <img [src]="logoH" [alt]="nombreHotel()" class="rx-auth-logo logo-hotel" [rxLogoHotel]="92" />
           <h1>Bienvenido a {{ nombreHotel() }}</h1>
           <p class="rx-auth-sub">{{ eslogan() ?? 'Administración con Roomix' }}</p>
         } @else {

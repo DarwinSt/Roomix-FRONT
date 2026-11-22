@@ -18,6 +18,7 @@ import { ConfiguracionService } from '../../core/services/configuracion.service'
 import { ItemNavegacion, NAVEGACION, navegacionPara } from '../../core/config/navegacion.config';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { etiquetaRol } from '../../core/models/auth.model';
+import { LogoHotelDirective } from '../../shared/directivas/logo-hotel.directive';
 
 const GRUPOS: { clave: ItemNavegacion['grupo']; titulo: string }[] = [
   { clave: 'operacion', titulo: 'Operación' },
@@ -39,6 +40,7 @@ const GRUPOS: { clave: ItemNavegacion['grupo']; titulo: string }[] = [
     MatMenuModule,
     MatDividerModule,
     AsyncPipe,
+    LogoHotelDirective,
   ],
   templateUrl: './shell.component.html',
   styleUrl: './shell.component.scss',
@@ -53,6 +55,7 @@ export class ShellComponent {
   /** Logo del hotel si lo configuró; si no, el de Roomix. */
   readonly logoHotel = this.configuracion.logoUrl;
   readonly nombreHotel = this.configuracion.nombreHotel;
+  readonly formaLogo = this.configuracion.formaLogo;
   readonly logoUrl = ROOMIX_LOGO_URL;
   readonly logoIconUrl = ROOMIX_LOGO_ICON_URL;
   /** Swagger del backend configurado (local, producción o APK). */

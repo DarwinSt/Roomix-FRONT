@@ -9,6 +9,7 @@ import { ConfiguracionService } from '../../../core/services/configuracion.servi
 import { ErrorDialogService } from '../../../core/services/error-dialog.service';
 import { COLORES_ROOMIX, PALETAS, TemaService, contraste, esColor, paleta } from '../../../core/services/tema.service';
 import { ConfiguracionHotel } from '../../../core/models/configuracion.model';
+import { LogoHotelDirective } from '../../../shared/directivas/logo-hotel.directive';
 
 /**
  * Apariencia del hotel: paletas listas o colores propios, frase de bienvenida y vista previa en vivo. Los colores se
@@ -16,7 +17,7 @@ import { ConfiguracionHotel } from '../../../core/models/configuracion.model';
  */
 @Component({
   selector: 'app-apariencia',
-  imports: [FormsModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule],
+  imports: [FormsModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule, LogoHotelDirective],
   template: `
     <div class="apariencia">
       <section class="rx-card opciones">
@@ -72,7 +73,10 @@ import { ConfiguracionHotel } from '../../../core/models/configuracion.model';
       <section class="vista" aria-label="Vista previa">
         <span class="rx-etiqueta">Vista previa</span>
         <div class="maqueta">
-          <div class="barra"><span class="logo">{{ nombre().charAt(0) }}</span>{{ nombre() }}</div>
+          <div class="barra">
+            @if (logo(); as src) { <img class="logo-img" [src]="src" alt="" [rxLogoHotel]="28" /> } @else { <span class="logo">{{ nombre().charAt(0) }}</span> }
+            {{ nombre() }}
+          </div>
           <div class="cuerpo">
             <div class="menu">
               <span class="item activo"><mat-icon>dashboard</mat-icon>Inicio</span>
@@ -126,6 +130,7 @@ import { ConfiguracionHotel } from '../../../core/models/configuracion.model';
     .barra { display: flex; align-items: center; gap: 0.5rem; padding: 0.7rem 0.9rem; color: #fff; font-weight: 700; font-size: 0.9rem;
       background: var(--roomix-gradient-toolbar); }
     .logo { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 8px; background: rgba(255, 255, 255, 0.2); font-size: 0.8rem; }
+    .logo-img { max-height: 28px; max-width: 70px; object-fit: contain; }
     .cuerpo { display: grid; grid-template-columns: 110px 1fr; min-height: 230px; }
     .menu { display: flex; flex-direction: column; gap: 0.2rem; padding: 0.6rem 0.4rem; background: rgba(255, 255, 255, 0.7); border-right: 1px solid var(--bg-200); }
     .item { display: flex; align-items: center; gap: 0.35rem; padding: 0.35rem 0.45rem; border-radius: 8px; font-size: 0.72rem; color: var(--text-100); }
@@ -171,6 +176,7 @@ export class AparienciaComponent implements OnInit, OnDestroy {
   private guardadoOk = false;
 
   readonly nombre = computed(() => this.cfg().nombre || 'Mi hotel');
+  readonly logo = inject(ConfiguracionService).logoUrl;
   readonly cambios = computed(() => {
     const c = this.cfg();
     return this.primario() !== (c.colorPrimario ?? COLORES_ROOMIX.primario) || this.acento() !== (c.colorAcento ?? COLORES_ROOMIX.acento)
