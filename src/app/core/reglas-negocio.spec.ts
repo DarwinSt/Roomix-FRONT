@@ -1,4 +1,5 @@
-import { iconoProducto } from './models/venta.model';
+import { iconoCategoria, iconoProducto } from './models/venta.model';
+import { unidadEnTexto } from '../features/inventario/articulo-form/articulo-form.component';
 import { PERMISOS_POR_ROL } from './models/permisos.model';
 import { NAVEGACION, navegacionPara } from './config/navegacion.config';
 import { Rol } from './models/auth.model';
@@ -53,6 +54,24 @@ describe('Reglas de negocio del frontend', () => {
       expect(iconoProducto('Llavero', 'Recuerdos')).toBe('redeem');
       expect(iconoProducto('Acondicionador 30 ml', 'Amenidades')).toBe('soap');
       expect(iconoProducto('Cosa rara', 'Otra')).toBe('inventory_2');
+    });
+
+    it('cada categoría predefinida del inventario tiene su propio ícono', () => {
+      const categorias = ['Amenidades', 'Comida', 'Limpieza', 'Mantenimiento', 'Mobiliario', 'Piscina y spa', 'Ropa blanca', 'Tecnología'];
+      const iconos = categorias.map(iconoCategoria);
+      expect(iconos).not.toContain('inventory_2');
+      expect(new Set(iconos).size).toBe(categorias.length);
+    });
+  });
+
+  describe('Unidades del inventario', () => {
+    it('nombra la unidad en singular o plural según la cantidad', () => {
+      expect(unidadEnTexto('UNIDAD', 1)).toBe('unidad');
+      expect(unidadEnTexto('UNIDAD', 12)).toBe('unidades');
+      expect(unidadEnTexto('PAR', 3)).toBe('pares');
+      expect(unidadEnTexto('LITRO', 0)).toBe('litros');
+      expect(unidadEnTexto('KILOGRAMO', 2)).toBe('kilogramos');
+      expect(unidadEnTexto(null, 5)).toBe('unidades');
     });
   });
 });

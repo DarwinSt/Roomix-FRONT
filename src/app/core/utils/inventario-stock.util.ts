@@ -29,12 +29,5 @@ export function etiquetaNivel(nivel: NivelStock): string {
   }
 }
 
-export function iconoCategoria(nombre: string): string {
-  const n = nombre.toLowerCase();
-  if (n.includes('limpieza')) return 'cleaning_services';
-  if (n.includes('mobiliario') || n.includes('mueble')) return 'chair';
-  if (n.includes('comida') || n.includes('alimento')) return 'restaurant';
-  if (n.includes('ropa') || n.includes('textil')) return 'checkroom';
-  if (n.includes('baño') || n.includes('aseo')) return 'soap';
-  return 'inventory_2';
-}
+/** Ícono según la categoría del inventario (el mismo que se usa en la tienda). */
+export { iconoCategoria } from '../models/venta.model';

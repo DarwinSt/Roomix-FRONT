@@ -1,79 +1,178 @@
-<div class="page-header">
-  <h1>{{ id ? 'Editar artículo' : 'Nuevo artículo' }}</h1>
+<div class="page-header row">
+  <div>
+    <a mat-button routerLink="/inventario" class="volver"><mat-icon>arrow_back</mat-icon>Inventario</a>
+    <h1>{{ id ? 'Editar artículo' : 'Nuevo artículo' }}</h1>
+    <p>Lo que el hotel guarda, gasta o vende: insumos de aseo, lencería, bebidas, snacks, artículos para huéspedes…</p>
+  </div>
 </div>
 
 @if (loading()) {
-  <mat-spinner />
+  <div class="rx-cargando"><mat-spinner diameter="44" /></div>
 } @else {
-  <mat-card>
-    <mat-card-content>
-      <form [formGroup]="form" (ngSubmit)="guardar()" class="form-grid">
-        <mat-form-field appearance="outline" class="full">
+  <form [formGroup]="form" (ngSubmit)="guardar()" class="contenedor" novalidate>
+    <div class="secciones">
+      <!-- 1. Qué es -->
+      <section class="seccion">
+        <header>
+          <span class="paso"><mat-icon>inventory_2</mat-icon></span>
+          <div><h2>Qué es</h2><p>Nombre y categoría con que lo buscan en el inventario y en la tienda.</p></div>
+        </header>
+        <mat-form-field appearance="outline" class="completo">
           <mat-label>Nombre</mat-label>
-          <input matInput formControlName="nombre" />
+          <input matInput formControlName="nombre" maxlength="120" placeholder="Ej. Gaseosa 400 ml" />
+          @if (error('nombre')) { <mat-error>Escriba el nombre del artículo</mat-error> }
         </mat-form-field>
-        <mat-form-field appearance="outline" class="full">
-          <mat-label>Descripción</mat-label>
-          <textarea matInput rows="2" formControlName="descripcion"></textarea>
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Categoría</mat-label>
-          <mat-select panelClass="roomix-select-panel" formControlName="categoriaId">
-            @for (c of categorias(); track c.id) {
-              <mat-option [value]="c.id">
-                <span class="roomix-option">
-                  <mat-icon fontIcon="category"></mat-icon>
-                  <span class="roomix-option-label">{{ c.nombre }}</span>
-                </span>
-              </mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Unidad</mat-label>
-          <mat-select panelClass="roomix-select-panel" formControlName="unidadMedida">
-            @for (u of unidades; track u.value) {
-              <mat-option [value]="u.value">
-                <span class="roomix-option">
-                  <mat-icon fontIcon="straighten"></mat-icon>
-                  <span class="roomix-option-label">{{ u.label }}</span>
-                </span>
-              </mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Cantidad</mat-label>
-          <input matInput type="number" formControlName="cantidad" min="0" />
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Mínimo (alerta)</mat-label>
-          <input matInput type="number" formControlName="cantidadMinima" min="0" />
-        </mat-form-field>
-        <mat-form-field appearance="outline" class="full">
-          <mat-label>Ubicación</mat-label>
-          <input matInput formControlName="ubicacion" />
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Proveedor</mat-label>
-          <input matInput formControlName="proveedor" maxlength="150" />
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Costo unitario (COP)</mat-label>
-          <input matInput rxMoneda formControlName="precioUnitario" />
-          <mat-hint>Lo que le cuesta al hotel; valoriza el inventario</mat-hint>
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Precio de venta al huésped (COP)</mat-label>
-          <mat-icon matPrefix>storefront</mat-icon>
-          <input matInput rxMoneda formControlName="precioVenta" placeholder="No se vende" />
-          <mat-hint>Si tiene precio, aparece en la Tienda y minibar</mat-hint>
-        </mat-form-field>
-        <div class="actions full">
-          <a mat-button routerLink="/inventario">Cancelar</a>
-          <button mat-flat-button color="primary" type="submit" [disabled]="saving()">Guardar</button>
+
+        <span class="rx-etiqueta" [class.con-error]="error('categoriaId')">Categoría</span>
+        @if (opcionesCategoria().length) {
+          <rx-selector-opciones formControlName="categoriaId" [opciones]="opcionesCategoria()" />
+        }
+        <div class="pie-campo">
+          @if (error('categoriaId')) { <span class="texto-error">Elija una categoría</span> }
+          <a routerLink="/inventario/categorias" class="enlace">¿No está la categoría? Créela aquí</a>
         </div>
-      </form>
-    </mat-card-content>
-  </mat-card>
+
+        <mat-form-field appearance="outline" class="completo">
+          <mat-label>Descripción</mat-label>
+          <textarea matInput rows="2" formControlName="descripcion" maxlength="500" placeholder="Marca, tamaño, color o para qué se usa"></textarea>
+          @if (error('descripcion')) { <mat-error>Escriba una descripción corta</mat-error> }
+        </mat-form-field>
+      </section>
+
+      <!-- 2. Existencias -->
+      <section class="seccion">
+        <header>
+          <span class="paso"><mat-icon>warehouse</mat-icon></span>
+          <div><h2>Existencias</h2><p>Cuánto hay, en qué unidad se cuenta y cuándo avisar que se está acabando.</p></div>
+        </header>
+        <span class="rx-etiqueta">Se cuenta por</span>
+        <rx-selector-opciones formControlName="unidadMedida" [opciones]="unidades" />
+
+        <div class="fila">
+          @if (articulo(); as a) {
+            <div class="stock-actual">
+              <span class="rx-etiqueta">Hay ahora</span>
+              <strong>{{ a.cantidad }} <small>{{ textoUnidad() }}</small></strong>
+              <button mat-stroked-button type="button" (click)="moverStock()"><mat-icon>swap_vert</mat-icon>Registrar entrada o salida</button>
+              <span class="ayuda">El stock cambia con entradas, salidas, ventas y consumos; así queda el historial.</span>
+            </div>
+          } @else {
+            <mat-form-field appearance="outline">
+              <mat-label>Cantidad inicial</mat-label>
+              <input matInput type="number" min="0" formControlName="cantidad" />
+              <span matTextSuffix>&nbsp;{{ textoUnidad() }}</span>
+              @if (error('cantidad')) { <mat-error>La cantidad no puede ser negativa</mat-error> }
+            </mat-form-field>
+          }
+          <mat-form-field appearance="outline">
+            <mat-label>Avisar cuando queden</mat-label>
+            <input matInput type="number" min="0" formControlName="cantidadMinima" placeholder="Sin aviso" />
+            <span matTextSuffix>&nbsp;o menos</span>
+            <mat-hint>Se marca como «stock bajo»</mat-hint>
+          </mat-form-field>
+        </div>
+
+        <mat-form-field appearance="outline" class="completo">
+          <mat-label>Dónde se guarda (opcional)</mat-label>
+          <mat-icon matPrefix>place</mat-icon>
+          <input matInput formControlName="ubicacion" maxlength="150" placeholder="Ej. Bodega del piso 1, estante 3" />
+        </mat-form-field>
+      </section>
+
+      <!-- 3. Compra -->
+      <section class="seccion">
+        <header>
+          <span class="paso"><mat-icon>local_shipping</mat-icon></span>
+          <div><h2>Compra</h2><p>A quién se le compra y cuánto le cuesta al hotel. Sirve para valorizar el inventario y calcular la ganancia.</p></div>
+        </header>
+        <div class="fila">
+          <mat-form-field appearance="outline">
+            <mat-label>Proveedor (opcional)</mat-label>
+            <input matInput formControlName="proveedor" maxlength="150" placeholder="Ej. Distribuidora del Huila" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Costo por {{ unidadEnSingular() }}</mat-label>
+            <span matTextPrefix>$&nbsp;</span>
+            <input matInput rxMoneda formControlName="precioUnitario" placeholder="0" />
+            <mat-hint>Lo que paga el hotel al proveedor</mat-hint>
+          </mat-form-field>
+        </div>
+      </section>
+
+      <!-- 4. Venta al huésped -->
+      <section class="seccion venta" [class.activa]="seVende()">
+        <header>
+          <span class="paso"><mat-icon>storefront</mat-icon></span>
+          <div><h2>Venta al huésped</h2><p>Gaseosas, snacks, artículos de aseo… lo que recepción vende o carga a la habitación.</p></div>
+          <mat-slide-toggle formControlName="seVende" class="interruptor" aria-label="Se vende en la tienda y minibar">
+            {{ seVende() ? 'Se vende' : 'No se vende' }}
+          </mat-slide-toggle>
+        </header>
+        @if (seVende()) {
+          <div class="fila">
+            <mat-form-field appearance="outline">
+              <mat-label>Precio de venta</mat-label>
+              <span matTextPrefix>$&nbsp;</span>
+              <input matInput rxMoneda formControlName="precioVenta" placeholder="0" />
+              @if (error('precioVenta')) { <mat-error>Indique el precio de venta</mat-error> }
+            </mat-form-field>
+            <div class="calculo" [class.perdida]="ganancia() !== null && ganancia()! <= 0">
+              @if (ganancia() === null) {
+                <mat-icon>calculate</mat-icon><span>Escriba el costo y el precio para ver la ganancia.</span>
+              } @else if (ganancia() === 0) {
+                <mat-icon>warning</mat-icon><span>Se vendería <strong>al costo</strong>: el hotel no gana nada.</span>
+              } @else if (ganancia()! < 0) {
+                <mat-icon>warning</mat-icon><span>Precio <strong>por debajo del costo</strong>: el hotel pierde {{ moneda(-ganancia()!) }} por {{ unidadEnSingular() }}.</span>
+              } @else {
+                <mat-icon>trending_up</mat-icon>
+                <span>Gana <strong>{{ moneda(ganancia()) }}</strong> por {{ unidadEnSingular() }} · margen <strong>{{ margen() }} %</strong></span>
+              }
+            </div>
+          </div>
+        } @else {
+          <p class="apagado">Actívelo para que aparezca en <strong>Tienda y minibar</strong>, en <strong>Caja → Vender productos</strong> y en
+            <strong>Cargar consumo</strong> de las reservas.</p>
+        }
+      </section>
+    </div>
+
+    <!-- Vista previa y resumen -->
+    <aside class="lateral">
+      <div class="tarjeta-lateral">
+        <span class="rx-etiqueta">{{ seVende() ? 'Así lo verá recepción al vender' : 'Vista previa' }}</span>
+        <div class="producto" [class.agotado]="estadoStock() === 'agotado'">
+          <span class="icono"><mat-icon>{{ icono() }}</mat-icon></span>
+          <span class="nombre">{{ form.controls.nombre.value || 'Nombre del artículo' }}</span>
+          @if (seVende()) {
+            <span class="precio">{{ precio() ? moneda(precio()) : '$ —' }}</span>
+          } @else {
+            <span class="no-venta">Solo inventario</span>
+          }
+          <span class="stock">{{ estadoStock() === 'agotado' ? (articulo() ? 'Agotado' : 'Sin existencias') : cantidad() + ' ' + textoUnidad() + ' disponibles' }}</span>
+        </div>
+      </div>
+
+      <div class="tarjeta-lateral resumen">
+        <span class="rx-etiqueta">Resumen</span>
+        <div class="dato">
+          <span>Estado</span>
+          <span class="rx-chip" [class]="chipEstado().clase">{{ chipEstado().texto }}</span>
+        </div>
+        <div class="dato"><span>Categoría</span><strong>{{ nombreCategoria() || '—' }}</strong></div>
+        <div class="dato"><span>Valor en inventario</span><strong>{{ valorInventario() !== null ? moneda(valorInventario()) : '—' }}</strong></div>
+        @if (seVende()) {
+          <div class="dato"><span>Margen</span><strong [class.negativo]="(margen() ?? 0) < 0">{{ margen() !== null ? margen() + ' %' : '—' }}</strong></div>
+        }
+      </div>
+    </aside>
+
+    <!-- Acciones siempre a la vista -->
+    <div class="acciones">
+      <span class="nota"><mat-icon>info</mat-icon>Los campos con * son obligatorios</span>
+      <a mat-button routerLink="/inventario">Cancelar</a>
+      <button mat-flat-button color="primary" type="submit" [disabled]="saving()">
+        <mat-icon>check</mat-icon>{{ id ? 'Guardar cambios' : 'Crear artículo' }}
+      </button>
+    </div>
+  </form>
 }
